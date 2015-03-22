@@ -1,0 +1,4 @@
+# Son Mär 22 22:17:32 CET 2015
+export PATH=/home/gerrit-builder/gerrit-tooling/gerrit-virtualenv/bin:/usr/local/bin:/usr/bin:/bin:/opt/bin:/usr/x86_64-pc-linux-gnu/gcc-bin/4.4.5:/home/gerrit-builder/gerrit-tooling/jdk1.8.0_40/bin:/home/gerrit-builder/gerrit-tooling/apache-ant-1.9.4/bin:/home/gerrit-builder/gerrit-tooling/buck/bin:/home/gerrit-builder/gerrit-tooling/watchman:/home/gerrit-builder/gerrit-tooling/apache-masen-3.3.1/bin:/home/gerrit-builder/gerrit-tooling/jdk1.8.0_40/bin:/home/gerrit-builder/gerrit-tooling/apache-ant-1.9.4/bin:/home/gerrit-builder/gerrit-tooling/buck/bin:/home/gerrit-builder/gerrit-tooling/watchman:/home/gerrit-builder/gerrit-tooling/apache-maven-3.3.1/bin
+export JAVA_HOME=/home/gerrit-builder/gerrit-tooling/jdk1.8.0_40
+export ANT_HOME=/home/gerrit-builder/gerrit-tooling/apache-ant-1.9.4
