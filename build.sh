@@ -10,10 +10,19 @@ TARGET_DIR_ABS="$ARTIFACTS_NIGHTLY_DIR_ABS/$BRANCH/$DATE"
 
 FORCE=no
 
-if [ "$1" = "--force" ]
-then
-    FORCE=yes
-fi
+while [ $# -gt 0 ]
+do
+    ARGUMENT="$1"
+    shift
+    case "$ARGUMENT" in
+        "--force" )
+            FORCE=yes
+            ;;
+        * )
+            error "Unknown argument '$ARGUMENT'"
+            ;;
+    esac
+done
 
 if [ -e "$TARGET_DIR_ABS" -a "$FORCE" = yes ]
 then
