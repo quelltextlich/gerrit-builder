@@ -10,6 +10,7 @@ TARGET_DIR_ABS="$ARTIFACTS_NIGHTLY_DIR_ABS/$BRANCH/$DATE"
 
 FORCE=no
 PULL=yes
+CHECKOUT=yes
 
 while [ $# -gt 0 ]
 do
@@ -21,6 +22,9 @@ do
             ;;
         "--no-pull" )
             PULL=no
+            ;;
+        "--no-checkout" )
+            CHECKOUT=no
             ;;
         * )
             error "Unknown argument '$ARGUMENT'"
@@ -45,7 +49,10 @@ info "Branch: $BRANCH"
 
 section "Updating gerrit"
 cd "$GERRIT_DIR_ABS"
-run_git checkout "$BRANCH"
+if [ "$CHECKOUT" = "yes" ]
+then
+    run_git checkout "$BRANCH"
+fi
 if [ "$PULL" = "yes" ]
 then
     run_git pull --recurse-submodules=yes
@@ -72,7 +79,10 @@ do
     section "Updating $EXTRA_PLUGIN_NAME"
 
     pushd "$EXTRA_PLUGIN_DIR_ABS" >/dev/null
-    run_git checkout "$BRANCH"
+    if [ "$CHECKOUT" = "yes" ]
+    then
+        run_git checkout "$BRANCH"
+    fi
     if [ "$PULL" = "yes" ]
     then
         run_git pull
