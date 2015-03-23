@@ -40,8 +40,8 @@ BRANCH=master
 
 
 #---------------------------------------------------------------------
-mkdir -p "ARTIFACTS_DIR_ABS"
-mkdir -p "ARTIFACTS_NIGHTLY_DIR_ABS"
+mkdir -p "$ARTIFACTS_DIR_ABS"
+mkdir -p "$ARTIFACTS_NIGHTLY_DIR_ABS"
 
 #---------------------------------------------------------------------
 error() {
