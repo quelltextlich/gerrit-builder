@@ -9,6 +9,7 @@ DATE="$(date +'%Y-%m-%d')"
 TARGET_DIR_ABS="$ARTIFACTS_NIGHTLY_DIR_ABS/$BRANCH/$DATE"
 
 FORCE=no
+PULL=yes
 
 while [ $# -gt 0 ]
 do
@@ -17,6 +18,9 @@ do
     case "$ARGUMENT" in
         "--force" )
             FORCE=yes
+            ;;
+        "--no-pull" )
+            PULL=no
             ;;
         * )
             error "Unknown argument '$ARGUMENT'"
@@ -42,7 +46,10 @@ info "Branch: $BRANCH"
 section "Updating gerrit"
 cd "$GERRIT_DIR_ABS"
 run_git checkout "$BRANCH"
-run_git pull --recurse-submodules=yes
+if [ "$PULL" = "yes" ]
+then
+    run_git pull --recurse-submodules=yes
+fi
 describe_repo
 
 
@@ -66,7 +73,10 @@ do
 
     pushd "$EXTRA_PLUGIN_DIR_ABS" >/dev/null
     run_git checkout "$BRANCH"
-    run_git pull
+    if [ "$PULL" = "yes" ]
+    then
+        run_git pull
+    fi
     describe_repo
     popd >/dev/null
 
