@@ -26,6 +26,10 @@ do
         "--no-checkout" )
             CHECKOUT=no
             ;;
+        "--no-repo-mangling" )
+            CHECKOUT=no
+            PULL=no
+            ;;
         * )
             error "Unknown argument '$ARGUMENT'"
             ;;
