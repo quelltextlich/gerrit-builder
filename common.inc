@@ -9,6 +9,8 @@ SCRIPT_DIR_ABS="$PWD"
 SCRIPT_ARGUMENTS=( "$@" )
 #---------------------------------------------------------------------
 
+IMAGE_BASE_URL="http://builds.quelltextlich.at/images"
+
 ANT_DIR_ABS="$SCRIPT_DIR_ABS/apache-ant"
 BUCK_DIR_ABS="$SCRIPT_DIR_ABS/buck"
 GERRIT_DIR_ABS="$SCRIPT_DIR_ABS/gerrit"
@@ -117,6 +119,7 @@ run_buck_build() {
     local DESCRIPTION="$1"
     local BUCK_TARGET="$2"
     local BUCK_GENERATED_FILE_RELBG="$3"
+    local STATUS="failed"
 
     local SOURCE_FILE_ABS="$GERRIT_DIR_ABS/buck-out/gen/$BUCK_GENERATED_FILE_RELBG"
     local TARGET_FILE_ABS="$TARGET_FILE_DIR_ABS/$(basename "$BUCK_GENERATED_FILE_RELBG")"
@@ -124,20 +127,68 @@ run_buck_build() {
     local LOG_FILE_ABS="$GERRIT_DIR_ABS/buck-out/log/buck-0.log"
 
     section "Building $DESCRIPTION"
+
     if "$BUCK_DIR_ABS/bin/buck" build "$BUCK_TARGET"
     then
         if [ -e "$SOURCE_FILE_ABS" ]
         then
             cp "$SOURCE_FILE_ABS" "$TARGET_FILE_ABS"
+            STATUS="ok"
+            BUCK_BUILD_FAILED=no
         else
             error "Could not find artifact $SOURCE_FILE_ABS for $DESCRIPTION"
         fi
-    else
-        if [ -e "$LOG_FILE_ABS" ]
-        then
-            cp "$LOG_FILE_ABS" "$TARGET_FILE_ABS.error_log.txt"
-        else
-            error "Could not build $DESCRIPTION, but log file '$LOG_FILE_ABS' does not exist either"
-        fi
     fi
+
+    if [ -e "$LOG_FILE_ABS" ]
+    then
+        cp "$LOG_FILE_ABS" "$TARGET_FILE_ABS.buck_log.txt"
+    else
+        error "Could not build $DESCRIPTION, but log file '$LOG_FILE_ABS' does not exist either"
+    fi
+
+    echo_file_target_html "$STATUS" "$(basename "$TARGET_FILE_ABS")" "$BUCK_TARGET"
+}
+
+#---------------------------------------------------------------------
+echo_file_target_html() {
+    local STATUS="$1"
+    local ARTIFACT_FILE_RELF="$2"
+    local BUCK_TARGET="$3"
+
+    local ARTIFACT_CELL=
+    if [ -e "$TARGET_DIR_ABS/$FILES_DIR_RELT/$ARTIFACT_FILE_RELF" ]
+    then
+        ARTIFACT_CELL="<a href=\"$FILES_DIR_RELT/$ARTIFACT_FILE_RELF\">$ARTIFACT_FILE_RELF</a>"
+    else
+        ARTIFACT_CELL="$ARTIFACT_FILE_RELF"
+    fi
+
+    local BUCK_LOG_CELL="---"
+    local BUCK_TARGET_CELL="---"
+    if [ -n "$BUCK_TARGET" ]
+    then
+        BUCK_LOG_CELL="<a href=\"$FILES_DIR_RELT/$ARTIFACT_FILE_RELF.buck_log.txt\">View buck log</a>"
+        BUCK_TARGET_CELL="$BUCK_TARGET"
+    fi
+
+    cat_target_html <<EOF
+
+  <tr>
+    <td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" /> $STATUS</td>
+    <th class="left th-semi-dark">$ARTIFACT_CELL</th>
+    <td>$BUCK_LOG_CELL</td>
+    <td>$BUCK_TARGET_CELL</td>
+  </tr>
+EOF
+}
+
+#---------------------------------------------------------------------
+echo_target_html() {
+    echo "$@" | cat_target_html  >>"$TARGET_DIR_ABS/index.html"
+}
+
+#---------------------------------------------------------------------
+cat_target_html() {
+    cat >>"$TARGET_DIR_ABS/index.html"
 }

@@ -76,6 +76,49 @@ mkdir -p "$TARGET_FILE_DIR_ABS"
 info "Date: $DATE"
 info "Branch: $BRANCH"
 
+cat_target_html <<EOF
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+      <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <title>$DATE gerrit $BRANCH build</title>
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+  <meta name="description" content="Build of $BRANCH commitish of gerrit from $DATE" />
+  <meta name="keywords" content="gerrit, jar, $BRANCH" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <style type="text/css">
+.left {
+  text-align: left;
+}
+table, tr, th, td {
+  border-collapse: collapse;
+  border: 1px solid black;
+}
+th {
+  background-color: #ddd;
+}
+.th-semi-dark {
+  background-color: #eee;
+}
+  </style>
+</head>
+<body>
+
+<h1>$DATE build of $BRANCH of gerrit</h1>
+
+<p><a href="..">Go to parent directory</a></p>
+
+<p><a href="$FILES_DIR_RELT">View all files</a></p>
+
+<table>
+<tr>
+<th>Status</th>
+<th>Artifact</th>
+<th>Buck log</th>
+<th>Buck target</th>
+</tr>
+EOF
+
 section "Updating gerrit"
 cd "$GERRIT_DIR_ABS"
 if [ "$CHECKOUT" = "yes" ]
@@ -145,11 +188,23 @@ do
     run_buck_build "$EXTRA_PLUGIN_NAME" "plugins/$EXTRA_PLUGIN_NAME:$EXTRA_PLUGIN_NAME" "plugins/$EXTRA_PLUGIN_NAME/$EXTRA_PLUGIN_NAME.jar"
 done
 
+#section "Building api"
+#echo run_buck build api
+
 pushd "$TARGET_FILE_DIR_ABS" >/dev/null
 sha1sum * >sha1sums.txt
 popd >/dev/null
 
-#section "Building api"
-#echo run_buck build api
+echo_file_target_html "ok" "sha1sums.txt"
+echo_file_target_html "ok" "build_description.json"
+
+echo_target_html "</table>"
+
+echo_target_html "<p><a href=\"$FILES_DIR_RELT\">View all files</a></p>"
+
+cat_target_html <<EOF
+</body>
+</html>
+EOF
 
 finalize
