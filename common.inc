@@ -112,7 +112,7 @@ run_buck_build() {
     if "$BUCK_DIR_ABS/bin/buck" build "$BUCK_TARGET"
     then
         if [ -e "$SOURCE_FILE_ABS" ]
-        then    
+        then
             cp "$SOURCE_FILE_ABS" "$TARGET_FILE_ABS"
         else
             error "Could not find artifact $SOURCE_FILE_ABS for $DESCRIPTION"
