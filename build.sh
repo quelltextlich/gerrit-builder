@@ -4,7 +4,7 @@
 source "$(dirname "$0")/common.inc"
 #---------------------------------------------------------------------
 
-DATE="$(date +'%Y-%m-%d')"
+DATE="$(date --utc +'%Y-%m-%d')"
 
 FORCE=no
 PULL=yes
