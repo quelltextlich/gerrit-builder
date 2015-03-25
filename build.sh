@@ -113,6 +113,16 @@ th {
 
 <p><a href="$FILES_DIR_RELT">View all files</a></p>
 
+<h2 id="summary">Build summary</h2>
+
+<table>
+<tr class="failed"><th class="th-failed">Build status</th><td><img src="$IMAGE_BASE_URL/failed.png" alt="Build failed" /> failed</td></tr>
+<tr><th>Build date</th><td>$DATE</td></tr>
+<tr><th>Commitish</th><td>$BRANCH</td></tr>
+</table>
+
+<h2 id="artifacts">Artifacts</h2>
+
 <table>
 <tr>
 <th>Status</th>
@@ -205,8 +215,15 @@ echo_target_html "</table>"
 
 HTML_FAILED_MARKER_PRE=
 HTML_FAILED_MARKER_POST=
-if [ "$ARTIFACTS_FAILED" != "0" ]
+STATUS=failed
+if [ "$ARTIFACTS_FAILED" = "0" ]
 then
+    STATUS=ok
+else
+    if [ "$ARTIFACTS_OK" != "0" ]
+    then
+        STATUS="failed partially"
+    fi
     HTML_FAILED_MARKER_PRE="<span class=\"failed\">"
     HTML_FAILED_MARKER_POST="</span>"
 fi
@@ -220,5 +237,7 @@ cat_target_html <<EOF
 </body>
 </html>
 EOF
+
+sed -i -e '/Build.status/s/failed/'"$STATUS"'/g' "$TARGET_DIR_ABS/index.html"
 
 finalize
