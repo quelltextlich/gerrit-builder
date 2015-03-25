@@ -100,6 +100,9 @@ th {
 .th-semi-dark {
   background-color: #eee;
 }
+.failed, .th-failed {
+  background-color: #ffaaaa;
+}
   </style>
 </head>
 <body>
