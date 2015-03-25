@@ -95,7 +95,8 @@ describe_repo() {
 "
     fi
 
-    REPO_DESCRIPTIONS="$REPO_DESCRIPTIONS$(basename "$PWD")	$REPO_DESCRIPTION"
+    local REPO_NAME="$(git config --get 'remote.origin.url' | cut -f 4- -d /)"
+    REPO_DESCRIPTIONS="$REPO_DESCRIPTIONS$REPO_NAME	$REPO_DESCRIPTION"
 }
 
 #---------------------------------------------------------------------
