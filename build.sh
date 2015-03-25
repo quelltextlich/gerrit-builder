@@ -138,6 +138,4 @@ popd >/dev/null
 #section "Building api"
 #echo run_buck build api
 
-finalize "$0"
-
-
+finalize
