@@ -78,7 +78,7 @@ if [ "$PULL" = "yes" ]
 then
     run_git pull --recurse-submodules=yes
 fi
-describe_repo
+describe_repo "withdocs.war"
 
 
 BUCK_WANTED_VERSION="$(cat "$GERRIT_DIR_ABS/.buckversion")"
@@ -108,7 +108,7 @@ do
     then
         run_git pull
     fi
-    describe_repo
+    describe_repo "$EXTRA_PLUGIN_NAME.jar"
     popd >/dev/null
 
     if [ ! -e "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME" ]

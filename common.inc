@@ -79,6 +79,7 @@ run_git() {
 
 #---------------------------------------------------------------------
 describe_repo() {
+    local ARTIFACT="$1"
     local REPO_DESCRIPTION="$(run_git describe --dirty --long 2>/dev/null || true)"
     if [ -z "$REPO_DESCRIPTION" ]
     then
@@ -101,7 +102,9 @@ describe_repo() {
     local REPO_NAME="$(git config --get 'remote.origin.url' | cut -f 4- -d /)"
     local REPO_NAME_PAD="${BLANK:0:$((24-${#REPO_NAME}))}"
     local REPO_DESCRIPTION_PAD="${BLANK:0:$((24-${#REPO_DESCRIPTION}))}"
-    REPO_DESCRIPTIONS="$REPO_DESCRIPTIONS  \"$REPO_NAME\": $REPO_NAME_PAD { \"commit\": \"$REPO_DESCRIPTION\"$REPO_DESCRIPTION_PAD}"
+
+    local ARTIFACT_PAD="${BLANK:0:$((20-${#ARTIFACT}))}"
+    REPO_DESCRIPTIONS="$REPO_DESCRIPTIONS  \"$REPO_NAME\": $REPO_NAME_PAD { \"commit\": \"$REPO_DESCRIPTION\",$REPO_DESCRIPTION_PAD \"expected_artifacts\": [ \"$ARTIFACT\" ]$ARTIFACT_PAD}"
 }
 
 #---------------------------------------------------------------------
