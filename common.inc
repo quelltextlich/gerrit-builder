@@ -157,10 +157,21 @@ echo_file_target_html() {
     local ARTIFACT_FILE_RELF="$2"
     local BUCK_TARGET="$3"
 
+    local SIZE_CELL="---"
     local ARTIFACT_CELL=
     if [ -e "$TARGET_DIR_ABS/$FILES_DIR_RELT/$ARTIFACT_FILE_RELF" ]
     then
         ARTIFACT_CELL="<a href=\"$FILES_DIR_RELT/$ARTIFACT_FILE_RELF\">$ARTIFACT_FILE_RELF</a>"
+        local SIZE="$(stat -c%s "$TARGET_DIR_ABS/$FILES_DIR_RELT/$ARTIFACT_FILE_RELF")"
+        if [ -n "$SIZE" ]
+        then
+            if [ "$SIZE" -lt 2000000 ]
+            then
+                SIZE_CELL="$((SIZE / 1000 + 1)) KB"
+            else
+                SIZE_CELL="$((SIZE / 1000 / 1000 + 1)) MB"
+            fi
+        fi
     else
         ARTIFACT_CELL="$ARTIFACT_FILE_RELF"
     fi
@@ -178,6 +189,7 @@ echo_file_target_html() {
   <tr class="$STATUS">
     <td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" /> $STATUS</td>
     <th class="left th-semi-dark th-$STATUS">$ARTIFACT_CELL</th>
+    <td class="right">$SIZE_CELL</td>
     <td>$BUCK_LOG_CELL</td>
     <td>$BUCK_TARGET_CELL</td>
   </tr>

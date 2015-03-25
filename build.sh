@@ -92,6 +92,9 @@ cat_target_html <<EOF
 .left {
   text-align: left;
 }
+.right {
+  text-align: right;
+}
 table, tr, th, td {
   border-collapse: collapse;
   border: 1px solid black;
@@ -127,6 +130,7 @@ $HTML_SPLIT
 <tr>
 <th>Status</th>
 <th>Artifact</th>
+<th>Size</th>
 <th>Buck log</th>
 <th>Buck target</th>
 </tr>
