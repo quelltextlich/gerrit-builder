@@ -177,13 +177,11 @@ echo_file_target_html() {
     fi
 
     local BUCK_LOG_CELL="---"
-    local BUCK_TARGET_CELL="---"
     local REPO_CELL="---"
     local COMMIT_CELL="---"
     if [ -n "$BUCK_TARGET" ]
     then
         BUCK_LOG_CELL="<a href=\"$FILES_DIR_RELT/$ARTIFACT_FILE_RELF.buck_log.txt\">View buck log</a>"
-        BUCK_TARGET_CELL="$BUCK_TARGET"
 
         local REPO="$(cut -f 1 -d : <<<"$BUCK_TARGET")"
         if [ "$REPO" = "//" ]
@@ -204,7 +202,6 @@ echo_file_target_html() {
     <th class="left th-semi-dark th-$STATUS">$ARTIFACT_CELL</th>
     <td class="right">$SIZE_CELL</td>
     <td>$BUCK_LOG_CELL</td>
-    <td>$BUCK_TARGET_CELL</td>
     <td>$REPO_CELL</td>
     <td>$COMMIT_CELL</td>
   </tr>
