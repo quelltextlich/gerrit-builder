@@ -99,6 +99,10 @@ table, tr, th, td {
   border-collapse: collapse;
   border: 1px solid black;
 }
+th, td {
+  padding-left: 0.4em;
+  padding-right: 0.4em;
+}
 th {
   background-color: #ddd;
 }
