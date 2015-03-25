@@ -117,9 +117,10 @@ do
     fi
 done
 
-cat >"$TARGET_DIR_ABS/build_description.txt" <<EOF
-#Project	commit
+cat >"$TARGET_DIR_ABS/build_description.json" <<EOF
+{
 $REPO_DESCRIPTIONS
+}
 EOF
 
 run_buck_build "gerrit" "//:withdocs" "withdocs.war"
@@ -132,7 +133,7 @@ do
 done
 
 pushd "$TARGET_DIR_ABS" >/dev/null
-sha1sum *.war *.jar *.txt >sha1sums.txt
+sha1sum * >sha1sums.txt
 popd >/dev/null
 
 #section "Building api"

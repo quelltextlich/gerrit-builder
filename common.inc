@@ -91,12 +91,17 @@ describe_repo() {
 
     if [ -n "$REPO_DESCRIPTIONS" ]
     then
-        REPO_DESCRIPTIONS="$REPO_DESCRIPTIONS
+        REPO_DESCRIPTIONS="$REPO_DESCRIPTIONS,
 "
     fi
 
+    local BLANK="          "
+    BLANK="$BLANK$BLANK$BLANK$BLANK$BLANK$BLANK$BLANK$BLANK"
+
     local REPO_NAME="$(git config --get 'remote.origin.url' | cut -f 4- -d /)"
-    REPO_DESCRIPTIONS="$REPO_DESCRIPTIONS$REPO_NAME	$REPO_DESCRIPTION"
+    local REPO_NAME_PAD="${BLANK:0:$((24-${#REPO_NAME}))}"
+    local REPO_DESCRIPTION_PAD="${BLANK:0:$((24-${#REPO_DESCRIPTION}))}"
+    REPO_DESCRIPTIONS="$REPO_DESCRIPTIONS  \"$REPO_NAME\": $REPO_NAME_PAD { \"commit\": \"$REPO_DESCRIPTION\"$REPO_DESCRIPTION_PAD}"
 }
 
 #---------------------------------------------------------------------
