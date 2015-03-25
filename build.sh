@@ -133,6 +133,8 @@ $HTML_SPLIT
 <th>Size</th>
 <th>Buck log</th>
 <th>Buck target</th>
+<th>Repository</th>
+<th>Commit</th>
 </tr>
 EOF
 

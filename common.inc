@@ -178,10 +178,23 @@ echo_file_target_html() {
 
     local BUCK_LOG_CELL="---"
     local BUCK_TARGET_CELL="---"
+    local REPO_CELL="---"
+    local COMMIT_CELL="---"
     if [ -n "$BUCK_TARGET" ]
     then
         BUCK_LOG_CELL="<a href=\"$FILES_DIR_RELT/$ARTIFACT_FILE_RELF.buck_log.txt\">View buck log</a>"
         BUCK_TARGET_CELL="$BUCK_TARGET"
+
+        local REPO="$(cut -f 1 -d : <<<"$BUCK_TARGET")"
+        if [ "$REPO" = "//" ]
+        then
+            REPO="gerrit"
+        fi
+        pushd "$SCRIPT_DIR_ABS/$REPO" >/dev/null
+        local COMMIT_HASH="$(git rev-parse HEAD)"
+        popd  >/dev/null
+        REPO_CELL="<a href=\"https://gerrit-review.googlesource.com/#/admin/projects/$REPO\">$REPO</a>"
+        COMMIT_CELL="<a href=\"https://gerrit.googlesource.com/$REPO/+/$COMMIT_HASH\"><code>${COMMIT_HASH:0:8}</code></a>"
     fi
 
     cat_target_html <<EOF
@@ -192,6 +205,8 @@ echo_file_target_html() {
     <td class="right">$SIZE_CELL</td>
     <td>$BUCK_LOG_CELL</td>
     <td>$BUCK_TARGET_CELL</td>
+    <td>$REPO_CELL</td>
+    <td>$COMMIT_CELL</td>
   </tr>
 EOF
 
