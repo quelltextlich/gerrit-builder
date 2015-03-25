@@ -12,11 +12,28 @@ FORCE=no
 PULL=yes
 CHECKOUT=yes
 
+print_help() {
+    cat <<EOF
+$0 ARGUMENTS
+
+ARGUMENTS:
+  --help             - prints this page
+  --force            - Overwrite eventual existing artifacts target directory
+  --no-pull          - Don't 'git pull' before building
+  --no-checkout      - Don't 'git checkout' before building
+  --no-repo-mangling - Neither 'git checkout' nor 'git pull' before building
+EOF
+}
+
 while [ $# -gt 0 ]
 do
     ARGUMENT="$1"
     shift
     case "$ARGUMENT" in
+        "--help" | "-h" | "-?" )
+            print_help
+            exit 0
+            ;;
         "--force" )
             FORCE=yes
             ;;
