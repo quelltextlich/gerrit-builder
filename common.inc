@@ -35,8 +35,9 @@ PATH="$PATH:$MAVEN_DIR_ABS/bin"
 #---------------------------------------------------------------------
 BRANCH=master
 
-
-
+ARTIFACTS_TOTAL=0
+ARTIFACTS_OK=0
+ARTIFACTS_FAILED=0
 
 #---------------------------------------------------------------------
 mkdir -p "$ARTIFACTS_DIR_ABS"
@@ -181,6 +182,14 @@ echo_file_target_html() {
     <td>$BUCK_TARGET_CELL</td>
   </tr>
 EOF
+
+    ARTIFACTS_TOTAL=$((ARTIFACTS_TOTAL+1))
+    if [ "$STATUS" = "ok" ]
+    then
+        ARTIFACTS_OK=$((ARTIFACTS_OK+1))
+    else
+        ARTIFACTS_FAILED=$((ARTIFACTS_FAILED+1))
+    fi
 }
 
 #---------------------------------------------------------------------

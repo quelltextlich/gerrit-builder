@@ -203,6 +203,17 @@ echo_file_target_html "ok" "build_description.json"
 
 echo_target_html "</table>"
 
+HTML_FAILED_MARKER_PRE=
+HTML_FAILED_MARKER_POST=
+if [ "$ARTIFACTS_FAILED" != "0" ]
+then
+    HTML_FAILED_MARKER_PRE="<span class=\"failed\">"
+    HTML_FAILED_MARKER_POST="</span>"
+fi
+cat_target_html <<EOF
+<p>(Total artifacts: $ARTIFACTS_TOTAL; ok artifacts: $ARTIFACTS_OK, ${HTML_FAILED_MARKER_PRE}failed artifacts: $ARTIFACTS_FAILED${HTML_FAILED_MARKER_POST})</p>
+EOF
+
 echo_target_html "<p><a href=\"$FILES_DIR_RELT\">View all files</a></p>"
 
 cat_target_html <<EOF
