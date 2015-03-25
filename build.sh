@@ -76,6 +76,8 @@ mkdir -p "$TARGET_FILE_DIR_ABS"
 info "Date: $DATE"
 info "Branch: $BRANCH"
 
+HTML_SPLIT="<p>— <a href=\"..\">Go to parent directory</a> — <a href=\"$FILES_DIR_RELT\">View all files</a> —</p>"
+
 cat_target_html <<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -109,9 +111,7 @@ th {
 
 <h1>$DATE build of $BRANCH of gerrit</h1>
 
-<p><a href="..">Go to parent directory</a></p>
-
-<p><a href="$FILES_DIR_RELT">View all files</a></p>
+$HTML_SPLIT
 
 <h2 id="summary">Build summary</h2>
 
@@ -231,9 +231,9 @@ cat_target_html <<EOF
 <p>(Total artifacts: $ARTIFACTS_TOTAL; ok artifacts: $ARTIFACTS_OK, ${HTML_FAILED_MARKER_PRE}failed artifacts: $ARTIFACTS_FAILED${HTML_FAILED_MARKER_POST})</p>
 EOF
 
-echo_target_html "<p><a href=\"$FILES_DIR_RELT\">View all files</a></p>"
-
 cat_target_html <<EOF
+$HTML_SPLIT
+
 </body>
 </html>
 EOF
