@@ -6,8 +6,6 @@ source "$(dirname "$0")/common.inc"
 
 DATE="$(date +'%Y-%m-%d')"
 
-TARGET_DIR_ABS="$ARTIFACTS_NIGHTLY_DIR_ABS/$BRANCH/$DATE"
-
 FORCE=no
 PULL=yes
 CHECKOUT=yes
@@ -18,6 +16,7 @@ $0 ARGUMENTS
 
 ARGUMENTS:
   --help             - prints this page
+  --branch BRANCH    - Build branch BRANCH instead of master
   --force            - Overwrite eventual existing artifacts target directory
   --no-checkout      - Don't 'git checkout' before building
   --no-pull          - Don't 'git pull' before building
@@ -37,6 +36,11 @@ do
         "--force" )
             FORCE=yes
             ;;
+        "--branch" )
+            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+            BRANCH="$1"
+            shift || true
+            ;;
         "--no-checkout" )
             CHECKOUT=no
             ;;
@@ -52,6 +56,8 @@ do
             ;;
     esac
 done
+
+TARGET_DIR_ABS="$ARTIFACTS_NIGHTLY_DIR_ABS/$BRANCH/$DATE"
 
 if [ -e "$TARGET_DIR_ABS" -a "$FORCE" = yes ]
 then
