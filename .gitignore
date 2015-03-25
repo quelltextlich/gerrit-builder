@@ -1,9 +1,12 @@
 /gerrit
 /buck
 /plugins
-/apache-ant-1.9.4
-/jdk1.8.0_40
-/apache-maven-3.3.1
+/apache-ant-*
+/apache-ant
+/jdk1*
+/jdk
+/apache-maven-*
+/apache-maven
 /gerrit-virtualenv
 /virtualenv
 /watchman

@@ -1,10 +1,6 @@
 #!/bin/bash
 set -e
 
-JAVA_VERSION=1.8.0_40
-ANT_VERSION=1.9.4
-MAVEN_VERSION=3.3.1
-
 #---------------------------------------------------------------------
 ORIG_DIR_ABS="$PWD"
 cd "$(dirname "$0" )"
@@ -12,12 +8,12 @@ cd "$(dirname "$0" )"
 SCRIPT_DIR_ABS="$PWD"
 #---------------------------------------------------------------------
 
-ANT_DIR_ABS="$SCRIPT_DIR_ABS/apache-ant-$ANT_VERSION"
+ANT_DIR_ABS="$SCRIPT_DIR_ABS/apache-ant"
 BUCK_DIR_ABS="$SCRIPT_DIR_ABS/buck"
 GERRIT_DIR_ABS="$SCRIPT_DIR_ABS/gerrit"
-JAVA_DIR_ABS="$SCRIPT_DIR_ABS/jdk$JAVA_VERSION"
+JAVA_DIR_ABS="$SCRIPT_DIR_ABS/jdk"
 WATCHMAN_DIR_ABS="$SCRIPT_DIR_ABS/watchman"
-MAVEN_DIR_ABS="$SCRIPT_DIR_ABS/apache-maven-$MAVEN_VERSION"
+MAVEN_DIR_ABS="$SCRIPT_DIR_ABS/apache-maven"
 
 EXTRA_PLUGINS_DIR_ABS="$SCRIPT_DIR_ABS/plugins"
 
