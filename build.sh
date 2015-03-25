@@ -9,6 +9,7 @@ DATE="$(date --utc +'%Y-%m-%d')"
 FORCE=no
 PULL=yes
 CHECKOUT=yes
+CLEAN=yes
 
 print_help() {
     cat <<EOF
@@ -19,6 +20,7 @@ ARGUMENTS:
   --branch BRANCH    - Build branch BRANCH instead of master
   --force            - Overwrite eventual existing artifacts target directory
   --no-checkout      - Don't 'git checkout' before building
+  --no-clean         - Don't clean before building
   --no-pull          - Don't 'git pull' before building
   --no-repo-mangling - Neither 'git checkout' nor 'git pull' before building
 EOF
@@ -43,6 +45,9 @@ do
             ;;
         "--no-checkout" )
             CHECKOUT=no
+            ;;
+        "--no-clean" )
+            CLEAN=no
             ;;
         "--no-pull" )
             PULL=no
@@ -203,6 +208,12 @@ cat >"$TARGET_FILE_DIR_ABS/build_description.json" <<EOF
 $REPO_DESCRIPTIONS
 }
 EOF
+
+if [ "$CLEAN" = "yes" ]
+then
+    run_buck clean
+    rm -rf "$GERRIT_DIR_ABS/buck-out"
+fi
 
 run_buck_build "gerrit" "//:withdocs" "withdocs.war"
 
