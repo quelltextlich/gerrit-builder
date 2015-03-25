@@ -58,6 +58,8 @@ do
 done
 
 TARGET_DIR_ABS="$ARTIFACTS_NIGHTLY_DIR_ABS/$BRANCH/$DATE"
+FILES_DIR_RELT="files"
+TARGET_FILE_DIR_ABS="$TARGET_DIR_ABS/$FILES_DIR_RELT"
 
 if [ -e "$TARGET_DIR_ABS" -a "$FORCE" = yes ]
 then
@@ -69,7 +71,7 @@ then
     error "'$TARGET_DIR_ABS' already exists"
 fi
 
-mkdir -p "$TARGET_DIR_ABS"
+mkdir -p "$TARGET_FILE_DIR_ABS"
 
 info "Date: $DATE"
 info "Branch: $BRANCH"
@@ -128,7 +130,7 @@ do
     fi
 done
 
-cat >"$TARGET_DIR_ABS/build_description.json" <<EOF
+cat >"$TARGET_FILE_DIR_ABS/build_description.json" <<EOF
 {
 $REPO_DESCRIPTIONS
 }
@@ -143,7 +145,7 @@ do
     run_buck_build "$EXTRA_PLUGIN_NAME" "plugins/$EXTRA_PLUGIN_NAME:$EXTRA_PLUGIN_NAME" "plugins/$EXTRA_PLUGIN_NAME/$EXTRA_PLUGIN_NAME.jar"
 done
 
-pushd "$TARGET_DIR_ABS" >/dev/null
+pushd "$TARGET_FILE_DIR_ABS" >/dev/null
 sha1sum * >sha1sums.txt
 popd >/dev/null
 
