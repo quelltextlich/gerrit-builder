@@ -19,8 +19,8 @@ $0 ARGUMENTS
 ARGUMENTS:
   --help             - prints this page
   --force            - Overwrite eventual existing artifacts target directory
-  --no-pull          - Don't 'git pull' before building
   --no-checkout      - Don't 'git checkout' before building
+  --no-pull          - Don't 'git pull' before building
   --no-repo-mangling - Neither 'git checkout' nor 'git pull' before building
 EOF
 }
@@ -37,11 +37,11 @@ do
         "--force" )
             FORCE=yes
             ;;
-        "--no-pull" )
-            PULL=no
-            ;;
         "--no-checkout" )
             CHECKOUT=no
+            ;;
+        "--no-pull" )
+            PULL=no
             ;;
         "--no-repo-mangling" )
             CHECKOUT=no
