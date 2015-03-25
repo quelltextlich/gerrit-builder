@@ -111,6 +111,11 @@ do
     describe_repo "$EXTRA_PLUGIN_NAME.jar"
     popd >/dev/null
 
+    if [ -h "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME" ]
+    then
+        rm "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME"
+    fi
+
     if [ ! -e "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME" ]
     then
         ln -s "$EXTRA_PLUGIN_DIR_ABS" "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME"
