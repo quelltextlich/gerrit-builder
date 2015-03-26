@@ -137,6 +137,7 @@ $HTML_SPLIT
 <tr><th>Build date</th><td>$DATE</td></tr>
 <tr><th>Commitish</th><td>$BRANCH</td></tr>
 <tr><th>API version</th><td>---</td></tr>
+<tr><th>DB schema version</th><td>---</td></tr>
 </table>
 
 <h2 id="artifacts">Artifacts</h2>
@@ -165,6 +166,13 @@ fi
 
 API_VERSION="$(grep ^GERRIT_VERSION "$GERRIT_DIR_ABS"/VERSION | cut -f 2 -d \')"
 info "API version: $API_VERSION"
+
+DB_SCHEMA_VERSION="$(grep 'static.*final.*Class.*Schema.*C.*Schema_[0-9]\+.class' "$GERRIT_DIR_ABS"/gerrit-server/src/main/java/com/google/gerrit/server/schema/SchemaVersion.java | head -n 1 | sed 's/^.*_\([0-9]*\)\.class;$/\1/')"
+if [[ ! "$DB_SCHEMA_VERSION" =~ ^[0-9]+$ ]]
+then
+    error "Extracted database schema version is not a number, but '$DB_SCHEMA_VERSION'"
+fi
+info "Database schema version: $DB_SCHEMA_VERSION"
 
 describe_repo "withdocs.war"
 
@@ -283,6 +291,7 @@ EOF
 sed -i \
     -e '/Build.status/s/failed/'"$STATUS"'/g' \
     -e '/API version/s/---/'"$API_VERSION"'/g' \
+    -e '/DB schema version/s/---/'"$DB_SCHEMA_VERSION"'/g' \
     "$TARGET_DIR_ABS/index.html"
 
 finalize
