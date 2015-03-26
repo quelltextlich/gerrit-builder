@@ -164,6 +164,11 @@ describe_repo "withdocs.war"
 
 BUCK_WANTED_VERSION="$(cat "$GERRIT_DIR_ABS/.buckversion")"
 
+if [ ! -z "$(which buckd)" ]
+then
+    buckd --kill || true
+fi
+
 if [ "$BUCK_WANTED_VERSION" != "$(run_buck --version 2>/dev/null | cut -f 3 -d ' ')" ]
 then
     section "Rebuilding buck"
