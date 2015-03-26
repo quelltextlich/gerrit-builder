@@ -127,7 +127,7 @@ run_buck_build() {
     local STATUS="failed"
 
     local SOURCE_FILE_ABS="$GERRIT_DIR_ABS/buck-out/gen/$BUCK_GENERATED_FILE_RELBG"
-    local TARGET_FILE_ABS="$TARGET_FILE_DIR_ABS/$(basename "$BUCK_GENERATED_FILE_RELBG")"
+    local TARGET_FILE_ABS="$TARGET_DIR_ABS/$(basename "$BUCK_GENERATED_FILE_RELBG")"
 
     local LOG_FILE_ABS="$GERRIT_DIR_ABS/buck-out/log/buck-0.log"
 
@@ -158,15 +158,15 @@ run_buck_build() {
 #---------------------------------------------------------------------
 echo_file_target_html() {
     local STATUS="$1"
-    local ARTIFACT_FILE_RELF="$2"
+    local ARTIFACT_FILE_RELT="$2"
     local BUCK_TARGET="$3"
 
     local SIZE_CELL="---"
     local ARTIFACT_CELL=
-    if [ -e "$TARGET_DIR_ABS/$FILES_DIR_RELT/$ARTIFACT_FILE_RELF" ]
+    if [ -e "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT" ]
     then
-        ARTIFACT_CELL="<a href=\"$FILES_DIR_RELT/$ARTIFACT_FILE_RELF\">$ARTIFACT_FILE_RELF</a>"
-        local SIZE="$(stat -c%s "$TARGET_DIR_ABS/$FILES_DIR_RELT/$ARTIFACT_FILE_RELF")"
+        ARTIFACT_CELL="<a href=\"$ARTIFACT_FILE_RELT\">$ARTIFACT_FILE_RELT</a>"
+        local SIZE="$(stat -c%s "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT")"
         if [ -n "$SIZE" ]
         then
             if [ "$SIZE" -lt 2000000 ]
@@ -177,7 +177,7 @@ echo_file_target_html() {
             fi
         fi
     else
-        ARTIFACT_CELL="$ARTIFACT_FILE_RELF"
+        ARTIFACT_CELL="$ARTIFACT_FILE_RELT"
     fi
 
     local BUCK_LOG_CELL="---"
@@ -185,7 +185,7 @@ echo_file_target_html() {
     local COMMIT_CELL="---"
     if [ -n "$BUCK_TARGET" ]
     then
-        BUCK_LOG_CELL="<a href=\"$FILES_DIR_RELT/$ARTIFACT_FILE_RELF.buck_log.txt\">View buck log</a>"
+        BUCK_LOG_CELL="<a href=\"$ARTIFACT_FILE_RELT.buck_log.txt\">View buck log</a>"
 
         local REPO="$(cut -f 1 -d : <<<"$BUCK_TARGET")"
         if [ "$REPO" = "//" ]

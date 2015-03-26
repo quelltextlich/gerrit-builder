@@ -65,8 +65,6 @@ do
 done
 
 TARGET_DIR_ABS="$ARTIFACTS_NIGHTLY_DIR_ABS/$BRANCH/$DATE"
-FILES_DIR_RELT="files"
-TARGET_FILE_DIR_ABS="$TARGET_DIR_ABS/$FILES_DIR_RELT"
 
 if [ -e "$TARGET_DIR_ABS" -a "$FORCE" = yes ]
 then
@@ -78,12 +76,12 @@ then
     error "'$TARGET_DIR_ABS' already exists"
 fi
 
-mkdir -p "$TARGET_FILE_DIR_ABS"
+mkdir -p "$TARGET_DIR_ABS"
 
 info "Date: $DATE"
 info "Branch: $BRANCH"
 
-HTML_SPLIT="<p>— <a href=\"..\">Go to parent directory</a> — <a href=\"$FILES_DIR_RELT\">View all files</a> —</p>"
+HTML_SPLIT="<p>— <a href=\"..\">Go to parent directory</a> — <a href=\".\">View all files</a> —</p>"
 
 cat_target_html <<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -223,7 +221,7 @@ do
     fi
 done
 
-cat >"$TARGET_FILE_DIR_ABS/build_description.json" <<EOF
+cat >"$TARGET_DIR_ABS/build_description.json" <<EOF
 {
 $REPO_DESCRIPTIONS
 }
@@ -254,7 +252,7 @@ done
 #section "Building api"
 #echo run_buck build api
 
-pushd "$TARGET_FILE_DIR_ABS" >/dev/null
+pushd "$TARGET_DIR_ABS" >/dev/null
 sha1sum * >sha1sums.txt
 popd >/dev/null
 
