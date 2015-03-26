@@ -79,6 +79,12 @@ fi
 
 mkdir -p "$TARGET_DIR_ABS"
 
+dump_status() {
+    echo "$STATUS" >"$TARGET_DIR_ABS/status.txt"
+}
+
+dump_status
+
 info "Date: $DATE"
 info "Branch: $BRANCH"
 
@@ -291,5 +297,7 @@ sed -i \
     -e '/API version/s/---/'"$API_VERSION"'/g' \
     -e '/DB schema version/s/---/'"$DB_SCHEMA_VERSION"'/g' \
     "$TARGET_DIR_ABS/index.html"
+
+dump_status
 
 finalize
