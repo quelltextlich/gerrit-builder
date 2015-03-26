@@ -17,7 +17,9 @@ $0 ARGUMENTS
 
 ARGUMENTS:
   --help             - prints this page
-  --branch BRANCH    - Build branch BRANCH instead of master
+  --branch BRANCH    - Build branch BRANCH instead of the default, which is
+                       inferred from the basename of the directory, with
+                       "master" as fallback.
   --force            - Overwrite eventual existing artifacts target directory
   --no-checkout      - Don't 'git checkout' before building
   --no-clean         - Don't clean before building

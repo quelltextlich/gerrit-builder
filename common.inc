@@ -33,7 +33,11 @@ PATH="$PATH:$WATCHMAN_DIR_ABS"
 PATH="$PATH:$MAVEN_DIR_ABS/bin"
 
 #---------------------------------------------------------------------
-BRANCH=master
+BRANCH="$(basename "$SCRIPT_DIR_ABS" | cut -f 1,2 -d - | cut -f 1 -d _ )"
+if [[ "$BRANCH" != "master" && ! ( "$BRANCH" =~ stable-[0-9]+.[0-9]+ ) ]]
+then
+    BRANCH="master"
+fi
 
 ARTIFACTS_TOTAL=0
 ARTIFACTS_OK=0
