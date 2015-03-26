@@ -214,10 +214,17 @@ $REPO_DESCRIPTIONS
 }
 EOF
 
+cat >"$GERRIT_DIR_ABS/.buckconfig.local" <<EOF
+[cache]
+  mode = dir
+  dir = $GERRIT_DIR_ABS/buck-cache/internally-built-artifacts
+EOF
+
 if [ "$CLEAN" = "yes" ]
 then
     run_buck clean
     rm -rf "$GERRIT_DIR_ABS/buck-out"
+    rm -rf "$GERRIT_DIR_ABS/buck-cache"
 fi
 
 run_buck_build "gerrit" "//:withdocs" "withdocs.war"
