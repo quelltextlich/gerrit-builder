@@ -107,8 +107,8 @@ describe_repo() {
     BLANK="$BLANK$BLANK$BLANK$BLANK$BLANK$BLANK$BLANK$BLANK"
 
     local REPO_NAME="$(git config --get 'remote.origin.url' | cut -f 4- -d /)"
-    local REPO_NAME_PAD="${BLANK:0:$((24-${#REPO_NAME}))}"
-    local REPO_DESCRIPTION_PAD="${BLANK:0:$((24-${#REPO_DESCRIPTION}))}"
+    local REPO_NAME_PAD="${BLANK:0:$((30-${#REPO_NAME}))}"
+    local REPO_DESCRIPTION_PAD="${BLANK:0:$((30-${#REPO_DESCRIPTION}))}"
 
     local ARTIFACT_PAD="${BLANK:0:$((20-${#ARTIFACT}))}"
     REPO_DESCRIPTIONS="$REPO_DESCRIPTIONS  \"$REPO_NAME\": $REPO_NAME_PAD { \"commit\": \"$REPO_DESCRIPTION\",$REPO_DESCRIPTION_PAD \"expected_artifacts\": [ \"$ARTIFACT\" ]$ARTIFACT_PAD}"
