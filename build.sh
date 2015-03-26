@@ -136,6 +136,7 @@ $HTML_SPLIT
 <tr class="failed"><th class="th-failed">Build status</th><td><img src="$IMAGE_BASE_URL/failed.png" alt="Build failed" /> failed</td></tr>
 <tr><th>Build date</th><td>$DATE</td></tr>
 <tr><th>Commitish</th><td>$BRANCH</td></tr>
+<tr><th>API version</th><td>---</td></tr>
 </table>
 
 <h2 id="artifacts">Artifacts</h2>
@@ -161,6 +162,10 @@ if [ "$PULL" = "yes" ]
 then
     run_git pull --recurse-submodules=yes
 fi
+
+API_VERSION="$(grep ^GERRIT_VERSION "$GERRIT_DIR_ABS"/VERSION | cut -f 2 -d \')"
+info "API version: $API_VERSION"
+
 describe_repo "withdocs.war"
 
 
@@ -275,6 +280,9 @@ $HTML_SPLIT
 </html>
 EOF
 
-sed -i -e '/Build.status/s/failed/'"$STATUS"'/g' "$TARGET_DIR_ABS/index.html"
+sed -i \
+    -e '/Build.status/s/failed/'"$STATUS"'/g' \
+    -e '/API version/s/---/'"$API_VERSION"'/g' \
+    "$TARGET_DIR_ABS/index.html"
 
 finalize
