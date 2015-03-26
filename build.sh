@@ -10,6 +10,7 @@ FORCE=no
 PULL=yes
 CHECKOUT=yes
 CLEAN=yes
+STATUS=failed
 
 print_help() {
     cat <<EOF
@@ -81,7 +82,7 @@ mkdir -p "$TARGET_DIR_ABS"
 info "Date: $DATE"
 info "Branch: $BRANCH"
 
-HTML_SPLIT="<p>— <a href=\"..\">Go to parent directory</a> — <a href=\".\">View all files</a> —</p>"
+HTML_SPLIT="<p>— <a href=\"../index.html\">Go to parent directory</a> — <a href=\".\">View all files</a> —</p>"
 
 cat_target_html <<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -131,7 +132,7 @@ $HTML_SPLIT
 <h2 id="summary">Build summary</h2>
 
 <table>
-<tr class="failed"><th class="th-failed">Build status</th><td><img src="$IMAGE_BASE_URL/failed.png" alt="Build failed" /> failed</td></tr>
+<tr class="failed"><th class="th-failed">Build status</th><td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" /> $STATUS</td></tr>
 <tr><th>Build date</th><td>$DATE</td></tr>
 <tr><th>Commitish</th><td>$BRANCH</td></tr>
 <tr><th>API version</th><td>---</td></tr>
@@ -263,7 +264,6 @@ echo_target_html "</table>"
 
 HTML_FAILED_MARKER_PRE=
 HTML_FAILED_MARKER_POST=
-STATUS=failed
 if [ "$ARTIFACTS_FAILED" = "0" ]
 then
     STATUS=ok
