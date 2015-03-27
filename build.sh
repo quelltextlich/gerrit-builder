@@ -154,7 +154,7 @@ fi
 info "Database schema version: $DB_SCHEMA_VERSION"
 echo "$DB_SCHEMA_VERSION" >"$TARGET_DIR_ABS/db_schema_version.txt"
 
-describe_repo "gerrit.war\", \"withdocs.war"
+describe_repo "gerrit.war\", \"withdocs.war \", \"release.war"
 
 
 BUCK_WANTED_VERSION="$(cat "$GERRIT_DIR_ABS/.buckversion")"
@@ -236,6 +236,7 @@ fi
 
 run_buck_build "gerrit, gerrit.war" "//:gerrit" "gerrit.war"
 run_buck_build "gerrit, withdocs.war" "//:withdocs" "withdocs.war"
+run_buck_build "gerrit, release.war" "//:release" "release.war"
 
 for PLUGIN_DIR_ABS in "$GERRIT_DIR_ABS/plugins"/*
 do
