@@ -263,6 +263,26 @@ run_buck_build "gerrit, gerrit.war" "//:gerrit" "gerrit.war"
 run_buck_build "gerrit, withdocs.war" "//:withdocs" "withdocs.war"
 run_buck_build "gerrit, release.war" "//:release" "release.war"
 
+for API in \
+    "gerrit-extension-api:extension-api" \
+    "gerrit-plugin-api:plugin-api" \
+    "gerrit-plugin-gwtui:gwtui-api" \
+
+do
+    for ASPECT in '' '-src' '-javadoc'
+    do
+        if [ "$API$ASPECT" = "gerrit-extension-api:extension-api-src" ]
+        then
+            EXPECTED_JAR="$(sed -e 's@^\([^:-]*-\([^:]*\)\):\(.*\)$@\1/lib__\2'"$ASPECT"'__output/\2@' <<<"$API")$ASPECT.jar"
+        else
+            EXPECTED_JAR="${API//://}$ASPECT.jar"
+        fi
+        run_buck_build "gerrit, $(cut -f 2 -d : <<<"$API")$ASPECT" "//$API$ASPECT" "$EXPECTED_JAR"
+    done
+done
+
+run_buck_build "gerrit, api" "api" "api.zip"
+
 for PLUGIN_DIR_ABS in "$GERRIT_DIR_ABS/plugins"/*
 do
     if [ -d "$PLUGIN_DIR_ABS" ]
