@@ -226,7 +226,7 @@ echo_file_target_html() {
     cat_target_html <<EOF
 
   <tr class="$STATUS">
-    <td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" /> $STATUS</td>
+    <td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" />&#160;$STATUS</td>
     <th class="left th-semi-dark th-$STATUS">$ARTIFACT_CELL</th>
     <td class="right">$SIZE_CELL</td>
     <td>$BUCK_LOG_CELL</td>

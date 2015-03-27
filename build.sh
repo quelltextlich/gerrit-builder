@@ -113,7 +113,7 @@ $HTML_SPLIT
 <h2 id="summary">Build summary</h2>
 
 <table>
-<tr class="$STATUS"><th class="th-$STATUS">Build status</th><td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" /> $STATUS</td></tr>
+<tr class="$STATUS"><th class="th-$STATUS">Build status</th><td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" />&#160;$STATUS</td></tr>
 <tr><th>Build date</th><td>$DATE</td></tr>
 <tr><th>Commitish</th><td>$BRANCH</td></tr>
 <tr><th>API version</th><td>---</td></tr>
@@ -428,7 +428,7 @@ do
         cat_target_html <<EOF
   <tr>
     <td><a href="$DIR_RELC/index.html">$DIR_RELC</a></td>
-    <td><img src="$IMAGE_BASE_URL/$DIR_STATUS.png" alt="Build $DIR_STATUS" /> $STATUS_CELL_TEXT</td>
+    <td><img src="$IMAGE_BASE_URL/$DIR_STATUS.png" alt="Build $DIR_STATUS" />&#160;$STATUS_CELL_TEXT</td>
     <td>$DIR_REPO_DESCRIPTION</td>
     <td>$DIR_API_VERSION</td>
     <td>$DIR_DB_SCHEMA_VERSION</td>
