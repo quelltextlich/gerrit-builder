@@ -16,7 +16,7 @@ setup_watchman() {
 
 setup_buck() {
     section "Setting up Buck"
-    git clone https://gerrit.googlesource.com/buck
+    run_git clone https://gerrit.googlesource.com/buck
     cd buck
     ant
     cd "$SCRIPT_DIR_ABS"
@@ -27,9 +27,9 @@ setup_repo() {
     section "Setting up $REPO"
     mkdir -p "$(dirname "$REPO")"
     cd "$(dirname "$REPO")"
-    git clone "https://gerrit.googlesource.com/$REPO"
+    run_git clone "https://gerrit.googlesource.com/$REPO"
     cd "$(basename "$REPO")"
-    git checkout "$BRANCH"
+    run_git checkout "$BRANCH"
 
     # Hook to ensure Change-Id
     cp "$GERRIT_DIR_ABS/gerrit-server/src/main/resources/com/google/gerrit/server/tools/root/hooks/commit-msg" .git/hooks/commit-msg

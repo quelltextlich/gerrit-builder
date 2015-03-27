@@ -109,7 +109,7 @@ describe_repo() {
     local BLANK="          "
     BLANK="$BLANK$BLANK$BLANK$BLANK$BLANK$BLANK$BLANK$BLANK"
 
-    local REPO_NAME="$(git config --get 'remote.origin.url' | cut -f 4- -d /)"
+    local REPO_NAME="$(run_git config --get 'remote.origin.url' | cut -f 4- -d /)"
     local REPO_NAME_PAD="${BLANK:0:$((30-${#REPO_NAME}))}"
     local REPO_DESCRIPTION_PAD="${BLANK:0:$((30-${#REPO_DESCRIPTION}))}"
 
@@ -200,7 +200,7 @@ echo_file_target_html() {
             REPO="gerrit"
         fi
         pushd "$SCRIPT_DIR_ABS/$REPO" >/dev/null
-        local COMMIT_HASH="$(git rev-parse HEAD)"
+        local COMMIT_HASH="$(run_git rev-parse HEAD)"
         popd  >/dev/null
         REPO_CELL="<a href=\"https://gerrit-review.googlesource.com/#/admin/projects/$REPO\">$REPO</a>"
         COMMIT_CELL="<a href=\"https://gerrit.googlesource.com/$REPO/+/$COMMIT_HASH\"><code>${COMMIT_HASH:0:8}</code></a>"

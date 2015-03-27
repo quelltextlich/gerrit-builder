@@ -170,9 +170,9 @@ then
     then
         section "Rebuilding buck"
         pushd "$BUCK_DIR_ABS" >/dev/null
-        git checkout master
-        git pull
-        git checkout "$BUCK_WANTED_VERSION"
+        run_git checkout master
+        run_git pull
+        run_git checkout "$BUCK_WANTED_VERSION"
         ant
         popd >/dev/null
     fi
