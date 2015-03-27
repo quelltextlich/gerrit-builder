@@ -10,7 +10,7 @@ FORCE=no
 PULL=yes
 CHECKOUT=yes
 CLEAN=yes
-STATUS=failed
+STATUS=died
 
 print_help() {
     cat <<EOF
@@ -113,7 +113,7 @@ $HTML_SPLIT
 <h2 id="summary">Build summary</h2>
 
 <table>
-<tr class="failed"><th class="th-failed">Build status</th><td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" /> $STATUS</td></tr>
+<tr class="$STATUS"><th class="th-$STATUS">Build status</th><td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" /> $STATUS</td></tr>
 <tr><th>Build date</th><td>$DATE</td></tr>
 <tr><th>Commitish</th><td>$BRANCH</td></tr>
 <tr><th>API version</th><td>---</td></tr>
@@ -330,16 +330,18 @@ echo_target_html "</table>"
 
 HTML_FAILED_MARKER_PRE=
 HTML_FAILED_MARKER_POST=
-if [ "$ARTIFACTS_FAILED" = "0" ]
+if [ "$ARTIFACTS_TOTAL" = "0" ]
 then
-    STATUS=ok
+    STATUS=failed
 else
-    if [ "$ARTIFACTS_OK" != "0" ]
+    if [ "$ARTIFACTS_FAILED" = "0" ]
     then
-        STATUS="failed partially"
+        STATUS=ok
+    else
+        STATUS=failed
+        HTML_FAILED_MARKER_PRE="<span class=\"failed\">"
+        HTML_FAILED_MARKER_POST="</span>"
     fi
-    HTML_FAILED_MARKER_PRE="<span class=\"failed\">"
-    HTML_FAILED_MARKER_POST="</span>"
 fi
 cat_target_html <<EOF
 <p>(Total artifacts: $ARTIFACTS_TOTAL; ok artifacts: $ARTIFACTS_OK, ${HTML_FAILED_MARKER_PRE}failed artifacts: $ARTIFACTS_FAILED${HTML_FAILED_MARKER_POST})</p>
@@ -350,7 +352,7 @@ echo_target_html "$HTML_SPLIT"
 cat_html_tail | cat_target_html
 
 sed -i \
-    -e '/Build.status/s/failed/'"$STATUS"'/g' \
+    -e '/Build.status/s/died/'"$STATUS"'/g' \
     -e '/API version/s/---/'"$API_VERSION"'/g' \
     -e '/DB schema version/s/---/'"$DB_SCHEMA_VERSION"'/g' \
     "$TARGET_HTML_FILE_ABS"
@@ -387,12 +389,21 @@ do
     then
         DIR_STATUS=$(cat "$DIR_RELC/status.txt" || true)
         case "$DIR_STATUS" in
+            "failed" )
+                DIR_ARTIFACTS_FAILED=$(cat "$DIR_RELC/failure_count.txt" || true)
+                if [ -z "$DIR_ARTIFACTS_FAILED" ]
+                then
+                    DIR_ARTIFACTS_FAILED="?"
+                fi
+                STATUS_CELL_TEXT="$DIR_ARTIFACTS_FAILED $DIR_STATUS"
+                ;;
             "ok" | \
-                "failed partially" | \
-                "failed" )
+                "died" )
+                STATUS_CELL_TEXT="$DIR_STATUS"
                 ;;
             * )
-                DIR_STATUS="failed"
+                DIR_STATUS="died"
+                STATUS_CELL_TEXT="$DIR_STATUS"
                 ;;
         esac
 
@@ -417,7 +428,7 @@ do
         cat_target_html <<EOF
   <tr>
     <td><a href="$DIR_RELC/index.html">$DIR_RELC</a></td>
-    <td><img src="$IMAGE_BASE_URL/$DIR_STATUS.png" alt="Build $DIR_STATUS" /> $DIR_STATUS</td>
+    <td><img src="$IMAGE_BASE_URL/$DIR_STATUS.png" alt="Build $DIR_STATUS" /> $STATUS_CELL_TEXT</td>
     <td>$DIR_REPO_DESCRIPTION</td>
     <td>$DIR_API_VERSION</td>
     <td>$DIR_DB_SCHEMA_VERSION</td>
