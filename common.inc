@@ -46,6 +46,10 @@ ARTIFACTS_TOTAL=0
 ARTIFACTS_OK=0
 ARTIFACTS_FAILED=0
 
+REPO_NAMES=()
+LAST_REPO_NAME=
+declare -A REPO_DESCRIPTIONS=()
+declare -A REPO_ARTIFACTS=()
 #---------------------------------------------------------------------
 mkdir -p "$ARTIFACTS_DIR_ABS"
 mkdir -p "$ARTIFACTS_NIGHTLY_DIR_ABS"
@@ -90,6 +94,24 @@ run_git() {
 #---------------------------------------------------------------------
 describe_repo() {
     local ARTIFACT="$1"
+
+    local CURRENT_REPO_NAME="$(run_git config --get 'remote.origin.url' | cut -f 4- -d /)"
+
+    local REPO_NAME=
+    local FOUND_REPO=no
+    for REPO_NAME in "${REPO_NAMES[@]}"
+    do
+        if [ "$CURRENT_REPO_NAME" = "$REPO_NAME" ]
+        then
+            FOUND_REPO=yes
+        fi
+    done
+    if [ "$FOUND_REPO" != "yes" ]
+    then
+        REPO_NAMES=( "${REPO_NAMES[@]}" "$CURRENT_REPO_NAME" )
+        LAST_REPO_NAME="$CURRENT_REPO_NAME"
+    fi
+
     local REPO_DESCRIPTION="$(run_git describe --dirty --long 2>/dev/null || true)"
     if [ -z "$REPO_DESCRIPTION" ]
     then
@@ -100,21 +122,7 @@ describe_repo() {
         error "Could not describe $(pwd)"
     fi
 
-    if [ -n "$REPO_DESCRIPTIONS" ]
-    then
-        REPO_DESCRIPTIONS="$REPO_DESCRIPTIONS,
-"
-    fi
-
-    local BLANK="          "
-    BLANK="$BLANK$BLANK$BLANK$BLANK$BLANK$BLANK$BLANK$BLANK"
-
-    local REPO_NAME="$(run_git config --get 'remote.origin.url' | cut -f 4- -d /)"
-    local REPO_NAME_PAD="${BLANK:0:$((30-${#REPO_NAME}))}"
-    local REPO_DESCRIPTION_PAD="${BLANK:0:$((30-${#REPO_DESCRIPTION}))}"
-
-    local ARTIFACT_PAD="${BLANK:0:$((20-${#ARTIFACT}))}"
-    REPO_DESCRIPTIONS="$REPO_DESCRIPTIONS  \"$REPO_NAME\": $REPO_NAME_PAD { \"commit\": \"$REPO_DESCRIPTION\",$REPO_DESCRIPTION_PAD \"expected_artifacts\": [ \"$ARTIFACT\" ]$ARTIFACT_PAD}"
+    REPO_DESCRIPTIONS["$CURRENT_REPO_NAME"]="$REPO_DESCRIPTION"
 }
 
 #---------------------------------------------------------------------
@@ -195,7 +203,7 @@ echo_file_target_html() {
         BUCK_LOG_CELL="<a href=\"$ARTIFACT_FILE_RELT.buck_log.txt\">View buck log</a>"
 
         local REPO="$(cut -f 1 -d : <<<"$BUCK_TARGET")"
-        if [ "$REPO" = "//" ]
+        if [ "${REPO:0:8}" != "plugins/" ]
         then
             REPO="gerrit"
             pushd "$GERRIT_DIR_ABS" >/dev/null
@@ -206,6 +214,11 @@ echo_file_target_html() {
         popd  >/dev/null
         REPO_CELL="<a href=\"https://gerrit-review.googlesource.com/#/admin/projects/$REPO\">$REPO</a>"
         COMMIT_CELL="<a href=\"https://gerrit.googlesource.com/$REPO/+/$COMMIT_HASH\"><code>${COMMIT_HASH:0:8}</code></a>"
+        if [ -n "${REPO_ARTIFACTS["$REPO"]}" ]
+        then
+            REPO_ARTIFACTS["$REPO"]="${REPO_ARTIFACTS["$REPO"]},"
+        fi
+        REPO_ARTIFACTS["$REPO"]="${REPO_ARTIFACTS["$REPO"]}$ARTIFACT_FILE_RELT"
     fi
 
     cat_target_html <<EOF

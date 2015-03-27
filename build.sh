@@ -215,11 +215,36 @@ do
     fi
 done
 
-cat >"$TARGET_DIR_ABS/build_description.json" <<EOF
-{
-$REPO_DESCRIPTIONS
+echo_build_description_json() {
+    echo "{"
+    local REPO_NAME=
+    for REPO_NAME in "${REPO_NAMES[@]}"
+    do
+        echo -n "  \"$REPO_NAME\": { "
+        echo -n "\"commit\": \"${REPO_DESCRIPTIONS["$REPO_NAME"]}\", "
+        echo -n "\"expected_artifacts\": ["
+        if [ -n "${REPO_ARTIFACTS["$REPO_NAME"]}" ]
+        then
+            echo -n "\""
+            echo -n "${REPO_ARTIFACTS["$REPO_NAME"]}" | sed -e 's/,/", "/g'
+            echo -n "\""
+        fi
+        echo -n "]"
+        echo -n " }"
+        if [ "$REPO_NAME" != "$LAST_REPO_NAME" ]
+        then
+            echo -n ","
+        fi
+        echo
+    done
+    echo "}"
 }
-EOF
+
+echo_build_description_json_file() {
+    echo_build_description_json >"$TARGET_DIR_ABS/build_description.json"
+}
+
+echo_build_description_json_file
 
 cat >"$GERRIT_DIR_ABS/.buckconfig.local" <<EOF
 [cache]
@@ -258,6 +283,8 @@ echo_file_target_html "ok" "sha1sums.txt"
 echo_file_target_html "ok" "build_description.json"
 
 echo_target_html "</table>"
+
+echo_build_description_json_file
 
 HTML_FAILED_MARKER_PRE=
 HTML_FAILED_MARKER_POST=
