@@ -294,3 +294,15 @@ cat_html_tail() {
 </html>
 EOF
 }
+
+#---------------------------------------------------------------------
+setup_git_hooks() {
+    local REPO_DIR_ABS="$(git rev-parse --git-dir)"
+    # Hook to ensure Change-Id
+    cp "$GERRIT_DIR_ABS/gerrit-server/src/main/resources/com/google/gerrit/server/tools/root/hooks/commit-msg" "$REPO_DIR_ABS/hooks/commit-msg"
+    chmod 755 "$REPO_DIR_ABS/hooks/commit-msg"
+
+    # Hook to guard against spaces
+    cp "$REPO_DIR_ABS/hooks/pre-commit.sample" "$REPO_DIR_ABS/hooks/pre-commit"
+    chmod 755 "$REPO_DIR_ABS/hooks/pre-commit"
+}

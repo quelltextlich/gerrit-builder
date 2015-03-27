@@ -27,17 +27,9 @@ setup_repo() {
     section "Setting up $REPO"
     mkdir -p "$(dirname "$REPO")"
     cd "$(dirname "$REPO")"
-    run_git clone "https://gerrit.googlesource.com/$REPO"
+    run_git clone --recurse-submodules "https://gerrit.googlesource.com/$REPO"
     cd "$(basename "$REPO")"
     run_git checkout "$BRANCH"
-
-    # Hook to ensure Change-Id
-    cp "$GERRIT_DIR_ABS/gerrit-server/src/main/resources/com/google/gerrit/server/tools/root/hooks/commit-msg" .git/hooks/commit-msg
-    chmod 755 .git/hooks/commit-msg
-
-    # Hook to guard against spaces
-    cp .git/hooks/pre-commit.sample .git/hooks/pre-commit
-    chmod 755 .git/hooks/pre-commit
 
     cd "$SCRIPT_DIR_ABS"
 }
@@ -56,4 +48,20 @@ for REPO in \
 
 do
     setup_repo "$REPO"
+done
+
+# Installing hooks
+for REPO_DIR_ABS in \
+    "$GERRIT_DIR_ABS"* \
+    "$GERRIT_DIR_ABS/plugins/"* \
+    "$EXTRA_PLUGINS_DIR_ABS/"* \
+
+do
+    if [ -d "$REPO_DIR_ABS" ]
+    then
+        echo "$REPO_DIR_ABS"
+        pushd "$REPO_DIR_ABS" >/dev/null
+        setup_git_hooks
+        popd >/dev/null
+    fi
 done
