@@ -198,8 +198,10 @@ echo_file_target_html() {
         if [ "$REPO" = "//" ]
         then
             REPO="gerrit"
+            pushd "$GERRIT_DIR_ABS" >/dev/null
+        else
+            pushd "$GERRIT_DIR_ABS/$REPO" >/dev/null
         fi
-        pushd "$SCRIPT_DIR_ABS/$REPO" >/dev/null
         local COMMIT_HASH="$(run_git rev-parse HEAD)"
         popd  >/dev/null
         REPO_CELL="<a href=\"https://gerrit-review.googlesource.com/#/admin/projects/$REPO\">$REPO</a>"

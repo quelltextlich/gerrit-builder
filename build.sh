@@ -236,11 +236,13 @@ fi
 
 run_buck_build "gerrit" "//:withdocs" "withdocs.war"
 
-for EXTRA_PLUGIN_DIR_ABS in "$EXTRA_PLUGINS_DIR_ABS"/*
+for PLUGIN_DIR_ABS in "$GERRIT_DIR_ABS/plugins"/*
 do
-    EXTRA_PLUGIN_NAME="$(basename "$EXTRA_PLUGIN_DIR_ABS")"
-
-    run_buck_build "$EXTRA_PLUGIN_NAME" "plugins/$EXTRA_PLUGIN_NAME:$EXTRA_PLUGIN_NAME" "plugins/$EXTRA_PLUGIN_NAME/$EXTRA_PLUGIN_NAME.jar"
+    if [ -d "$PLUGIN_DIR_ABS" ]
+    then
+        PLUGIN_NAME="$(basename "$PLUGIN_DIR_ABS")"
+        run_buck_build "$PLUGIN_NAME" "plugins/$PLUGIN_NAME:$PLUGIN_NAME" "plugins/$PLUGIN_NAME/$PLUGIN_NAME.jar"
+    fi
 done
 
 #section "Building api"
