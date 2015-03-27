@@ -140,6 +140,7 @@ fi
 
 API_VERSION="$(grep ^GERRIT_VERSION "$GERRIT_DIR_ABS"/VERSION | cut -f 2 -d \')"
 info "API version: $API_VERSION"
+echo "$API_VERSION" >"$TARGET_DIR_ABS/api_version.txt"
 
 DB_SCHEMA_VERSION="$(grep 'static.*final.*Class.*Schema.*C.*Schema_[0-9]\+.class' "$GERRIT_DIR_ABS"/gerrit-server/src/main/java/com/google/gerrit/server/schema/SchemaVersion.java | head -n 1 | sed 's/^.*_\([0-9]*\)\.class;$/\1/')"
 if [[ ! "$DB_SCHEMA_VERSION" =~ ^[0-9]+$ ]]
@@ -147,6 +148,7 @@ then
     error "Extracted database schema version is not a number, but '$DB_SCHEMA_VERSION'"
 fi
 info "Database schema version: $DB_SCHEMA_VERSION"
+echo "$DB_SCHEMA_VERSION" >"$TARGET_DIR_ABS/db_schema_version.txt"
 
 describe_repo "withdocs.war"
 
@@ -281,6 +283,8 @@ cat >>"$OVERVIEW_HTML_FILE_ABS" <<EOF
   <tr>
     <th>Build</th>
     <th>Status</th>
+    <th>API version</th>
+    <th>DB schema version</th>
   </tr>
 EOF
 
@@ -289,7 +293,7 @@ for DIR_RELC in *
 do
     if [ -d "$DIR_RELC" ]
     then
-        DIR_STATUS=$(cat "$DIR_RELC/status.txt")
+        DIR_STATUS=$(cat "$DIR_RELC/status.txt" || true)
         case "$DIR_STATUS" in
             "ok" | \
                 "failed partially" | \
@@ -299,10 +303,25 @@ do
                 DIR_STATUS="failed"
                 ;;
         esac
+
+        DIR_API_VERSION=$(cat "$DIR_RELC/api_version.txt" || true)
+        if [ -z "$DIR_API_VERSION" ]
+        then
+            DIR_API_VERSION="---"
+        fi
+
+        DIR_DB_SCHEMA_VERSION=$(cat "$DIR_RELC/db_schema_version.txt" || true)
+        if [ -z "$DIR_DB_SCHEMA_VERSION" ]
+        then
+            DIR_DB_SCHEMA_VERSION="---"
+        fi
+
         cat >>"$OVERVIEW_HTML_FILE_ABS" <<EOF
   <tr>
     <td><a href="$DIR_RELC/index.html">$DIR_RELC</a></td>
     <td><img src="$IMAGE_BASE_URL/$DIR_STATUS.png" alt="Build $DIR_STATUS" /> $DIR_STATUS</td>
+    <td>$DIR_API_VERSION</td>
+    <td>$DIR_DB_SCHEMA_VERSION</td>
   </tr>
 EOF
     fi
