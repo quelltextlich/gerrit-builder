@@ -356,6 +356,7 @@ cat >>"$OVERVIEW_HTML_FILE_ABS" <<EOF
   <tr>
     <th>Build</th>
     <th>Status</th>
+    <th>Gerrit HEAD</th>
     <th>API version</th>
     <th>DB schema version</th>
   </tr>
@@ -389,10 +390,17 @@ do
             DIR_DB_SCHEMA_VERSION="---"
         fi
 
+        DIR_REPO_DESCRIPTION=$(cat "$DIR_RELC/gerrit_description.txt" || true)
+        if [ -z "$DIR_REPO_DESCRIPTION" ]
+        then
+            DIR_REPO_DESCRIPTION="---"
+        fi
+
         cat >>"$OVERVIEW_HTML_FILE_ABS" <<EOF
   <tr>
     <td><a href="$DIR_RELC/index.html">$DIR_RELC</a></td>
     <td><img src="$IMAGE_BASE_URL/$DIR_STATUS.png" alt="Build $DIR_STATUS" /> $DIR_STATUS</td>
+    <td>$DIR_REPO_DESCRIPTION</td>
     <td>$DIR_API_VERSION</td>
     <td>$DIR_DB_SCHEMA_VERSION</td>
   </tr>
