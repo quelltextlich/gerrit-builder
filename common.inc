@@ -93,8 +93,6 @@ run_git() {
 
 #---------------------------------------------------------------------
 describe_repo() {
-    local ARTIFACT="$1"
-
     local CURRENT_REPO_NAME="$(run_git config --get 'remote.origin.url' | cut -f 4- -d /)"
 
     local REPO_NAME=

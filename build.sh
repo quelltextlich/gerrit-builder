@@ -154,7 +154,7 @@ fi
 info "Database schema version: $DB_SCHEMA_VERSION"
 echo "$DB_SCHEMA_VERSION" >"$TARGET_DIR_ABS/db_schema_version.txt"
 
-describe_repo "gerrit.war\", \"withdocs.war \", \"release.war"
+describe_repo
 
 echo "${REPO_DESCRIPTIONS["gerrit"]}" >"$TARGET_DIR_ABS/gerrit_description.txt"
 
