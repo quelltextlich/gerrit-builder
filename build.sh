@@ -197,7 +197,6 @@ do
     then
         run_git pull
     fi
-    describe_repo "$EXTRA_PLUGIN_NAME.jar"
     popd >/dev/null
 
     if [ -h "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME" ]
@@ -213,6 +212,16 @@ do
         then
             echo "/plugins/$EXTRA_PLUGIN_NAME" >>"$GERRIT_EXCLUDE_FILE_ABS"
         fi
+    fi
+done
+
+for PLUGIN_DIR_ABS in "$GERRIT_DIR_ABS/plugins"/*
+do
+    if [ -d "$PLUGIN_DIR_ABS" ]
+    then
+        pushd "$PLUGIN_DIR_ABS" >/dev/null
+        describe_repo
+        popd >/dev/null
     fi
 done
 
