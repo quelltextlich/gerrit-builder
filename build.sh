@@ -314,9 +314,12 @@ pushd "$TARGET_DIR_ABS" >/dev/null
 sha1sum * >sha1sums.txt
 popd >/dev/null
 
+echo "$ARTIFACTS_FAILED" >"$TARGET_DIR_ABS/failure_count.txt"
+
 echo_file_target_html "ok" "build_description.json"
 echo_file_target_html "ok" "api_version.txt"
 echo_file_target_html "ok" "db_schema_version.txt"
+echo_file_target_html "ok" "failure_count.txt"
 echo_file_target_html "ok" "gerrit_description.txt"
 echo_file_target_html "ok" "sha1sums.txt"
 echo_file_target_html "ok" "status.txt"
