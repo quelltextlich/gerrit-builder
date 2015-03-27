@@ -30,6 +30,15 @@ setup_repo() {
     git clone "https://gerrit.googlesource.com/$REPO"
     cd "$(basename "$REPO")"
     git checkout "$BRANCH"
+
+    # Hook to ensure Change-Id
+    cp "$GERRIT_DIR_ABS/gerrit-server/src/main/resources/com/google/gerrit/server/tools/root/hooks/commit-msg" .git/hooks/commit-msg
+    chmod 755 .git/hooks/commit-msg
+
+    # Hook to guard against spaces
+    cp .git/hooks/pre-commit.sample .git/hooks/pre-commit
+    chmod 755 .git/hooks/pre-commit
+
     cd "$SCRIPT_DIR_ABS"
 }
 
