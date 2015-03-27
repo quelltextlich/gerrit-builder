@@ -22,6 +22,7 @@ ARGUMENTS:
                        inferred from the basename of the directory, with
                        "master" as fallback.
   --force            - Overwrite eventual existing artifacts target directory
+  --no-building      - Don't build artifacts
   --no-checkout      - Don't 'git checkout' before building
   --no-clean         - Don't clean before building
   --no-pull          - Don't 'git pull' before building
@@ -45,6 +46,9 @@ do
             [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
             BRANCH="$1"
             shift || true
+            ;;
+        "--no-building" )
+            BUILD_ARTIFACTS=no
             ;;
         "--no-checkout" )
             CHECKOUT=no
@@ -160,15 +164,18 @@ then
     buckd --kill || true
 fi
 
-if [ "$BUCK_WANTED_VERSION" != "$(run_buck --version 2>/dev/null | cut -f 3 -d ' ')" ]
+if [ "$BUILD_ARTIFACTS" = "yes" ]
 then
-    section "Rebuilding buck"
-    pushd "$BUCK_DIR_ABS" >/dev/null
-    git checkout master
-    git pull
-    git checkout "$BUCK_WANTED_VERSION"
-    ant
-    popd >/dev/null
+    if [ "$BUCK_WANTED_VERSION" != "$(run_buck --version 2>/dev/null | cut -f 3 -d ' ')" ]
+    then
+        section "Rebuilding buck"
+        pushd "$BUCK_DIR_ABS" >/dev/null
+        git checkout master
+        git pull
+        git checkout "$BUCK_WANTED_VERSION"
+        ant
+        popd >/dev/null
+    fi
 fi
 
 for EXTRA_PLUGIN_DIR_ABS in "$EXTRA_PLUGINS_DIR_ABS"/*

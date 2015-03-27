@@ -33,6 +33,9 @@ PATH="$PATH:$WATCHMAN_DIR_ABS"
 PATH="$PATH:$MAVEN_DIR_ABS/bin"
 
 #---------------------------------------------------------------------
+BUILD_ARTIFACTS=yes
+
+#---------------------------------------------------------------------
 BRANCH="$(basename "$SCRIPT_DIR_ABS" | cut -f 1,2 -d - | cut -f 1 -d _ )"
 if [[ "$BRANCH" != "master" && ! ( "$BRANCH" =~ stable-[0-9]+.[0-9]+ ) ]]
 then
@@ -121,6 +124,10 @@ run_buck() {
 
 #---------------------------------------------------------------------
 run_buck_build() {
+    if [ "$BUILD_ARTIFACTS" = "no" ]
+    then
+        return
+    fi
     local DESCRIPTION="$1"
     local BUCK_TARGET="$2"
     local BUCK_GENERATED_FILE_RELBG="$3"
