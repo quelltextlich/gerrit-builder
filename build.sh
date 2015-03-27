@@ -311,6 +311,8 @@ done
 #section "Building api"
 #echo run_buck build api
 
+echo_build_description_json_file
+
 pushd "$TARGET_DIR_ABS" >/dev/null
 sha1sum * >sha1sums.txt
 popd >/dev/null
@@ -323,8 +325,6 @@ echo_file_target_html "ok" "sha1sums.txt"
 echo_file_target_html "ok" "status.txt"
 
 echo_target_html "</table>"
-
-echo_build_description_json_file
 
 HTML_FAILED_MARKER_PRE=
 HTML_FAILED_MARKER_POST=
