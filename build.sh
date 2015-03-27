@@ -308,9 +308,6 @@ do
     fi
 done
 
-#section "Building api"
-#echo run_buck build api
-
 echo_build_description_json_file
 
 pushd "$TARGET_DIR_ABS" >/dev/null
