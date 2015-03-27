@@ -132,10 +132,6 @@ run_buck() {
 
 #---------------------------------------------------------------------
 run_buck_build() {
-    if [ "$BUILD_ARTIFACTS" = "no" ]
-    then
-        return
-    fi
     local DESCRIPTION="$1"
     local BUCK_TARGET="$2"
     local BUCK_GENERATED_FILE_RELBG="$3"
@@ -148,7 +144,7 @@ run_buck_build() {
 
     section "Building $DESCRIPTION"
 
-    if "$BUCK_DIR_ABS/bin/buck" build "$BUCK_TARGET"
+    if test "$BUILD_ARTIFACTS" = "no" || "$BUCK_DIR_ABS/bin/buck" build "$BUCK_TARGET"
     then
         if [ -e "$SOURCE_FILE_ABS" ]
         then
@@ -156,7 +152,10 @@ run_buck_build() {
             STATUS="ok"
             BUCK_BUILD_FAILED=no
         else
-            error "Could not find artifact $SOURCE_FILE_ABS for $DESCRIPTION"
+            if [ "$BUILD_ARTIFACTS" != "no" ]
+            then
+                error "Could not find artifact $SOURCE_FILE_ABS for $DESCRIPTION"
+            fi
         fi
     fi
 
@@ -164,7 +163,10 @@ run_buck_build() {
     then
         cp "$LOG_FILE_ABS" "$TARGET_FILE_ABS.buck_log.txt"
     else
-        error "Could not build $DESCRIPTION, but log file '$LOG_FILE_ABS' does not exist either"
+        if [ "$BUILD_ARTIFACTS" != "no" ]
+        then
+            error "Could not build $DESCRIPTION, but log file '$LOG_FILE_ABS' does not exist either"
+        fi
     fi
 
     echo_file_target_html "$STATUS" "$(basename "$TARGET_FILE_ABS")" "$BUCK_TARGET"
