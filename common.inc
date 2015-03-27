@@ -186,9 +186,9 @@ echo_file_target_html() {
         then
             if [ "$SIZE" -lt 2000000 ]
             then
-                SIZE_CELL="$((SIZE / 1000 + 1)) KB"
+                SIZE_CELL="$((SIZE / 1000 + 1))&#160;KB"
             else
-                SIZE_CELL="$((SIZE / 1000 / 1000 + 1)) MB"
+                SIZE_CELL="$((SIZE / 1000 / 1000 + 1))&#160;MB"
             fi
         fi
     else
@@ -197,10 +197,11 @@ echo_file_target_html() {
 
     local BUCK_LOG_CELL="---"
     local REPO_CELL="---"
+    local DESCRIPTION_CELL="---"
     local COMMIT_CELL="---"
     if [ -n "$BUCK_TARGET" ]
     then
-        BUCK_LOG_CELL="<a href=\"$ARTIFACT_FILE_RELT.buck_log.txt\">View buck log</a>"
+        BUCK_LOG_CELL="<a href=\"$ARTIFACT_FILE_RELT.buck_log.txt\">View&#160;buck&#160;log</a>"
 
         local REPO="$(cut -f 1 -d : <<<"$BUCK_TARGET")"
         if [ "${REPO:0:8}" != "plugins/" ]
@@ -213,6 +214,7 @@ echo_file_target_html() {
         local COMMIT_HASH="$(run_git rev-parse HEAD)"
         popd  >/dev/null
         REPO_CELL="<a href=\"https://gerrit-review.googlesource.com/#/admin/projects/$REPO\">$REPO</a>"
+        DESCRIPTION_CELL="<a href=\"https://gerrit.googlesource.com/$REPO/+/$COMMIT_HASH\">${REPO_DESCRIPTIONS["$REPO"]}</a>"
         COMMIT_CELL="<a href=\"https://gerrit.googlesource.com/$REPO/+/$COMMIT_HASH\"><code>${COMMIT_HASH:0:8}</code></a>"
         if [ -n "${REPO_ARTIFACTS["$REPO"]}" ]
         then
@@ -229,6 +231,7 @@ echo_file_target_html() {
     <td class="right">$SIZE_CELL</td>
     <td>$BUCK_LOG_CELL</td>
     <td>$REPO_CELL</td>
+    <td>$DESCRIPTION_CELL</td>
     <td>$COMMIT_CELL</td>
   </tr>
 EOF
