@@ -97,6 +97,8 @@ info "Branch: $BRANCH"
 
 HTML_SPLIT="<p>— <a href=\"../index.html\">Go to parent directory</a> — <a href=\".\">View all files</a> —</p>"
 
+set_target_html_file_abs "$TARGET_DIR_ABS/index.html"
+
 cat_html_head \
     "$DATE gerrit $BRANCH build" \
     "Build of $BRANCH commitish of gerrit from $DATE" \
@@ -351,17 +353,19 @@ sed -i \
     -e '/Build.status/s/failed/'"$STATUS"'/g' \
     -e '/API version/s/---/'"$API_VERSION"'/g' \
     -e '/DB schema version/s/---/'"$DB_SCHEMA_VERSION"'/g' \
-    "$TARGET_DIR_ABS/index.html"
+    "$TARGET_HTML_FILE_ABS"
 
 dump_status
+
+set_target_html_file_abs "$OVERVIEW_DIR_ABS/index.html"
 
 cat_html_head \
     "Gerrit $BRANCH builds" \
     "Gerrit $BRANCH builds" \
     "gerrit, jar, $BRANCH" \
-    >"$OVERVIEW_HTML_FILE_ABS"
+    | cat_target_html
 
-cat >>"$OVERVIEW_HTML_FILE_ABS" <<EOF
+cat_target_html <<EOF
 <h1>Gerrit builds for $BRANCH</h1>
 
 <p><a href=".">View raw directory listing</a></p>
@@ -410,7 +414,7 @@ do
             DIR_REPO_DESCRIPTION="---"
         fi
 
-        cat >>"$OVERVIEW_HTML_FILE_ABS" <<EOF
+        cat_target_html <<EOF
   <tr>
     <td><a href="$DIR_RELC/index.html">$DIR_RELC</a></td>
     <td><img src="$IMAGE_BASE_URL/$DIR_STATUS.png" alt="Build $DIR_STATUS" /> $DIR_STATUS</td>
@@ -423,10 +427,8 @@ EOF
 done
 popd >/dev/null
 
-cat >>"$OVERVIEW_HTML_FILE_ABS" <<EOF
-</table>
-EOF
+echo_target_html "</table>"
 
-cat_html_tail >>"$OVERVIEW_HTML_FILE_ABS"
+cat_html_tail | cat_target_html
 
 finalize

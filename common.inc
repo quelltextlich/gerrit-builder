@@ -246,13 +246,19 @@ EOF
 }
 
 #---------------------------------------------------------------------
+set_target_html_file_abs() {
+    TARGET_HTML_FILE_ABS="$1"
+    rm -f "$TARGET_HTML_FILE_ABS"
+}
+
+#---------------------------------------------------------------------
 echo_target_html() {
-    echo "$@" | cat_target_html  >>"$TARGET_DIR_ABS/index.html"
+    echo "$@" | cat_target_html  >>"$TARGET_HTML_FILE_ABS"
 }
 
 #---------------------------------------------------------------------
 cat_target_html() {
-    cat >>"$TARGET_DIR_ABS/index.html"
+    cat >>"$TARGET_HTML_FILE_ABS"
 }
 
 #---------------------------------------------------------------------
