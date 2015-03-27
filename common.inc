@@ -229,3 +229,61 @@ echo_target_html() {
 cat_target_html() {
     cat >>"$TARGET_DIR_ABS/index.html"
 }
+
+#---------------------------------------------------------------------
+cat_html_head() {
+    local TITLE="$1"
+    local DESCRIPTION="$2"
+    local KEYWORDS="$3"
+    cat <<EOF
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+      <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <title>$TITLE</title>
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+  <meta name="description" content="$DESCRIPTION" />
+  <meta name="keywords" content="$KEYWORDS" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <style type="text/css">
+.left {
+  text-align: left;
+}
+.right {
+  text-align: right;
+}
+table, tr, th, td {
+  border-collapse: collapse;
+  border: 1px solid black;
+}
+table {
+  margin-left: 1em;
+}
+th, td {
+  padding-left: 0.4em;
+  padding-right: 0.4em;
+}
+th {
+  background-color: #ddd;
+}
+.th-semi-dark {
+  background-color: #eee;
+}
+.failed, .th-failed {
+  background-color: #ffaaaa;
+}
+  </style>
+</head>
+<body>
+
+EOF
+}
+
+#---------------------------------------------------------------------
+cat_html_tail() {
+    cat <<EOF
+
+</body>
+</html>
+EOF
+}

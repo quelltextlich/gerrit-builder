@@ -65,7 +65,10 @@ do
     esac
 done
 
-TARGET_DIR_ABS="$ARTIFACTS_NIGHTLY_DIR_ABS/$BRANCH/$DATE"
+OVERVIEW_DIR_ABS="$ARTIFACTS_NIGHTLY_DIR_ABS/$BRANCH"
+OVERVIEW_HTML_FILE_ABS="$OVERVIEW_DIR_ABS/index.html"
+
+TARGET_DIR_ABS="$OVERVIEW_DIR_ABS/$DATE"
 
 if [ -e "$TARGET_DIR_ABS" -a "$FORCE" = yes ]
 then
@@ -90,47 +93,13 @@ info "Branch: $BRANCH"
 
 HTML_SPLIT="<p>— <a href=\"../index.html\">Go to parent directory</a> — <a href=\".\">View all files</a> —</p>"
 
-cat_target_html <<EOF
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-      <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-<head>
-  <title>$DATE gerrit $BRANCH build</title>
-  <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
-  <meta name="description" content="Build of $BRANCH commitish of gerrit from $DATE" />
-  <meta name="keywords" content="gerrit, jar, $BRANCH" />
-  <link rel="shortcut icon" href="/favicon.ico" />
-  <style type="text/css">
-.left {
-  text-align: left;
-}
-.right {
-  text-align: right;
-}
-table, tr, th, td {
-  border-collapse: collapse;
-  border: 1px solid black;
-}
-table {
-  margin-left: 1em;
-}
-th, td {
-  padding-left: 0.4em;
-  padding-right: 0.4em;
-}
-th {
-  background-color: #ddd;
-}
-.th-semi-dark {
-  background-color: #eee;
-}
-.failed, .th-failed {
-  background-color: #ffaaaa;
-}
-  </style>
-</head>
-<body>
+cat_html_head \
+    "$DATE gerrit $BRANCH build" \
+    "Build of $BRANCH commitish of gerrit from $DATE" \
+    "gerrit, jar, $BRANCH" \
+    | cat_target_html
 
+cat_target_html <<EOF
 <h1>$DATE build of $BRANCH of gerrit</h1>
 
 $HTML_SPLIT
@@ -285,12 +254,9 @@ cat_target_html <<EOF
 <p>(Total artifacts: $ARTIFACTS_TOTAL; ok artifacts: $ARTIFACTS_OK, ${HTML_FAILED_MARKER_PRE}failed artifacts: $ARTIFACTS_FAILED${HTML_FAILED_MARKER_POST})</p>
 EOF
 
-cat_target_html <<EOF
-$HTML_SPLIT
+echo_target_html "$HTML_SPLIT"
 
-</body>
-</html>
-EOF
+cat_html_tail | cat_target_html
 
 sed -i \
     -e '/Build.status/s/failed/'"$STATUS"'/g' \
@@ -299,5 +265,54 @@ sed -i \
     "$TARGET_DIR_ABS/index.html"
 
 dump_status
+
+cat_html_head \
+    "Gerrit $BRANCH builds" \
+    "Gerrit $BRANCH builds" \
+    "gerrit, jar, $BRANCH" \
+    >"$OVERVIEW_HTML_FILE_ABS"
+
+cat >>"$OVERVIEW_HTML_FILE_ABS" <<EOF
+<h1>Gerrit builds for $BRANCH</h1>
+
+<p><a href=".">View raw directory listing</a></p>
+
+<table>
+  <tr>
+    <th>Build</th>
+    <th>Status</th>
+  </tr>
+EOF
+
+pushd "$OVERVIEW_DIR_ABS" >/dev/null
+for DIR_RELC in *
+do
+    if [ -d "$DIR_RELC" ]
+    then
+        DIR_STATUS=$(cat "$DIR_RELC/status.txt")
+        case "$DIR_STATUS" in
+            "ok" | \
+                "failed partially" | \
+                "failed" )
+                ;;
+            * )
+                DIR_STATUS="failed"
+                ;;
+        esac
+        cat >>"$OVERVIEW_HTML_FILE_ABS" <<EOF
+  <tr>
+    <td><a href="$DIR_RELC/index.html">$DIR_RELC</a></td>
+    <td><img src="$IMAGE_BASE_URL/$DIR_STATUS.png" alt="Build $DIR_STATUS" /> $DIR_STATUS</td>
+  </tr>
+EOF
+    fi
+done
+popd >/dev/null
+
+cat >>"$OVERVIEW_HTML_FILE_ABS" <<EOF
+</table>
+EOF
+
+cat_html_tail >>"$OVERVIEW_HTML_FILE_ABS"
 
 finalize
