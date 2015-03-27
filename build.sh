@@ -178,6 +178,10 @@ then
     fi
 fi
 
+pushd "$GERRIT_DIR_ABS" >/dev/null
+GERRIT_EXCLUDE_FILE_ABS="$(git rev-parse --git-dir)/info/exclude"
+popd >/dev/null
+
 for EXTRA_PLUGIN_DIR_ABS in "$EXTRA_PLUGINS_DIR_ABS"/*
 do
     EXTRA_PLUGIN_NAME="$(basename "$EXTRA_PLUGIN_DIR_ABS")"
@@ -203,6 +207,11 @@ do
     if [ ! -e "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME" ]
     then
         ln -s "$EXTRA_PLUGIN_DIR_ABS" "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME"
+
+        if ! grep --quiet '^/plugins/'"$EXTRA_PLUGIN_NAME"'\( \|$\)' "$GERRIT_EXCLUDE_FILE_ABS" &>/dev/null
+        then
+            echo "/plugins/$EXTRA_PLUGIN_NAME" >>"$GERRIT_EXCLUDE_FILE_ABS"
+        fi
     fi
 done
 
