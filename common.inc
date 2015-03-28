@@ -93,7 +93,13 @@ info() {
 
 #---------------------------------------------------------------------
 finalize() {
+    local EXIT_CODE="$1"
+    if [ -z "$EXIT_CODE" ]
+    then
+        EXIT_CODE=0
+    fi
     info "pass." "Arguments:" "${SCRIPT_ARGUMENTS[@]}"
+    exit "$EXIT_CODE"
 }
 
 #---------------------------------------------------------------------

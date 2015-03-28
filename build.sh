@@ -537,4 +537,22 @@ echo_target_html "</table>"
 
 cat_html_footer_target_html
 
-finalize
+case "$STATUS" in
+    "ok" )
+        EXIT_CODE=0
+        ;;
+    "broken" )
+        EXIT_CODE=10
+        ;;
+    "failed" )
+        EXIT_CODE=11
+        ;;
+    "died" )
+        EXIT_CODE=12
+        ;;
+    * )
+        EXIT_CODE=13
+        ;;
+esac
+
+finalize "$EXIT_CODE"
