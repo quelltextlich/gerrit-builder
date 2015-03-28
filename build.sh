@@ -12,6 +12,8 @@ CHECKOUT=yes
 CLEAN=yes
 TEST=yes
 STATUS=died
+IGNORED_PLUGINS=()
+
 
 print_help() {
     cat <<EOF
@@ -23,6 +25,8 @@ ARGUMENTS:
                        inferred from the basename of the directory, with
                        "master" as fallback.
   --force            - Overwrite eventual existing artifacts target directory
+  --ignore-plugin PLUGIN
+                     - Don't build, test, ... the plugin PLUGIN
   --no-building      - Don't build artifacts
   --no-checkout      - Don't 'git checkout' before building
   --no-clean         - Don't clean before building
@@ -43,6 +47,11 @@ do
             ;;
         "--force" )
             FORCE=yes
+            ;;
+        "--ignore-plugin" )
+            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+            IGNORED_PLUGINS=( "${IGNORED_PLUGINS[@]}" "$1" )
+            shift || true
             ;;
         "--branch" )
             [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
@@ -186,10 +195,25 @@ pushd "$GERRIT_DIR_ABS" >/dev/null
 GERRIT_EXCLUDE_FILE_ABS="$(git rev-parse --git-dir)/info/exclude"
 popd >/dev/null
 
+is_ignored_plugin () {
+    local PLUGIN_NAME="$1"
+    if in_array "$PLUGIN_NAME" "${IGNORED_PLUGINS[@]}"
+    then
+        return 0
+    fi
+    return 1
+}
+
 for EXTRA_PLUGIN_DIR_ABS in "$EXTRA_PLUGINS_DIR_ABS"/*
 do
     EXTRA_PLUGIN_NAME="$(basename "$EXTRA_PLUGIN_DIR_ABS")"
     section "Updating $EXTRA_PLUGIN_NAME"
+
+    if is_ignored_plugin "$EXTRA_PLUGIN_NAME"
+    then
+        info "Skipped, as $EXTRA_PLUGIN_NAME is ignored"
+        continue
+    fi
 
     pushd "$EXTRA_PLUGIN_DIR_ABS" >/dev/null
     if [ "$CHECKOUT" = "yes" ]
@@ -223,6 +247,12 @@ do
     if [ -d "$PLUGIN_DIR_ABS" ]
     then
         PLUGIN_NAME="$(basename "$PLUGIN_DIR_ABS")"
+
+        if is_ignored_plugin "$PLUGIN_NAME"
+        then
+            info "Skipped, as $PLUGIN_NAME is ignored"
+            continue
+        fi
 
         pushd "$PLUGIN_DIR_ABS" >/dev/null
         describe_repo
@@ -320,6 +350,13 @@ do
     if [ -d "$PLUGIN_DIR_ABS" ]
     then
         PLUGIN_NAME="$(basename "$PLUGIN_DIR_ABS")"
+
+        if is_ignored_plugin "$PLUGIN_NAME"
+        then
+            info "Skipped, as $PLUGIN_NAME is ignored"
+            continue
+        fi
+
         run_buck_build "$PLUGIN_NAME" "plugins/$PLUGIN_NAME:$PLUGIN_NAME" "plugins/$PLUGIN_NAME/$PLUGIN_NAME.jar"
     fi
 done

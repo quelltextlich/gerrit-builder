@@ -61,6 +61,21 @@ mkdir -p "$ARTIFACTS_DIR_ABS"
 mkdir -p "$ARTIFACTS_NIGHTLY_DIR_ABS"
 
 #---------------------------------------------------------------------
+in_array() {
+    local NEEDLE="$1"
+    shift
+    local HAY
+    for HAY in "$@"
+    do
+        if [ "$HAY" = "$NEEDLE" ]
+        then
+            return 0
+        fi
+    done
+    return 1
+}
+
+#---------------------------------------------------------------------
 log() {
     echo " * $(date --utc +'%Y-%m-%d %H:%M:%S.%3N')" "$@" >&2
 }
