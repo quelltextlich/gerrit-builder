@@ -384,6 +384,11 @@ EOF
 }
 
 #---------------------------------------------------------------------
+echo_html_split_target_html() {
+    echo_target_html "<p>- <a href=\"../index.html\">View parent directory</a> - <a href=\".\">View raw listing</a> -</p>"
+}
+
+#---------------------------------------------------------------------
 setup_git_hooks() {
     local REPO_DIR_ABS="$(git rev-parse --git-dir)"
     # Hook to ensure Change-Id

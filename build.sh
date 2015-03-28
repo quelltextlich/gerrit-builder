@@ -100,8 +100,6 @@ dump_status
 info "Date: $DATE"
 info "Branch: $BRANCH"
 
-HTML_SPLIT="<p>— <a href=\"../index.html\">Go to parent directory</a> — <a href=\".\">View all files</a> —</p>"
-
 set_target_html_file_abs "$TARGET_DIR_ABS/index.html"
 
 cat_html_head \
@@ -110,11 +108,11 @@ cat_html_head \
     "gerrit, jar, $BRANCH" \
     | cat_target_html
 
+echo_target_html "<h1>$DATE build of $BRANCH of gerrit</h1>"
+
+echo_html_split_target_html
+
 cat_target_html <<EOF
-<h1>$DATE build of $BRANCH of gerrit</h1>
-
-$HTML_SPLIT
-
 <h2 id="summary">Build summary</h2>
 
 <table>
@@ -403,7 +401,7 @@ EOF
 
 cat_artifacts_summary_target_html
 
-echo_target_html "$HTML_SPLIT"
+echo_html_split_target_html
 
 cat_html_tail | cat_target_html
 
@@ -427,11 +425,11 @@ cat_html_head \
     "gerrit, jar, $BRANCH" \
     | cat_target_html
 
+echo_target_html "<h1>Gerrit builds for $BRANCH</h1>"
+
+echo_html_split_target_html
+
 cat_target_html <<EOF
-<h1>Gerrit builds for $BRANCH</h1>
-
-<p><a href=".">View raw directory listing</a></p>
-
 <table>
   <tr>
     <th>Build</th>
@@ -507,6 +505,8 @@ done
 popd >/dev/null
 
 echo_target_html "</table>"
+
+echo_html_split_target_html
 
 cat_html_tail | cat_target_html
 
