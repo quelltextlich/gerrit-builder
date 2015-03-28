@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+set -o pipefail
 
 #---------------------------------------------------------------------
 ORIG_DIR_ABS="$PWD"
@@ -32,6 +33,7 @@ PATH="$PATH:$BUCK_DIR_ABS/bin"
 PATH="$PATH:$WATCHMAN_DIR_ABS"
 PATH="$PATH:$MAVEN_DIR_ABS/bin"
 
+TEST_OUTPUT_SUFFIX=".test_output.txt"
 #---------------------------------------------------------------------
 BUILD_ARTIFACTS=yes
 
@@ -44,12 +46,15 @@ fi
 
 ARTIFACTS_TOTAL=0
 ARTIFACTS_OK=0
+ARTIFACTS_BROKEN=0
 ARTIFACTS_FAILED=0
 
 REPO_NAMES=()
 LAST_REPO_NAME=
 declare -A REPO_DESCRIPTIONS=()
 declare -A REPO_ARTIFACTS=()
+
+declare -A TARGET_TEST_LABELS=()
 #---------------------------------------------------------------------
 mkdir -p "$ARTIFACTS_DIR_ABS"
 mkdir -p "$ARTIFACTS_NIGHTLY_DIR_ABS"
@@ -167,6 +172,14 @@ run_buck_build() {
         fi
     fi
 
+    if [ "$STATUS" = "ok" -a "$TEST" = "yes" -a -n "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" ]
+    then
+        if ! run_buck test --include "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" 2>&1 | tee "$TARGET_FILE_ABS$TEST_OUTPUT_SUFFIX"
+        then
+            STATUS="broken"
+        fi
+    fi
+
     echo_file_target_html "$STATUS" "$(basename "$TARGET_FILE_ABS")" "$BUCK_TARGET"
 }
 
@@ -201,7 +214,11 @@ echo_file_target_html() {
     local COMMIT_CELL="---"
     if [ -n "$BUCK_TARGET" ]
     then
-        BUCK_LOG_CELL="<a href=\"$ARTIFACT_FILE_RELT.buck_log.txt\">View&#160;buck&#160;log</a>"
+        BUCK_LOG_CELL="<a href=\"$ARTIFACT_FILE_RELT.buck_log.txt\">build</a>"
+        if [ -e "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT$TEST_OUTPUT_SUFFIX" ]
+        then
+            BUCK_LOG_CELL="$BUCK_LOG_CELL,&#160;<a href=\"$ARTIFACT_FILE_RELT$TEST_OUTPUT_SUFFIX\">test</a>"
+        fi
 
         local REPO="$(cut -f 1 -d : <<<"$BUCK_TARGET")"
         if [ "${REPO:0:8}" != "plugins/" ]
@@ -240,6 +257,9 @@ EOF
     if [ "$STATUS" = "ok" ]
     then
         ARTIFACTS_OK=$((ARTIFACTS_OK+1))
+    elif [ "$STATUS" = "broken" ]
+    then
+        ARTIFACTS_BROKEN=$((ARTIFACTS_BROKEN+1))
     else
         ARTIFACTS_FAILED=$((ARTIFACTS_FAILED+1))
     fi

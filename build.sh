@@ -10,6 +10,7 @@ FORCE=no
 PULL=yes
 CHECKOUT=yes
 CLEAN=yes
+TEST=yes
 STATUS=died
 
 print_help() {
@@ -27,6 +28,7 @@ ARGUMENTS:
   --no-clean         - Don't clean before building
   --no-pull          - Don't 'git pull' before building
   --no-repo-mangling - Neither 'git checkout' nor 'git pull' before building
+  --no-testing       - Don't run tests
 EOF
 }
 
@@ -62,6 +64,9 @@ do
         "--no-repo-mangling" )
             CHECKOUT=no
             PULL=no
+            ;;
+        "--no-testing" )
+            TEST=no
             ;;
         * )
             error "Unknown argument '$ARGUMENT'"
@@ -127,7 +132,7 @@ $HTML_SPLIT
 <th>Status</th>
 <th>Artifact</th>
 <th>Size</th>
-<th>Buck log</th>
+<th>Logs</th>
 <th>Repository</th>
 <th>Description</th>
 <th>Commit</th>
@@ -222,8 +227,22 @@ for PLUGIN_DIR_ABS in "$GERRIT_DIR_ABS/plugins"/*
 do
     if [ -d "$PLUGIN_DIR_ABS" ]
     then
+        PLUGIN_NAME="$(basename "$PLUGIN_DIR_ABS")"
+
         pushd "$PLUGIN_DIR_ABS" >/dev/null
         describe_repo
+
+        # Find test label
+        TEST_LABEL=
+        if [ -n "$(find -type d -name test)" ]
+        then
+            if [ -e "BUCK" ]
+            then
+                TEST_LABEL=$(grep 'labels[[:space:]]*=.*'\' "BUCK" | cut -f 2 -d "'" || true)
+            fi
+        fi
+        TARGET_TEST_LABELS["plugins/$PLUGIN_NAME:$PLUGIN_NAME"]="$TEST_LABEL"
+
         popd >/dev/null
     fi
 done
@@ -317,9 +336,11 @@ sha1sum * >sha1sums.txt
 popd >/dev/null
 
 echo "$ARTIFACTS_FAILED" >"$TARGET_DIR_ABS/failure_count.txt"
+echo "$ARTIFACTS_BROKEN" >"$TARGET_DIR_ABS/broken_count.txt"
 
 echo_file_target_html "ok" "build_description.json"
 echo_file_target_html "ok" "api_version.txt"
+echo_file_target_html "ok" "broken_count.txt"
 echo_file_target_html "ok" "db_schema_version.txt"
 echo_file_target_html "ok" "failure_count.txt"
 echo_file_target_html "ok" "gerrit_description.txt"
@@ -336,7 +357,14 @@ then
 else
     if [ "$ARTIFACTS_FAILED" = "0" ]
     then
-        STATUS=ok
+        if [ "$ARTIFACTS_BROKEN" = "0" ]
+        then
+            STATUS=ok
+        else
+            STATUS=broken
+            HTML_BROKEN_MARKER_PRE="<span class=\"broken\">"
+            HTML_BROKEN_MARKER_POST="</span>"
+        fi
     else
         STATUS=failed
         HTML_FAILED_MARKER_PRE="<span class=\"failed\">"
@@ -344,7 +372,7 @@ else
     fi
 fi
 cat_target_html <<EOF
-<p>(Total artifacts: $ARTIFACTS_TOTAL; ok artifacts: $ARTIFACTS_OK, ${HTML_FAILED_MARKER_PRE}failed artifacts: $ARTIFACTS_FAILED${HTML_FAILED_MARKER_POST})</p>
+<p>(Total artifacts: $ARTIFACTS_TOTAL; ok artifacts: $ARTIFACTS_OK, ${HTML_BROKEN_MARKER_PRE}broken artifacts: $ARTIFACTS_BROKEN${HTML_BROKEN_MARKER_POST}, ${HTML_FAILED_MARKER_PRE}failed artifacts: $ARTIFACTS_FAILED${HTML_FAILED_MARKER_POST})</p>
 EOF
 
 echo_target_html "$HTML_SPLIT"
@@ -396,6 +424,14 @@ do
                     DIR_ARTIFACTS_FAILED="?"
                 fi
                 STATUS_CELL_TEXT="$DIR_ARTIFACTS_FAILED $DIR_STATUS"
+                ;;
+            "broken" )
+                DIR_ARTIFACTS_BROKEN=$(cat "$DIR_RELC/broken_count.txt" || true)
+                if [ -z "$DIR_ARTIFACTS_BROKEN" ]
+                then
+                    DIR_ARTIFACTS_BROKEN="?"
+                fi
+                STATUS_CELL_TEXT="$DIR_ARTIFACTS_BROKEN $DIR_STATUS"
                 ;;
             "ok" | \
                 "died" )
