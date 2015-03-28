@@ -331,7 +331,6 @@ fi
 
 run_buck_build "gerrit, gerrit.war" "//:gerrit" "gerrit.war"
 run_buck_build "gerrit, withdocs.war" "//:withdocs" "withdocs.war"
-run_buck_build "gerrit, release.war" "//:release" "release.war"
 
 for API in \
     "gerrit-extension-api:extension-api" \
@@ -368,6 +367,8 @@ do
         run_buck_build "$PLUGIN_NAME" "plugins/$PLUGIN_NAME:$PLUGIN_NAME" "plugins/$PLUGIN_NAME/$PLUGIN_NAME.jar"
     fi
 done
+
+run_buck_build "gerrit, release.war" "//:release" "release.war" "gerrit.war"
 
 echo_build_description_json_file
 

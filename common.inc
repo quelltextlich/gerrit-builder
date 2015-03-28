@@ -174,6 +174,7 @@ run_buck_build() {
     local DESCRIPTION="$1"
     local BUCK_TARGET="$2"
     local BUCK_GENERATED_FILE_RELBG="$3"
+    local INSERT_BEFORE="$4"
     local STATUS="failed"
 
     local SOURCE_FILE_ABS="$GERRIT_DIR_ABS/buck-out/gen/$BUCK_GENERATED_FILE_RELBG"
@@ -216,7 +217,7 @@ run_buck_build() {
         fi
     fi
 
-    echo_file_target_html "$STATUS" "$(basename "$TARGET_FILE_ABS")" "$BUCK_TARGET"
+    echo_file_target_html "$STATUS" "$(basename "$TARGET_FILE_ABS")" "$BUCK_TARGET" "$INSERT_BEFORE"
 }
 
 #---------------------------------------------------------------------
@@ -261,6 +262,7 @@ echo_file_target_html() {
     local STATUS="$1"
     local ARTIFACT_FILE_RELT="$2"
     local BUCK_TARGET="$3"
+    local INSERT_BEFORE="$4"
 
     local SIZE_CELL="---"
     local ARTIFACT_CELL=
@@ -316,18 +318,26 @@ echo_file_target_html() {
     local STATUS_TEXT=
     set_STATUS_TEXT "uncounted"
 
-    cat_target_html <<EOF
-
-  <tr class="$STATUS">
-    <td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" />&#160;$STATUS_TEXT</td>
-    <th class="left th-semi-dark th-$STATUS">$ARTIFACT_CELL</th>
-    <td class="right">$SIZE_CELL</td>
+    local HTML="
+  <!-- Artifact: $ARTIFACT_FILE_RELT -->
+  <tr class=\"$STATUS\">
+    <td><img src=\"$IMAGE_BASE_URL/$STATUS.png\" alt=\"Build $STATUS\" />&#160;$STATUS_TEXT</td>
+    <th class=\"left th-semi-dark th-$STATUS\">$ARTIFACT_CELL</th>
+    <td class=\"right\">$SIZE_CELL</td>
     <td>$BUCK_LOG_CELL</td>
     <td>$REPO_CELL</td>
     <td>$DESCRIPTION_CELL</td>
     <td>$COMMIT_CELL</td>
-  </tr>
-EOF
+  </tr>"
+
+    if [ -z "$INSERT_BEFORE" ]
+    then
+        echo_target_html "$HTML"
+    else
+        HTML="${HTML//
+/\\n}"
+        sed -i -e '/Artifact: '"$INSERT_BEFORE"'/s@^@'"${HTML//&/\\&}"'\n@' "$TARGET_HTML_FILE_ABS"
+    fi
 
     ARTIFACTS_TOTAL=$((ARTIFACTS_TOTAL+1))
     if [ "$STATUS" = "ok" ]
