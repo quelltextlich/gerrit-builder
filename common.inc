@@ -417,7 +417,7 @@ th {
 .failed, .th-failed {
   background-color: #ffaaaa;
 }
-.broken {
+.broken, .th-broken {
   background-color: #ffccaa;
 }
 .legal-footer {
