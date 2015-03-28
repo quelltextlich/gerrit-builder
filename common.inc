@@ -37,7 +37,7 @@ TEST_OUTPUT_SUFFIX=".test_output.txt"
 BUCK_LOG_SUFFIX=".buck_log.txt"
 #---------------------------------------------------------------------
 BUILD_ARTIFACTS=yes
-
+LEGAL_URL_RELS="legal.url"
 #---------------------------------------------------------------------
 BRANCH="$(basename "$SCRIPT_DIR_ABS" | cut -f 1,2 -d - | cut -f 1 -d _ )"
 if [[ "$BRANCH" != "master" && ! ( "$BRANCH" =~ stable-[0-9]+.[0-9]+ ) ]]
@@ -323,11 +323,32 @@ cat_target_html() {
 }
 
 #---------------------------------------------------------------------
+set_LEGAL_URL() {
+    if [ -z "$LEGAL_URL" ]
+    then
+        pushd "$SCRIPT_DIR_ABS" >/dev/null
+        if [ -e "$LEGAL_URL_RELS" ]
+        then
+            LEGAL_URL="$(cat "$LEGAL_URL_RELS")"
+            if [ -z "$LEGAL_URL" ]
+            then
+                error "'$SCRIPT_DIR_ABS/$LEGAL_URL_RELS' is empty. Please make that file contain the 'Contact / Legal' URL"
+            fi
+        else
+            error "'$SCRIPT_DIR_ABS/$LEGAL_URL_RELS' does not exist. Please make that file contain the 'Contact / Legal' URL"
+        fi
+        popd >/dev/null
+    fi
+}
+
+#---------------------------------------------------------------------
 cat_html_header_target_html() {
     local TITLE="$1"
     local DESCRIPTION="$2"
     local KEYWORDS="$3"
     local H1="$4"
+
+    set_LEGAL_URL
 
     cat_target_html <<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -369,6 +390,12 @@ th {
 .broken {
   background-color: #ffccaa;
 }
+.legal-footer {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: right;
+}
   </style>
 </head>
 <body>
@@ -384,11 +411,11 @@ cat_html_footer_target_html() {
 
     cat_target_html <<EOF
 
+<p class="legal-footer"> <a href="$LEGAL_URL">Contact / Legal</a></p>
 </body>
 </html>
 EOF
 }
-
 #---------------------------------------------------------------------
 echo_html_split_target_html() {
     echo_target_html "<p>- <a href=\"../index.html\">View parent directory</a> - <a href=\".\">View raw listing</a> -</p>"
