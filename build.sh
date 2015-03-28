@@ -380,27 +380,11 @@ echo_target_html "$HTML_SPLIT"
 
 cat_html_tail | cat_target_html
 
-STATUS_TEXT="$STATUS"
-case "$STATUS_TEXT" in
-    "failed" )
-        STATUS_TEXT="$ARTIFACTS_FAILED failed build"
-        if [ "$ARTIFACTS_FAILED" != "1" ]
-        then
-            STATUS_TEXT="${STATUS_TEXT}s"
-        fi
-        ;;
-    "broken" )
-        STATUS_TEXT="$ARTIFACTS_BROKEN broken test"
-        if [ "$ARTIFACTS_BROKEN" != "1" ]
-        then
-            STATUS_TEXT="${STATUS_TEXT}s"
-        fi
-        ;;
-esac
+set_STATUS_TEXT
 
 sed -i \
     -e '/Build.status/s/died/'"$STATUS"'/g' \
-    -e '/Build.status/s/'"$STATUS"'\(<\)/'"$STATUS_TEXT"'\1/' \
+    -e '/Build.status/s/'"$STATUS"'\(<\)/'"${STATUS_TEXT//&/\\&}"'\1/' \
     -e '/Description.*---/s/---/'"${REPO_DESCRIPTIONS["gerrit"]}"'/g' \
     -e '/API version/s/---/'"$API_VERSION"'/g' \
     -e '/DB schema version/s/---/'"$DB_SCHEMA_VERSION"'/g' \

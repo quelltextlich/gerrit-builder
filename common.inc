@@ -185,6 +185,38 @@ run_buck_build() {
 }
 
 #---------------------------------------------------------------------
+set_STATUS_TEXT() {
+    local ASPECT="$1"
+    if [ -z "$ASPECT" ]
+    then
+        ASPECT="counted"
+    fi
+
+    STATUS_TEXT="$STATUS"
+
+    local COUNT=""
+    case "$STATUS_TEXT" in
+        "failed" )
+            STATUS_TEXT="failed&#160;build"
+            COUNT="$ARTIFACTS_FAILED"
+            ;;
+        "broken" )
+            STATUS_TEXT="broken&#160;test"
+            COUNT="$ARTIFACTS_BROKEN"
+            ;;
+    esac
+
+    if [ "$ASPECT" = "counted" -a -n "$COUNT" ]
+    then
+        STATUS_TEXT="$COUNT $STATUS_TEXT"
+        if [ "$COUNT" != "1" ]
+        then
+            STATUS_TEXT="${STATUS_TEXT}s"
+        fi
+    fi
+}
+
+#---------------------------------------------------------------------
 echo_file_target_html() {
     local STATUS="$1"
     local ARTIFACT_FILE_RELT="$2"
@@ -241,10 +273,13 @@ echo_file_target_html() {
         REPO_ARTIFACTS["$REPO"]="${REPO_ARTIFACTS["$REPO"]}$ARTIFACT_FILE_RELT"
     fi
 
+    local STATUS_TEXT=
+    set_STATUS_TEXT "uncounted"
+
     cat_target_html <<EOF
 
   <tr class="$STATUS">
-    <td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" />&#160;$STATUS</td>
+    <td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" />&#160;$STATUS_TEXT</td>
     <th class="left th-semi-dark th-$STATUS">$ARTIFACT_CELL</th>
     <td class="right">$SIZE_CELL</td>
     <td>$BUCK_LOG_CELL</td>
