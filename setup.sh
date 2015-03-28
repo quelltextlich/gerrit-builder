@@ -32,6 +32,7 @@ setup_watchman
 setup_buck
 for REPO in \
     gerrit \
+    plugins/delete-project \
     plugins/its-base \
     plugins/its-bugzilla \
     plugins/its-jira \
