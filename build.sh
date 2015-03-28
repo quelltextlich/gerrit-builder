@@ -397,6 +397,8 @@ EOF
 
 cat_artifacts_summary_target_html
 
+echo_target_html "<p>Unless otherwise noted or implied from the sources, the artifacts are provided under the <a href=\"http://www.apache.org/licenses/LICENSE-2.0\">Apache License, Version 2.0</a>.</p>"
+
 cat_html_footer_target_html
 
 set_STATUS_TEXT
