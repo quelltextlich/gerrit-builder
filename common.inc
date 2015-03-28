@@ -76,6 +76,15 @@ in_array() {
 }
 
 #---------------------------------------------------------------------
+post_parameter_parsing_setup() {
+    OVERVIEW_DIR_ABS="$ARTIFACTS_NIGHTLY_DIR_ABS/$BRANCH"
+}
+
+# Calling once already upon sourcing, put scripts are encouraged to
+# call it again once they are finished with parameter parsing
+post_parameter_parsing_setup
+
+#---------------------------------------------------------------------
 log() {
     echo " * $(date --utc +'%Y-%m-%d %H:%M:%S.%3N')" "$@" >&2
 }

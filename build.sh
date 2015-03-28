@@ -83,8 +83,7 @@ do
     esac
 done
 
-OVERVIEW_DIR_ABS="$ARTIFACTS_NIGHTLY_DIR_ABS/$BRANCH"
-OVERVIEW_HTML_FILE_ABS="$OVERVIEW_DIR_ABS/index.html"
+post_parameter_parsing_setup
 
 TARGET_DIR_ABS="$OVERVIEW_DIR_ABS/$DATE"
 
@@ -450,92 +449,7 @@ sed -i \
 
 dump_status
 
-set_target_html_file_abs "$OVERVIEW_DIR_ABS/index.html"
-
-cat_html_header_target_html \
-    "Gerrit $BRANCH builds" \
-    "Gerrit $BRANCH builds" \
-    "gerrit, jar, $BRANCH" \
-    "Gerrit builds for $BRANCH"
-
-cat_target_html <<EOF
-<table>
-  <tr>
-    <th>Build</th>
-    <th>Status</th>
-    <th>Gerrit HEAD</th>
-    <th>API version</th>
-    <th>DB schema version</th>
-  </tr>
-EOF
-
-pushd "$OVERVIEW_DIR_ABS" >/dev/null
-for DIR_RELC in *
-do
-    if [ -d "$DIR_RELC" ]
-    then
-        DIR_STATUS=$(cat "$DIR_RELC/status.txt" || true)
-        case "$DIR_STATUS" in
-            "failed" )
-                DIR_ARTIFACTS_FAILED=$(cat "$DIR_RELC/failure_count.txt" || true)
-                if [ -z "$DIR_ARTIFACTS_FAILED" ]
-                then
-                    DIR_ARTIFACTS_FAILED="?"
-                fi
-                STATUS_CELL_TEXT="$DIR_ARTIFACTS_FAILED $DIR_STATUS"
-                ;;
-            "broken" )
-                DIR_ARTIFACTS_BROKEN=$(cat "$DIR_RELC/broken_count.txt" || true)
-                if [ -z "$DIR_ARTIFACTS_BROKEN" ]
-                then
-                    DIR_ARTIFACTS_BROKEN="?"
-                fi
-                STATUS_CELL_TEXT="$DIR_ARTIFACTS_BROKEN $DIR_STATUS"
-                ;;
-            "ok" | \
-                "died" )
-                STATUS_CELL_TEXT="$DIR_STATUS"
-                ;;
-            * )
-                DIR_STATUS="died"
-                STATUS_CELL_TEXT="$DIR_STATUS"
-                ;;
-        esac
-
-        DIR_API_VERSION=$(cat "$DIR_RELC/api_version.txt" || true)
-        if [ -z "$DIR_API_VERSION" ]
-        then
-            DIR_API_VERSION="---"
-        fi
-
-        DIR_DB_SCHEMA_VERSION=$(cat "$DIR_RELC/db_schema_version.txt" || true)
-        if [ -z "$DIR_DB_SCHEMA_VERSION" ]
-        then
-            DIR_DB_SCHEMA_VERSION="---"
-        fi
-
-        DIR_REPO_DESCRIPTION=$(cat "$DIR_RELC/gerrit_description.txt" || true)
-        if [ -z "$DIR_REPO_DESCRIPTION" ]
-        then
-            DIR_REPO_DESCRIPTION="---"
-        fi
-
-        cat_target_html <<EOF
-  <tr>
-    <td><a href="$DIR_RELC/index.html">$DIR_RELC</a></td>
-    <td><img src="$IMAGE_BASE_URL/$DIR_STATUS.png" alt="Build $DIR_STATUS" />&#160;$STATUS_CELL_TEXT</td>
-    <td>$DIR_REPO_DESCRIPTION</td>
-    <td>$DIR_API_VERSION</td>
-    <td>$DIR_DB_SCHEMA_VERSION</td>
-  </tr>
-EOF
-    fi
-done
-popd >/dev/null
-
-echo_target_html "</table>"
-
-cat_html_footer_target_html
+"$SCRIPT_DIR_ABS/write_overview_index_html.sh"
 
 case "$STATUS" in
     "ok" )
