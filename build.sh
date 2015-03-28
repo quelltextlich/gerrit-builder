@@ -121,6 +121,7 @@ $HTML_SPLIT
 <tr class="$STATUS"><th class="th-$STATUS">Build status</th><td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" />&#160;$STATUS</td></tr>
 <tr><th>Build date</th><td>$DATE</td></tr>
 <tr><th>Commitish</th><td>$BRANCH</td></tr>
+<tr><th>Description</th><td>---</td></tr>
 <tr><th>API version</th><td>---</td></tr>
 <tr><th>DB schema version</th><td>---</td></tr>
 </table>
@@ -381,6 +382,7 @@ cat_html_tail | cat_target_html
 
 sed -i \
     -e '/Build.status/s/died/'"$STATUS"'/g' \
+    -e '/Description.*---/s/---/'"${REPO_DESCRIPTIONS["gerrit"]}"'/g' \
     -e '/API version/s/---/'"$API_VERSION"'/g' \
     -e '/DB schema version/s/---/'"$DB_SCHEMA_VERSION"'/g' \
     "$TARGET_HTML_FILE_ABS"
