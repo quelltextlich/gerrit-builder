@@ -192,7 +192,12 @@ set_STATUS_TEXT() {
         ASPECT="counted"
     fi
 
-    STATUS_TEXT="$STATUS"
+    STATUS_TEXT="$2"
+    if [ -z "$STATUS_TEXT" ]
+    then
+        STATUS_TEXT="$STATUS"
+    fi
+
 
     local COUNT=""
     case "$STATUS_TEXT" in
@@ -358,6 +363,9 @@ th {
 }
 .failed, .th-failed {
   background-color: #ffaaaa;
+}
+.broken {
+  background-color: #ffccaa;
 }
   </style>
 </head>

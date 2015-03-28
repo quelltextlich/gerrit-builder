@@ -350,8 +350,6 @@ echo_file_target_html "ok" "status.txt"
 
 echo_target_html "</table>"
 
-HTML_FAILED_MARKER_PRE=
-HTML_FAILED_MARKER_POST=
 if [ "$ARTIFACTS_TOTAL" = "0" ]
 then
     STATUS=failed
@@ -363,18 +361,47 @@ else
             STATUS=ok
         else
             STATUS=broken
-            HTML_BROKEN_MARKER_PRE="<span class=\"broken\">"
-            HTML_BROKEN_MARKER_POST="</span>"
         fi
     else
         STATUS=failed
-        HTML_FAILED_MARKER_PRE="<span class=\"failed\">"
-        HTML_FAILED_MARKER_POST="</span>"
     fi
 fi
-cat_target_html <<EOF
-<p>(Total artifacts: $ARTIFACTS_TOTAL; ok artifacts: $ARTIFACTS_OK, ${HTML_BROKEN_MARKER_PRE}broken artifacts: $ARTIFACTS_BROKEN${HTML_BROKEN_MARKER_POST}, ${HTML_FAILED_MARKER_PRE}failed artifacts: $ARTIFACTS_FAILED${HTML_FAILED_MARKER_POST})</p>
+
+cat_artifacts_summary_row_target_html() {
+    local STATUS="$1"
+    local COUNT="$2"
+
+    local STATUS_TEXT=
+    set_STATUS_TEXT "uncounted"
+
+    local ATTRIBUTE=
+    if [ "$COUNT" -gt 0 ]
+    then
+        ATTRIBUTE=" class=\"$STATUS\""
+    fi
+
+    echo_target_html "<tr><td$ATTRIBUTE>${STATUS_TEXT^}</td><td$ATTRIBUTE>$COUNT</td></tr>"
+}
+
+cat_artifacts_summary_target_html() {
+    cat_target_html <<EOF
+
+<h3>Artifacts summary</h3>
+<table>
+  <tr><th>Artifacts</th><th>Count</th></tr>
 EOF
+
+    cat_artifacts_summary_row_target_html "failed" "$ARTIFACTS_FAILED"
+    cat_artifacts_summary_row_target_html "broken" "$ARTIFACTS_BROKEN"
+    cat_artifacts_summary_row_target_html "ok" "$ARTIFACTS_OK"
+    cat_artifacts_summary_row_target_html "total" "$ARTIFACTS_TOTAL"
+
+    cat_target_html <<EOF
+</table>
+EOF
+}
+
+cat_artifacts_summary_target_html
 
 echo_target_html "$HTML_SPLIT"
 
