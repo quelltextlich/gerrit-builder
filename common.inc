@@ -123,6 +123,11 @@ section() {
 }
 
 #---------------------------------------------------------------------
+timestamp() {
+    date --utc +'%Y-%m-%d %H:%M:%S'
+}
+
+#---------------------------------------------------------------------
 run_git() {
     git "$@"
 }
@@ -441,7 +446,7 @@ cat_html_footer_target_html() {
 
     cat_target_html <<EOF
 
-<p class="legal-footer"> <a href="$LEGAL_URL">Contact / Legal</a></p>
+<p class="legal-footer">Last update: $(timestamp)<br/><a href="$LEGAL_URL">Contact / Legal</a></p>
 </body>
 </html>
 EOF
