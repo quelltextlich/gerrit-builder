@@ -34,6 +34,7 @@ PATH="$PATH:$WATCHMAN_DIR_ABS"
 PATH="$PATH:$MAVEN_DIR_ABS/bin"
 
 TEST_OUTPUT_SUFFIX=".test_output.txt"
+BUCK_LOG_SUFFIX=".buck_log.txt"
 #---------------------------------------------------------------------
 BUILD_ARTIFACTS=yes
 
@@ -164,7 +165,7 @@ run_buck_build() {
 
     if [ -e "$LOG_FILE_ABS" ]
     then
-        cp "$LOG_FILE_ABS" "$TARGET_FILE_ABS.buck_log.txt"
+        cp "$LOG_FILE_ABS" "$TARGET_FILE_ABS$BUCK_LOG_SUFFIX"
     else
         if [ "$BUILD_ARTIFACTS" != "no" ]
         then
@@ -214,7 +215,7 @@ echo_file_target_html() {
     local COMMIT_CELL="---"
     if [ -n "$BUCK_TARGET" ]
     then
-        BUCK_LOG_CELL="<a href=\"$ARTIFACT_FILE_RELT.buck_log.txt\">build</a>"
+        BUCK_LOG_CELL="<a href=\"$ARTIFACT_FILE_RELT$BUCK_LOG_SUFFIX\">build</a>"
         if [ -e "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT$TEST_OUTPUT_SUFFIX" ]
         then
             BUCK_LOG_CELL="$BUCK_LOG_CELL,&#160;<a href=\"$ARTIFACT_FILE_RELT$TEST_OUTPUT_SUFFIX\">test</a>"
