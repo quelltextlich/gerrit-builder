@@ -323,11 +323,13 @@ cat_target_html() {
 }
 
 #---------------------------------------------------------------------
-cat_html_head() {
+cat_html_header_target_html() {
     local TITLE="$1"
     local DESCRIPTION="$2"
     local KEYWORDS="$3"
-    cat <<EOF
+    local H1="$4"
+
+    cat_target_html <<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
       <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -371,12 +373,16 @@ th {
 </head>
 <body>
 
+<h1>$H1</h1>
 EOF
+    echo_html_split_target_html
 }
 
 #---------------------------------------------------------------------
-cat_html_tail() {
-    cat <<EOF
+cat_html_footer_target_html() {
+    echo_html_split_target_html
+
+    cat_target_html <<EOF
 
 </body>
 </html>

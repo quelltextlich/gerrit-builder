@@ -102,15 +102,11 @@ info "Branch: $BRANCH"
 
 set_target_html_file_abs "$TARGET_DIR_ABS/index.html"
 
-cat_html_head \
+cat_html_header_target_html \
     "$DATE gerrit $BRANCH build" \
     "Build of $BRANCH commitish of gerrit from $DATE" \
     "gerrit, jar, $BRANCH" \
-    | cat_target_html
-
-echo_target_html "<h1>$DATE build of $BRANCH of gerrit</h1>"
-
-echo_html_split_target_html
+    "$DATE build of $BRANCH of gerrit"
 
 cat_target_html <<EOF
 <h2 id="summary">Build summary</h2>
@@ -401,9 +397,7 @@ EOF
 
 cat_artifacts_summary_target_html
 
-echo_html_split_target_html
-
-cat_html_tail | cat_target_html
+cat_html_footer_target_html
 
 set_STATUS_TEXT
 
@@ -419,15 +413,11 @@ dump_status
 
 set_target_html_file_abs "$OVERVIEW_DIR_ABS/index.html"
 
-cat_html_head \
+cat_html_header_target_html \
     "Gerrit $BRANCH builds" \
     "Gerrit $BRANCH builds" \
     "gerrit, jar, $BRANCH" \
-    | cat_target_html
-
-echo_target_html "<h1>Gerrit builds for $BRANCH</h1>"
-
-echo_html_split_target_html
+    "Gerrit builds for $BRANCH"
 
 cat_target_html <<EOF
 <table>
@@ -506,8 +496,6 @@ popd >/dev/null
 
 echo_target_html "</table>"
 
-echo_html_split_target_html
-
-cat_html_tail | cat_target_html
+cat_html_footer_target_html
 
 finalize
