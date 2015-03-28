@@ -105,6 +105,9 @@ EOF
             "favicon.ico" )
                 SKIP=yes
                 ;;
+            "index.html" )
+                SKIP=yes
+                ;;
             "gerrit/" )
                 DESCRIPTION="Builds of Gerrit &amp; plugins"
                 ;;
