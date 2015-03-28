@@ -28,30 +28,6 @@ setup_buck() {
     fi
 }
 
-setup_repo() {
-    local REPO="$1"
-    section "Setting up $REPO"
-    mkdir -p "$(dirname "$REPO")"
-    cd "$(dirname "$REPO")"
-    if [ -e "$(basename "$REPO")" ]
-    then
-        cd "$(basename "$REPO")"
-        run_git fetch origin
-    else
-        run_git clone --recurse-submodules "https://gerrit.googlesource.com/$REPO"
-        cd "$(basename "$REPO")"
-    fi
-    run_git checkout "$BRANCH"
-
-    if [ -e ".gitmodules" ]
-    then
-        run_git submodule update
-    fi
-
-    cd "$SCRIPT_DIR_ABS"
-}
-
-
 setup_watchman
 setup_buck
 for REPO in \
@@ -64,7 +40,7 @@ for REPO in \
     plugins/its-storyboard \
 
 do
-    setup_repo "$REPO"
+    ./setup_repository.sh "$REPO"
 done
 
 # Installing hooks
