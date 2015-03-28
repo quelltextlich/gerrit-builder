@@ -6,20 +6,26 @@ source "$(dirname "$0")/common.inc"
 
 setup_watchman() {
     section "Setting up Watchman"
-    run_git clone https://github.com/facebook/watchman.git
-    cd watchman
-    ./autogen.sh
-    ./configure
-    make
-    cd "$SCRIPT_DIR_ABS"
+    if [ ! -d "watchman" ]
+    then
+        run_git clone https://github.com/facebook/watchman.git
+        cd watchman
+        ./autogen.sh
+        ./configure
+        make
+        cd "$SCRIPT_DIR_ABS"
+    fi
 }
 
 setup_buck() {
     section "Setting up Buck"
-    run_git clone https://gerrit.googlesource.com/buck
-    cd buck
-    ant
-    cd "$SCRIPT_DIR_ABS"
+    if [ ! -d "buck" ]
+    then
+        run_git clone https://gerrit.googlesource.com/buck
+        cd buck
+        ant
+        cd "$SCRIPT_DIR_ABS"
+    fi
 }
 
 setup_repo() {
