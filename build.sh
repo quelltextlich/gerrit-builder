@@ -99,6 +99,13 @@ fi
 
 mkdir -p "$TARGET_DIR_ABS"
 
+compute_checksums() {
+    pushd "$TARGET_DIR_ABS" >/dev/null
+    rm -f sha1sums.txt
+    sha1sum * >sha1sums.txt
+    popd >/dev/null
+}
+
 dump_status() {
     echo "$STATUS" >"$TARGET_DIR_ABS/status.txt"
 }
@@ -362,9 +369,7 @@ done
 
 echo_build_description_json_file
 
-pushd "$TARGET_DIR_ABS" >/dev/null
-sha1sum * >sha1sums.txt
-popd >/dev/null
+compute_checksums
 
 echo "$ARTIFACTS_FAILED" >"$TARGET_DIR_ABS/failure_count.txt"
 echo "$ARTIFACTS_BROKEN" >"$TARGET_DIR_ABS/broken_count.txt"
@@ -448,6 +453,7 @@ sed -i \
     "$TARGET_HTML_FILE_ABS"
 
 dump_status
+compute_checksums
 
 "$SCRIPT_DIR_ABS/write_overview_index_html.sh"
 
