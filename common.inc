@@ -418,7 +418,13 @@ EOF
 }
 #---------------------------------------------------------------------
 echo_html_split_target_html() {
-    echo_target_html "<p>- <a href=\"../index.html\">View parent directory</a> - <a href=\".\">View raw listing</a> -</p>"
+    local SPLIT="<p>- "
+    if [ "$SKIP_PARENT_LINK" != "yes" ]
+    then
+        SPLIT="$SPLIT<a href=\"../index.html\">View parent directory</a> - "
+    fi
+    SPLIT="$SPLIT<a href=\".\">View raw listing</a> -</p>"
+    echo_target_html "$SPLIT"
 }
 
 #---------------------------------------------------------------------
