@@ -27,8 +27,14 @@ setup_repo() {
     section "Setting up $REPO"
     mkdir -p "$(dirname "$REPO")"
     cd "$(dirname "$REPO")"
-    run_git clone --recurse-submodules "https://gerrit.googlesource.com/$REPO"
-    cd "$(basename "$REPO")"
+    if [ -e "$(basename "$REPO")" ]
+    then
+        cd "$(basename "$REPO")"
+        run_git fetch origin
+    else
+        run_git clone --recurse-submodules "https://gerrit.googlesource.com/$REPO"
+        cd "$(basename "$REPO")"
+    fi
     run_git checkout "$BRANCH"
 
     if [ -e ".gitmodules" ]
