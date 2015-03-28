@@ -31,6 +31,11 @@ setup_repo() {
     cd "$(basename "$REPO")"
     run_git checkout "$BRANCH"
 
+    if [ -e ".gitmodules" ]
+    then
+        run_git submodule update
+    fi
+
     cd "$SCRIPT_DIR_ABS"
 }
 
