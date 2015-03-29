@@ -332,7 +332,7 @@ echo_file_target_html() {
         ARTIFACT_KIND="info"
     fi
 
-    if [ -z "$MAIN_ARTIFACT_TABLE_LAST_KIND" ]
+    if [ "$MAIN_ARTIFACT_TABLE_LAST_KIND" != "$ARTIFACT_KIND" -a -z "$INSERT_BEFORE" ]
     then
         cat_file_header_target_html
     fi
