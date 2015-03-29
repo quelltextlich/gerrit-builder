@@ -26,12 +26,6 @@ ARTIFACTS_NIGHTLY_DIR_ABS="$ARTIFACTS_DIR_ABS/nightly"
 
 ANT_HOME="$ANT_DIR_ABS"
 JAVA_HOME="$JAVA_DIR_ABS"
-
-PATH="$PATH:$JAVA_DIR_ABS/bin"
-PATH="$PATH:$ANT_DIR_ABS/bin"
-PATH="$PATH:$BUCK_DIR_ABS/bin"
-PATH="$PATH:$WATCHMAN_DIR_ABS"
-PATH="$PATH:$MAVEN_DIR_ABS/bin"
 #---------------------------------------------------------------------
 BUILD_ARTIFACTS=yes
 LEGAL_URL_RELS="legal.url"
@@ -41,6 +35,17 @@ if [[ "$BRANCH" != "master" && ! ( "$BRANCH" =~ stable-[0-9]+.[0-9]+ ) ]]
 then
     BRANCH="master"
 fi
+
+add_to_path() {
+    local PATH_DIR_ABS="$1"
+    PATH="$PATH:$PATH_DIR_ABS"
+}
+
+add_to_path "$JAVA_DIR_ABS/bin"
+add_to_path "$ANT_DIR_ABS/bin"
+add_to_path "$BUCK_DIR_ABS/bin"
+add_to_path "$WATCHMAN_DIR_ABS"
+add_to_path "$MAVEN_DIR_ABS/bin"
 
 ARTIFACTS_TOTAL=0
 ARTIFACTS_OK=0
