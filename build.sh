@@ -13,6 +13,7 @@ CLEAN=yes
 TEST=yes
 STATUS=died
 IGNORED_PLUGINS=()
+LIMIT_TO=
 
 
 print_help() {
@@ -33,6 +34,8 @@ ARGUMENTS:
   --no-pull          - Don't 'git pull' before building
   --no-repo-mangling - Neither 'git checkout' nor 'git pull' before building
   --no-testing       - Don't run tests
+  --only-artifact ARTIFACT
+                     - Build only the artifact ARTIFACT
 EOF
 }
 
@@ -76,6 +79,11 @@ do
             ;;
         "--no-testing" )
             TEST=no
+            ;;
+        "--only-artifact" )
+            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+            LIMIT_TO="$1"
+            shift || true
             ;;
         * )
             error "Unknown argument '$ARGUMENT'"

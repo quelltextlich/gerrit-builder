@@ -204,6 +204,11 @@ run_buck_build() {
     local STATUS="failed"
     local ARTIFACT_BASENAME="$(basename "$BUCK_GENERATED_FILE_RELBG")"
 
+    if [ -n "$LIMIT_TO" -a "$LIMIT_TO" != "$ARTIFACT_BASENAME" ]
+    then
+        return
+    fi
+
     local SOURCE_FILE_ABS="$GERRIT_DIR_ABS/buck-out/gen/$BUCK_GENERATED_FILE_RELBG"
     local TARGET_FILE_ABS="$TARGET_DIR_ABS/$ARTIFACT_BASENAME"
 
