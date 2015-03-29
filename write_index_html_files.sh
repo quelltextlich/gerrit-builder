@@ -126,6 +126,9 @@ EOF
             "master/" | "stable-"*"/")
                 DESCRIPTION="Nightly builds of Gerrit &amp; plugins for the ${LINE:0: -1} branch"
                 ;;
+            "master-java_"*"/")
+                DESCRIPTION="Nightly builds of Gerrit &amp; plugins for the master branch using Java ${LINE:12: -1}"
+                ;;
             * )
                 DESCRIPTION="$LINE"
                 ;;
