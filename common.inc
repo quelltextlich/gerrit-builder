@@ -320,6 +320,9 @@ echo_file_target_html() {
     local REPO_CELL="---"
     local DESCRIPTION_CELL="---"
     local COMMIT_CELL="---"
+    local DASHBOARD_CELL="---"
+    local OPEN_CHANGES_CELL="---"
+    local CLOSED_CHANGES_CELL="---"
     if [ -n "$BUCK_TARGET" ]
     then
         BUILD_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "build")"
@@ -343,6 +346,9 @@ echo_file_target_html() {
             REPO_ARTIFACTS["$REPO"]="${REPO_ARTIFACTS["$REPO"]},"
         fi
         REPO_ARTIFACTS["$REPO"]="${REPO_ARTIFACTS["$REPO"]}$ARTIFACT_FILE_RELT"
+        DASHBOARD_CELL="<a href=\"https://gerrit-review.googlesource.com/#/projects/$REPO,dashboards/default\">dashboard</a>"
+        OPEN_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO+branch:$BRANCH+status:open\">open</a>"
+        CLOSED_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO+branch:$BRANCH+status:closed\">closed</a>"
     fi
 
     local STATUS_TEXT=
@@ -359,6 +365,9 @@ echo_file_target_html() {
     <td>$REPO_CELL</td>
     <td>$DESCRIPTION_CELL</td>
     <td>$COMMIT_CELL</td>
+    <td>$DASHBOARD_CELL</td>
+    <td>$OPEN_CHANGES_CELL</td>
+    <td>$CLOSED_CHANGES_CELL</td>
   </tr>"
 
     if [ -z "$INSERT_BEFORE" ]

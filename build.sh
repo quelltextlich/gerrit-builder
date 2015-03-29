@@ -148,6 +148,7 @@ cat_target_html <<EOF
 <th>Repository</th>
 <th>Description</th>
 <th>Commit</th>
+<th colspan="3">Changes</th>
 </tr>
 EOF
 
