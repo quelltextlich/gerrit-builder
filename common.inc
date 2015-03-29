@@ -38,7 +38,7 @@ fi
 
 add_to_path() {
     local PATH_DIR_ABS="$1"
-    PATH="$PATH:$PATH_DIR_ABS"
+    PATH="$PATH_DIR_ABS:$PATH"
 }
 
 add_to_path "$JAVA_DIR_ABS/bin"
