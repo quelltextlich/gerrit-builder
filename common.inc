@@ -334,6 +334,36 @@ echo_file_target_html() {
 
     if [ "$MAIN_ARTIFACT_TABLE_LAST_KIND" != "$ARTIFACT_KIND" -a -z "$INSERT_BEFORE" ]
     then
+        if [ ! -z "$MAIN_ARTIFACT_TABLE_LAST_KIND" ]
+        then
+            echo_target_html "</table>"
+        fi
+
+        local HEADER=
+        case "$ARTIFACT_KIND" in
+            "war" )
+                HEADER="WAR"
+                ;;
+            "api" )
+                HEADER="API"
+                ;;
+            "bundled" )
+                HEADER="Bundled plugins"
+                ;;
+            "separate" )
+                HEADER="Separate plugins"
+                ;;
+            "info" )
+                HEADER="Build information"
+                ;;
+            * )
+                HEADER="$ARTIFACT_KIND"
+                ;;
+        esac
+cat_target_html <<EOF
+<h3>$HEADER</h3>
+<table>
+EOF
         cat_file_header_target_html
     fi
     MAIN_ARTIFACT_TABLE_LAST_KIND="$ARTIFACT_KIND"

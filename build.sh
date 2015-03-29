@@ -145,8 +145,6 @@ cat_target_html <<EOF
 </table>
 
 <h2 id="artifacts">Artifacts</h2>
-
-<table>
 EOF
 
 section "Updating gerrit"
