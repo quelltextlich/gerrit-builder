@@ -305,7 +305,6 @@ echo_logged_build_cell() {
 cat_file_header_target_html() {
     cat_target_html <<EOF
   <tr>
-    <th>Kind</th>
     <th>Status</th>
     <th>Artifact</th>
     <th>Size</th>
@@ -429,7 +428,6 @@ EOF
     local HTML="
   <!-- Artifact: $ARTIFACT_FILE_RELT -->
   <tr class=\"$STATUS\">
-    <td>$ARTIFACT_KIND</td>
     <td><img src=\"$IMAGE_BASE_URL/$STATUS.png\" alt=\"Build $STATUS\" />&#160;$STATUS_TEXT</td>
     <th class=\"left th-semi-dark th-$STATUS\">$ARTIFACT_CELL</th>
     <td class=\"right\">$SIZE_CELL</td>
