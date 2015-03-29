@@ -427,7 +427,7 @@ EOF
 
     local HTML="
   <!-- Artifact: $ARTIFACT_FILE_RELT -->
-  <tr class=\"$STATUS\">
+  <tr id=\"$ARTIFACT_FILE_RELT\" class=\"$STATUS\">
     <td><img src=\"$IMAGE_BASE_URL/$STATUS.png\" alt=\"Build $STATUS\" />&#160;$STATUS_TEXT</td>
     <th class=\"left th-semi-dark th-$STATUS\">$ARTIFACT_CELL</th>
     <td class=\"right\">$SIZE_CELL</td>
@@ -457,8 +457,16 @@ EOF
     elif [ "$STATUS" = "broken" ]
     then
         ARTIFACTS_BROKEN=$((ARTIFACTS_BROKEN+1))
+        if [ -z "$FIRST_BROKEN_ARTIFACT" ]
+        then
+            FIRST_BROKEN_ARTIFACT="$ARTIFACT_FILE_RELT"
+        fi
     else
         ARTIFACTS_FAILED=$((ARTIFACTS_FAILED+1))
+        if [ -z "$FIRST_FAILED_ARTIFACT" ]
+        then
+            FIRST_FAILED_ARTIFACT="$ARTIFACT_FILE_RELT"
+        fi
     fi
 }
 

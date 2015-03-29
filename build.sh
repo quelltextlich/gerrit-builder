@@ -518,9 +518,20 @@ cat_html_footer_target_html
 
 set_STATUS_TEXT
 
+FINAL_STATUS_MARKUP=${STATUS_TEXT//&/\\&}
+
+case "$STATUS" in
+    "failed" )
+        FINAL_STATUS_MARKUP="<a href=\"#$FIRST_FAILED_ARTIFACT\">$FINAL_STATUS_MARKUP</a>"
+        ;;
+    "broken" )
+        FINAL_STATUS_MARKUP="<a href=\"#$FIRST_BROKEN_ARTIFACT\">$FINAL_STATUS_MARKUP</a>"
+        ;;
+esac
+
 sed -i \
     -e '/Build.status/s/died/'"$STATUS"'/g' \
-    -e '/Build.status/s/'"$STATUS"'\(<\)/'"${STATUS_TEXT//&/\\&}"'\1/' \
+    -e '/Build.status/s@'"$STATUS"'\(<\)@'"$FINAL_STATUS_MARKUP"'\1@' \
     -e '/Build.end.*---/s/---/'"$(timestamp)"'/g' \
     -e '/Description.*---/s/---/'"${REPO_DESCRIPTIONS["gerrit"]}"'/g' \
     -e '/API version/s/---/'"$API_VERSION"'/g' \
