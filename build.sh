@@ -148,6 +148,7 @@ cat_target_html <<EOF
 
 <table>
 <tr>
+<th>Kind</th>
 <th>Status</th>
 <th>Artifact</th>
 <th>Size</th>
@@ -251,13 +252,14 @@ add_plugin_link() {
 
 build_plugin() {
     local PLUGIN_NAME="$1"
+    local PLUGIN_KIND="$2"
     if is_ignored_plugin "$PLUGIN_NAME"
     then
         info "Skipped, as $PLUGIN_NAME is ignored"
         continue
     fi
 
-    run_buck_build "$PLUGIN_NAME" "plugins/$PLUGIN_NAME:$PLUGIN_NAME" "plugins/$PLUGIN_NAME/$PLUGIN_NAME.jar"
+    run_buck_build "$PLUGIN_NAME" "plugins/$PLUGIN_NAME:$PLUGIN_NAME" "plugins/$PLUGIN_NAME/$PLUGIN_NAME.jar" "$PLUGIN_KIND"
 }
 
 # Pulling new commits for extra plugins
@@ -369,8 +371,8 @@ then
 fi
 
 # Building WARs that do not depend on plugins
-run_buck_build "gerrit, gerrit.war" "//:gerrit" "gerrit.war"
-run_buck_build "gerrit, withdocs.war" "//:withdocs" "withdocs.war"
+run_buck_build "gerrit, gerrit.war" "//:gerrit" "gerrit.war" "war"
+run_buck_build "gerrit, withdocs.war" "//:withdocs" "withdocs.war" "war"
 
 #Building api
 for API in \
@@ -387,11 +389,11 @@ do
         else
             EXPECTED_JAR="${API//://}$ASPECT.jar"
         fi
-        run_buck_build "gerrit, $(cut -f 2 -d : <<<"$API")$ASPECT" "//$API$ASPECT" "$EXPECTED_JAR"
+        run_buck_build "gerrit, $(cut -f 2 -d : <<<"$API")$ASPECT" "//$API$ASPECT" "$EXPECTED_JAR" "api"
     done
 done
 
-run_buck_build "gerrit, api" "api" "api.zip"
+run_buck_build "gerrit, api" "api" "api.zip" "api"
 
 # Building bundled plugins
 for PLUGIN_DIR_ABS in "$GERRIT_DIR_ABS/plugins"/*
@@ -399,7 +401,7 @@ do
     if [ -d "$PLUGIN_DIR_ABS" ]
     then
         PLUGIN_NAME="$(basename "$PLUGIN_DIR_ABS")"
-        build_plugin "$PLUGIN_NAME"
+        build_plugin "$PLUGIN_NAME" "bundled"
     fi
 done
 
@@ -408,7 +410,7 @@ done
 # This is after the bundled plugins, to avoid that building the
 # release.war would warm the caches for the bundled plugins (and
 # thereby stealing logs)
-run_buck_build "gerrit, release.war" "//:release" "release.war" "gerrit.war"
+run_buck_build "gerrit, release.war" "//:release" "release.war" "war" "gerrit.war"
 
 
 # Building extra plugins
@@ -438,7 +440,7 @@ do
             ;;
     esac
 
-    build_plugin "$EXTRA_PLUGIN_NAME"
+    build_plugin "$EXTRA_PLUGIN_NAME" "separate"
 done
 
 # All buck artifacts have been built here -------------------------------------

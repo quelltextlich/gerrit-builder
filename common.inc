@@ -200,7 +200,8 @@ run_buck_build() {
     local DESCRIPTION="$1"
     local BUCK_TARGET="$2"
     local BUCK_GENERATED_FILE_RELBG="$3"
-    local INSERT_BEFORE="$4"
+    local ARTIFACT_KIND="$4"
+    local INSERT_BEFORE="$5"
     local STATUS="failed"
     local ARTIFACT_BASENAME="$(basename "$BUCK_GENERATED_FILE_RELBG")"
 
@@ -239,7 +240,7 @@ run_buck_build() {
         fi
     fi
 
-    echo_file_target_html "$STATUS" "$ARTIFACT_BASENAME" "$BUCK_TARGET" "$INSERT_BEFORE"
+    echo_file_target_html "$STATUS" "$ARTIFACT_BASENAME" "$BUCK_TARGET" "$INSERT_BEFORE" "$ARTIFACT_KIND"
 }
 
 #---------------------------------------------------------------------
@@ -306,6 +307,12 @@ echo_file_target_html() {
     local ARTIFACT_FILE_RELT="$2"
     local BUCK_TARGET="$3"
     local INSERT_BEFORE="$4"
+    local ARTIFACT_KIND="$5"
+
+    if [ -z "$ARTIFACT_KIND" ]
+    then
+        ARTIFACT_KIND="info"
+    fi
 
     local SIZE_CELL="---"
     local ARTIFACT_CELL=
@@ -368,6 +375,7 @@ echo_file_target_html() {
     local HTML="
   <!-- Artifact: $ARTIFACT_FILE_RELT -->
   <tr class=\"$STATUS\">
+    <td>$ARTIFACT_KIND</td>
     <td><img src=\"$IMAGE_BASE_URL/$STATUS.png\" alt=\"Build $STATUS\" />&#160;$STATUS_TEXT</td>
     <th class=\"left th-semi-dark th-$STATUS\">$ARTIFACT_CELL</th>
     <td class=\"right\">$SIZE_CELL</td>
