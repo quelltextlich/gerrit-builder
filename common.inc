@@ -202,9 +202,10 @@ run_buck_build() {
     local BUCK_GENERATED_FILE_RELBG="$3"
     local INSERT_BEFORE="$4"
     local STATUS="failed"
+    local ARTIFACT_BASENAME="$(basename "$BUCK_GENERATED_FILE_RELBG")"
 
     local SOURCE_FILE_ABS="$GERRIT_DIR_ABS/buck-out/gen/$BUCK_GENERATED_FILE_RELBG"
-    local TARGET_FILE_ABS="$TARGET_DIR_ABS/$(basename "$BUCK_GENERATED_FILE_RELBG")"
+    local TARGET_FILE_ABS="$TARGET_DIR_ABS/$ARTIFACT_BASENAME"
 
     local LOG_FILE_ABS="$GERRIT_DIR_ABS/buck-out/log/buck-0.log"
 
@@ -233,7 +234,7 @@ run_buck_build() {
         fi
     fi
 
-    echo_file_target_html "$STATUS" "$(basename "$TARGET_FILE_ABS")" "$BUCK_TARGET" "$INSERT_BEFORE"
+    echo_file_target_html "$STATUS" "$ARTIFACT_BASENAME" "$BUCK_TARGET" "$INSERT_BEFORE"
 }
 
 #---------------------------------------------------------------------
