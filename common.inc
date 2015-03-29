@@ -302,6 +302,24 @@ echo_logged_build_cell() {
 }
 
 #---------------------------------------------------------------------
+cat_file_header_target_html() {
+    cat_target_html <<EOF
+  <tr>
+    <th>Kind</th>
+    <th>Status</th>
+    <th>Artifact</th>
+    <th>Size</th>
+    <th>Build logs</th>
+    <th>Test logs</th>
+    <th>Repository</th>
+    <th>Description</th>
+    <th>Commit</th>
+    <th colspan="3">Changes</th>
+  </tr>
+EOF
+}
+
+#---------------------------------------------------------------------
 echo_file_target_html() {
     local STATUS="$1"
     local ARTIFACT_FILE_RELT="$2"
@@ -313,6 +331,12 @@ echo_file_target_html() {
     then
         ARTIFACT_KIND="info"
     fi
+
+    if [ -z "$MAIN_ARTIFACT_TABLE_LAST_KIND" ]
+    then
+        cat_file_header_target_html
+    fi
+    MAIN_ARTIFACT_TABLE_LAST_KIND="$ARTIFACT_KIND"
 
     local SIZE_CELL="---"
     local ARTIFACT_CELL=

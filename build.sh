@@ -147,18 +147,6 @@ cat_target_html <<EOF
 <h2 id="artifacts">Artifacts</h2>
 
 <table>
-<tr>
-<th>Kind</th>
-<th>Status</th>
-<th>Artifact</th>
-<th>Size</th>
-<th>Build logs</th>
-<th>Test logs</th>
-<th>Repository</th>
-<th>Description</th>
-<th>Commit</th>
-<th colspan="3">Changes</th>
-</tr>
 EOF
 
 section "Updating gerrit"
