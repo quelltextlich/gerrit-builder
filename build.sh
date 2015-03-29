@@ -222,6 +222,45 @@ is_ignored_plugin () {
     return 1
 }
 
+remove_plugin_links() {
+    local EXTRA_PLUGIN_DIR_ABS=
+    for EXTRA_PLUGIN_DIR_ABS in "$EXTRA_PLUGINS_DIR_ABS"/*
+    do
+        local EXTRA_PLUGIN_NAME="$(basename "$EXTRA_PLUGIN_DIR_ABS")"
+        if [ -h "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME" ]
+        then
+            rm "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME"
+        fi
+    done
+}
+
+add_plugin_link() {
+    local EXTRA_PLUGIN_NAME="$1"
+    local EXTRA_PLUGIN_DIR_ABS="$EXTRA_PLUGINS_DIR_ABS/$EXTRA_PLUGIN_NAME"
+
+    if [ ! -e "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME" ]
+    then
+        ln -s "$EXTRA_PLUGIN_DIR_ABS" "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME"
+
+        if ! grep --quiet '^/plugins/'"$EXTRA_PLUGIN_NAME"'\( \|$\)' "$GERRIT_EXCLUDE_FILE_ABS" &>/dev/null
+        then
+            echo "/plugins/$EXTRA_PLUGIN_NAME" >>"$GERRIT_EXCLUDE_FILE_ABS"
+        fi
+    fi
+}
+
+build_plugin() {
+    local PLUGIN_NAME="$1"
+    if is_ignored_plugin "$PLUGIN_NAME"
+    then
+        info "Skipped, as $PLUGIN_NAME is ignored"
+        continue
+    fi
+
+    run_buck_build "$PLUGIN_NAME" "plugins/$PLUGIN_NAME:$PLUGIN_NAME" "plugins/$PLUGIN_NAME/$PLUGIN_NAME.jar"
+}
+
+# Pulling new commits for extra plugins
 for EXTRA_PLUGIN_DIR_ABS in "$EXTRA_PLUGINS_DIR_ABS"/*
 do
     EXTRA_PLUGIN_NAME="$(basename "$EXTRA_PLUGIN_DIR_ABS")"
@@ -243,28 +282,18 @@ do
         run_git pull
     fi
     popd >/dev/null
-
-    if [ -h "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME" ]
-    then
-        rm "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME"
-    fi
-
-    if [ ! -e "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME" ]
-    then
-        ln -s "$EXTRA_PLUGIN_DIR_ABS" "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME"
-
-        if ! grep --quiet '^/plugins/'"$EXTRA_PLUGIN_NAME"'\( \|$\)' "$GERRIT_EXCLUDE_FILE_ABS" &>/dev/null
-        then
-            echo "/plugins/$EXTRA_PLUGIN_NAME" >>"$GERRIT_EXCLUDE_FILE_ABS"
-        fi
-    fi
 done
 
-for PLUGIN_DIR_ABS in "$GERRIT_DIR_ABS/plugins"/*
+remove_plugin_links
+
+# Describe repos an find test labels
+for PLUGIN_DIR_ABS in "$GERRIT_DIR_ABS/plugins"/* "$EXTRA_PLUGINS_DIR_ABS"/*
 do
     if [ -d "$PLUGIN_DIR_ABS" ]
     then
         PLUGIN_NAME="$(basename "$PLUGIN_DIR_ABS")"
+
+        section "Reading $PLUGIN_NAME"
 
         if is_ignored_plugin "$PLUGIN_NAME"
         then
@@ -339,9 +368,11 @@ then
     rm -rf "$GERRIT_DIR_ABS/buck-cache"
 fi
 
+# Building WARs that do not depend on plugins
 run_buck_build "gerrit, gerrit.war" "//:gerrit" "gerrit.war"
 run_buck_build "gerrit, withdocs.war" "//:withdocs" "withdocs.war"
 
+#Building api
 for API in \
     "gerrit-extension-api:extension-api" \
     "gerrit-plugin-api:plugin-api" \
@@ -362,23 +393,55 @@ done
 
 run_buck_build "gerrit, api" "api" "api.zip"
 
+# Building bundled plugins
 for PLUGIN_DIR_ABS in "$GERRIT_DIR_ABS/plugins"/*
 do
     if [ -d "$PLUGIN_DIR_ABS" ]
     then
         PLUGIN_NAME="$(basename "$PLUGIN_DIR_ABS")"
-
-        if is_ignored_plugin "$PLUGIN_NAME"
-        then
-            info "Skipped, as $PLUGIN_NAME is ignored"
-            continue
-        fi
-
-        run_buck_build "$PLUGIN_NAME" "plugins/$PLUGIN_NAME:$PLUGIN_NAME" "plugins/$PLUGIN_NAME/$PLUGIN_NAME.jar"
+        build_plugin "$PLUGIN_NAME"
     fi
 done
 
+# Building release
+#
+# This is after the bundled plugins, to avoid that building the
+# release.war would warm the caches for the bundled plugins (and
+# thereby stealing logs)
 run_buck_build "gerrit, release.war" "//:release" "release.war" "gerrit.war"
+
+
+# Building extra plugins
+for EXTRA_PLUGIN_DIR_ABS in "$EXTRA_PLUGINS_DIR_ABS"/*
+do
+    EXTRA_PLUGIN_NAME="$(basename "$EXTRA_PLUGIN_DIR_ABS")"
+
+    # We skip early, to not remove the plugin link again, if only a
+    # single plugin is getting built.
+    if [ -n "$LIMIT_TO" -a "$LIMIT_TO" != "$EXTRA_PLUGIN_NAME.jar" ]
+    then
+        continue
+    fi
+
+    # Setup plugin links as minimal as possible, to avoid plugins with
+    # broken BUCK files getting in the way of other plugins
+    remove_plugin_links
+    add_plugin_link "$EXTRA_PLUGIN_NAME"
+    case "$EXTRA_PLUGIN_NAME" in
+        "its-bugzilla" \
+            | "its-jira" \
+            | "its-phabricator" \
+            | "its-rtc" \
+            | "its-storyboard" \
+            )
+            add_plugin_link "its-base"
+            ;;
+    esac
+
+    build_plugin "$EXTRA_PLUGIN_NAME"
+done
+
+# All buck artifacts have been built here -------------------------------------
 
 echo_build_description_json_file
 
