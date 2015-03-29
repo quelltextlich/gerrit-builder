@@ -143,7 +143,8 @@ cat_target_html <<EOF
 <th>Status</th>
 <th>Artifact</th>
 <th>Size</th>
-<th>Logs</th>
+<th>Build logs</th>
+<th>Test logs</th>
 <th>Repository</th>
 <th>Description</th>
 <th>Commit</th>

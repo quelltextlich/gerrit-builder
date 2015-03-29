@@ -32,9 +32,6 @@ PATH="$PATH:$ANT_DIR_ABS/bin"
 PATH="$PATH:$BUCK_DIR_ABS/bin"
 PATH="$PATH:$WATCHMAN_DIR_ABS"
 PATH="$PATH:$MAVEN_DIR_ABS/bin"
-
-TEST_OUTPUT_SUFFIX=".test_output.txt"
-BUCK_LOG_SUFFIX=".buck_log.txt"
 #---------------------------------------------------------------------
 BUILD_ARTIFACTS=yes
 LEGAL_URL_RELS="legal.url"
@@ -170,6 +167,30 @@ run_buck() {
 }
 
 #---------------------------------------------------------------------
+run_buck_logged() {
+    local ASPECT="$1"
+    # no shift ^, as the buck command (build/test) is getting used as
+    # ASPECT.
+
+    local RETURN_CODE=0
+
+    local LOG_FILE_ABS="$GERRIT_DIR_ABS/buck-out/log/buck-0.log"
+
+    rm -f "$LOG_FILE_ABS"
+
+    if ! run_buck "$@" 2> >(tee "$TARGET_FILE_ABS.$ASPECT.stderr.txt" >&2) | tee "$TARGET_FILE_ABS.$ASPECT.stdout.txt"
+    then
+        RETURN_CODE=1
+    fi
+
+    if [ -e "$LOG_FILE_ABS" ]
+    then
+        cp "$LOG_FILE_ABS" "$TARGET_FILE_ABS.$ASPECT.buck_log.txt"
+    fi
+    return "$RETURN_CODE"
+}
+
+#---------------------------------------------------------------------
 run_buck_build() {
     local DESCRIPTION="$1"
     local BUCK_TARGET="$2"
@@ -184,7 +205,7 @@ run_buck_build() {
 
     section "Building $DESCRIPTION"
 
-    if test "$BUILD_ARTIFACTS" = "no" || "$BUCK_DIR_ABS/bin/buck" build "$BUCK_TARGET"
+    if test "$BUILD_ARTIFACTS" = "no" || run_buck_logged build "$BUCK_TARGET"
     then
         if [ -e "$SOURCE_FILE_ABS" ]
         then
@@ -199,19 +220,9 @@ run_buck_build() {
         fi
     fi
 
-    if [ -e "$LOG_FILE_ABS" ]
-    then
-        cp "$LOG_FILE_ABS" "$TARGET_FILE_ABS$BUCK_LOG_SUFFIX"
-    else
-        if [ "$BUILD_ARTIFACTS" != "no" ]
-        then
-            error "Could not build $DESCRIPTION, but log file '$LOG_FILE_ABS' does not exist either"
-        fi
-    fi
-
     if [ "$STATUS" = "ok" -a "$TEST" = "yes" -a -n "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" ]
     then
-        if ! run_buck test --include "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" 2>&1 | tee "$TARGET_FILE_ABS$TEST_OUTPUT_SUFFIX"
+        if ! run_buck_logged test --include "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" then
         then
             STATUS="broken"
         fi
@@ -256,6 +267,27 @@ set_STATUS_TEXT() {
         fi
     fi
 }
+#---------------------------------------------------------------------
+echo_logged_build_cell() {
+    local ARTIFACT_FILE_RELT="$1"
+    local ASPECT="$2"
+    local CONNECTOR=""
+
+    local LOG=
+    for LOG in stderr stdout buck_log
+    do
+        local LOG_FILE_RELT="$ARTIFACT_FILE_RELT.$ASPECT.$LOG.txt"
+        if [ -e "$TARGET_DIR_ABS/$LOG_FILE_RELT" ]
+        then
+            echo -n "$CONNECTOR<a href=\"$LOG_FILE_RELT\">$LOG</a>"
+            CONNECTOR=", "
+        fi
+    done
+    if [ -z "$CONNECTOR" ]
+    then
+        echo -n "---"
+    fi
+}
 
 #---------------------------------------------------------------------
 echo_file_target_html() {
@@ -283,17 +315,15 @@ echo_file_target_html() {
         ARTIFACT_CELL="$ARTIFACT_FILE_RELT"
     fi
 
-    local BUCK_LOG_CELL="---"
+    local BUILD_LOG_CELL="---"
+    local TEST_LOG_CELL="---"
     local REPO_CELL="---"
     local DESCRIPTION_CELL="---"
     local COMMIT_CELL="---"
     if [ -n "$BUCK_TARGET" ]
     then
-        BUCK_LOG_CELL="<a href=\"$ARTIFACT_FILE_RELT$BUCK_LOG_SUFFIX\">build</a>"
-        if [ -e "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT$TEST_OUTPUT_SUFFIX" ]
-        then
-            BUCK_LOG_CELL="$BUCK_LOG_CELL,&#160;<a href=\"$ARTIFACT_FILE_RELT$TEST_OUTPUT_SUFFIX\">test</a>"
-        fi
+        BUILD_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "build")"
+        TEST_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "test")"
 
         local REPO="$(cut -f 1 -d : <<<"$BUCK_TARGET")"
         if [ "${REPO:0:8}" != "plugins/" ]
@@ -324,7 +354,8 @@ echo_file_target_html() {
     <td><img src=\"$IMAGE_BASE_URL/$STATUS.png\" alt=\"Build $STATUS\" />&#160;$STATUS_TEXT</td>
     <th class=\"left th-semi-dark th-$STATUS\">$ARTIFACT_CELL</th>
     <td class=\"right\">$SIZE_CELL</td>
-    <td>$BUCK_LOG_CELL</td>
+    <td>$BUILD_LOG_CELL</td>
+    <td>$TEST_LOG_CELL</td>
     <td>$REPO_CELL</td>
     <td>$DESCRIPTION_CELL</td>
     <td>$COMMIT_CELL</td>
