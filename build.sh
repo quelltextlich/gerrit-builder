@@ -443,6 +443,16 @@ EOF
 
 cat_artifacts_summary_target_html
 
+cat_target_html <<EOF
+
+<h2>Build environment</h2>
+
+<table>
+  <tr><th>Java</th><td>$(java -version 2>&1 | head -n 1 | cut -f 2 -d '"')</td></tr>
+  <tr><th>Buck</th><td>$(buck --version 2>/dev/null | head -n 1 | sed -e 's/^.* version //')</td></tr>
+</table>
+EOF
+
 echo_target_html "<p>Unless otherwise noted or implied from the sources, the artifacts are provided under the <a href=\"http://www.apache.org/licenses/LICENSE-2.0\">Apache License, Version 2.0</a>.</p>"
 
 cat_html_footer_target_html
