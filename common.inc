@@ -360,7 +360,7 @@ echo_file_target_html() {
                 ;;
         esac
 cat_target_html <<EOF
-<h3>$HEADER</h3>
+<h3 id="group-$ARTIFACT_GROUP">$HEADER</h3>
 <table>
 EOF
         cat_file_header_target_html
