@@ -309,10 +309,10 @@ done
 
 echo_build_description_json() {
     echo "{"
-    echo "  commitish: \"$BRANCH\","
-    echo "  api_version: \"$API_VERSION\","
-    echo "  db_schema_version: $DB_SCHEMA_VERSION,"
-    echo "  repositories: {"
+    echo "  \"commitish\": \"$BRANCH\","
+    echo "  \"api_version\": \"$API_VERSION\","
+    echo "  \"db_schema_version\": $DB_SCHEMA_VERSION,"
+    echo "  \"repositories\": {"
     local REPO_NAME=
     for REPO_NAME in "${REPO_NAMES[@]}"
     do
