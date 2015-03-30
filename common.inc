@@ -200,7 +200,7 @@ run_buck_build() {
     local DESCRIPTION="$1"
     local BUCK_TARGET="$2"
     local BUCK_GENERATED_FILE_RELBG="$3"
-    local ARTIFACT_KIND="$4"
+    local ARTIFACT_GROUP="$4"
     local INSERT_BEFORE="$5"
     local STATUS="failed"
     local ARTIFACT_BASENAME="$(basename "$BUCK_GENERATED_FILE_RELBG")"
@@ -240,7 +240,7 @@ run_buck_build() {
         fi
     fi
 
-    echo_file_target_html "$STATUS" "$ARTIFACT_BASENAME" "$BUCK_TARGET" "$INSERT_BEFORE" "$ARTIFACT_KIND"
+    echo_file_target_html "$STATUS" "$ARTIFACT_BASENAME" "$BUCK_TARGET" "$INSERT_BEFORE" "$ARTIFACT_GROUP"
 }
 
 #---------------------------------------------------------------------
@@ -324,22 +324,22 @@ echo_file_target_html() {
     local ARTIFACT_FILE_RELT="$2"
     local BUCK_TARGET="$3"
     local INSERT_BEFORE="$4"
-    local ARTIFACT_KIND="$5"
+    local ARTIFACT_GROUP="$5"
 
-    if [ -z "$ARTIFACT_KIND" ]
+    if [ -z "$ARTIFACT_GROUP" ]
     then
-        ARTIFACT_KIND="info"
+        ARTIFACT_GROUP="info"
     fi
 
-    if [ "$MAIN_ARTIFACT_TABLE_LAST_KIND" != "$ARTIFACT_KIND" -a -z "$INSERT_BEFORE" ]
+    if [ "$MAIN_ARTIFACT_TABLE_LAST_GROUP" != "$ARTIFACT_GROUP" -a -z "$INSERT_BEFORE" ]
     then
-        if [ ! -z "$MAIN_ARTIFACT_TABLE_LAST_KIND" ]
+        if [ ! -z "$MAIN_ARTIFACT_TABLE_LAST_GROUP" ]
         then
             echo_target_html "</table>"
         fi
 
         local HEADER=
-        case "$ARTIFACT_KIND" in
+        case "$ARTIFACT_GROUP" in
             "war" )
                 HEADER="WAR"
                 ;;
@@ -356,7 +356,7 @@ echo_file_target_html() {
                 HEADER="Build information"
                 ;;
             * )
-                HEADER="$ARTIFACT_KIND"
+                HEADER="$ARTIFACT_GROUP"
                 ;;
         esac
 cat_target_html <<EOF
@@ -365,7 +365,7 @@ cat_target_html <<EOF
 EOF
         cat_file_header_target_html
     fi
-    MAIN_ARTIFACT_TABLE_LAST_KIND="$ARTIFACT_KIND"
+    MAIN_ARTIFACT_TABLE_LAST_GROUP="$ARTIFACT_GROUP"
 
     local SIZE_CELL="---"
     local ARTIFACT_CELL=

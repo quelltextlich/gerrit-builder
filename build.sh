@@ -238,14 +238,14 @@ add_plugin_link() {
 
 build_plugin() {
     local PLUGIN_NAME="$1"
-    local PLUGIN_KIND="$2"
+    local PLUGIN_GROUP="$2"
     if is_ignored_plugin "$PLUGIN_NAME"
     then
         info "Skipped, as $PLUGIN_NAME is ignored"
         continue
     fi
 
-    run_buck_build "$PLUGIN_NAME" "plugins/$PLUGIN_NAME:$PLUGIN_NAME" "plugins/$PLUGIN_NAME/$PLUGIN_NAME.jar" "$PLUGIN_KIND"
+    run_buck_build "$PLUGIN_NAME" "plugins/$PLUGIN_NAME:$PLUGIN_NAME" "plugins/$PLUGIN_NAME/$PLUGIN_NAME.jar" "$PLUGIN_GROUP"
 }
 
 # Pulling new commits for extra plugins
