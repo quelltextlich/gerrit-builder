@@ -313,6 +313,23 @@ echo_build_description_json() {
   "commitish": "$BRANCH",
   "api_version": "$API_VERSION",
   "db_schema_version": $DB_SCHEMA_VERSION,
+EOF
+    echo -n "  \"artifacts-groups\": {"
+    local ARTIFACT_GROUP=
+    local CONNECTOR=""
+    for ARTIFACT_GROUP in "${!ARTIFACT_GROUP_STATUS[@]}"
+    do
+        echo "$CONNECTOR"
+        echo -n "    \"$ARTIFACT_GROUP\": { "
+        echo -n "\"status\": \"${ARTIFACT_GROUP_STATUS[$ARTIFACT_GROUP]}\", "
+        echo -n "\"status_count\": \"${ARTIFACT_GROUP_STATUS_COUNT[$ARTIFACT_GROUP]}\", "
+        echo -n "\"total_count\": \"${ARTIFACT_GROUP_TOTAL_COUNT[$ARTIFACT_GROUP]}\""
+        echo -n "}"
+        CONNECTOR=","
+    done
+    echo
+    cat <<EOF
+  },
   "repositories": {
 EOF
     local REPO_NAME=
@@ -341,6 +358,20 @@ EOF
 
 echo_build_description_json_file() {
     echo_build_description_json >"$TARGET_DIR_ABS/build_description.json"
+}
+
+echo_artifacts_group_numbers_txt() {
+    for ARTIFACT_GROUP in "${!ARTIFACT_GROUP_STATUS[@]}"
+    do
+        echo -n "$ARTIFACT_GROUP,"
+        echo -n "${ARTIFACT_GROUP_TOTAL_COUNT[$ARTIFACT_GROUP]},"
+        echo -n "${ARTIFACT_GROUP_STATUS[$ARTIFACT_GROUP]},"
+        echo "${ARTIFACT_GROUP_STATUS_COUNT[$ARTIFACT_GROUP]}"
+    done | sort --field-separator=',' --key=1,1 --key=2,2n
+}
+
+echo_artifacts_group_numbers_txt_file() {
+    echo_artifacts_group_numbers_txt >"$TARGET_DIR_ABS/artifacts_group_numbers.txt"
 }
 
 echo_build_description_json_file
@@ -440,6 +471,9 @@ compute_checksums
 echo "$ARTIFACTS_FAILED" >"$TARGET_DIR_ABS/failure_count.txt"
 echo "$ARTIFACTS_BROKEN" >"$TARGET_DIR_ABS/broken_count.txt"
 
+echo_artifacts_group_numbers_txt_file
+
+echo_file_target_html "ok" "artifacts_group_numbers.txt"
 echo_file_target_html "ok" "build_description.json"
 echo_file_target_html "ok" "api_version.txt"
 echo_file_target_html "ok" "broken_count.txt"
@@ -448,6 +482,11 @@ echo_file_target_html "ok" "failure_count.txt"
 echo_file_target_html "ok" "gerrit_description.txt"
 echo_file_target_html "ok" "sha1sums.txt"
 echo_file_target_html "ok" "status.txt"
+
+
+echo_artifacts_group_numbers_txt_file
+echo_build_description_json_file
+compute_checksums
 
 echo_target_html "</table>"
 

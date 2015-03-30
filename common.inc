@@ -58,6 +58,10 @@ declare -A REPO_DESCRIPTIONS=()
 declare -A REPO_ARTIFACTS=()
 
 declare -A TARGET_TEST_LABELS=()
+
+declare -A ARTIFACT_GROUP_STATUS=()
+declare -A ARTIFACT_GROUP_STATUS_COUNT=()
+declare -A ARTIFACT_GROUP_TOTAL_COUNT=()
 #---------------------------------------------------------------------
 mkdir -p "$ARTIFACTS_DIR_ABS"
 mkdir -p "$ARTIFACTS_NIGHTLY_DIR_ABS"
@@ -196,12 +200,66 @@ run_buck_logged() {
 }
 
 #---------------------------------------------------------------------
+status_to_number () {
+    local STATUS="$1"
+    local VALUE=1000
+    case "$STATUS" in
+        "" )
+            VALUE=0
+            ;;
+        "ok" )
+            VALUE=10
+            ;;
+        "broken" )
+            VALUE=20
+            ;;
+        "failed" )
+            VALUE=30
+            ;;
+    esac
+    echo "$VALUE"
+}
+
+#---------------------------------------------------------------------
+update_artifact_group_statistics () {
+    local STATUS="$1"
+    local ARTIFACT_GROUP="$2"
+
+    local GROUP_STATUS="${ARTIFACT_GROUP_STATUS["$ARTIFACT_GROUP"]}"
+
+    if [ "$(status_to_number "$STATUS")" -gt "$(status_to_number "$GROUP_STATUS")" ]
+    then
+        ARTIFACT_GROUP_STATUS["$ARTIFACT_GROUP"]="$STATUS"
+        ARTIFACT_GROUP_STATUS_COUNT["$ARTIFACT_GROUP"]=0
+        GROUP_STATUS="$STATUS"
+    fi
+
+    if [ "$STATUS" = "$GROUP_STATUS" ]
+    then
+        ARTIFACT_GROUP_STATUS_COUNT["$ARTIFACT_GROUP"]=$((ARTIFACT_GROUP_STATUS_COUNT["$ARTIFACT_GROUP"]+1))
+    fi
+
+    ARTIFACT_GROUP_TOTAL_COUNT["$ARTIFACT_GROUP"]=$((ARTIFACT_GROUP_TOTAL_COUNT["$ARTIFACT_GROUP"]+1))
+
+    if [ "$ARTIFACT_GROUP" != "total" ]
+    then
+        update_artifact_group_statistics "$STATUS" "total"
+    fi
+}
+
+#---------------------------------------------------------------------
 run_buck_build() {
     local DESCRIPTION="$1"
     local BUCK_TARGET="$2"
     local BUCK_GENERATED_FILE_RELBG="$3"
     local ARTIFACT_GROUP="$4"
     local INSERT_BEFORE="$5"
+
+    if [ -z "$ARTIFACT_GROUP" ]
+    then
+        ARTIFACT_GROUP="info"
+    fi
+
     local STATUS="failed"
     local ARTIFACT_BASENAME="$(basename "$BUCK_GENERATED_FILE_RELBG")"
 
@@ -449,6 +507,8 @@ EOF
 /\\n}"
         sed -i -e '/Artifact: '"$INSERT_BEFORE"'/s@^@'"${HTML//&/\\&}"'\n@' "$TARGET_HTML_FILE_ABS"
     fi
+
+    update_artifact_group_statistics "$STATUS" "$ARTIFACT_GROUP"
 
     ARTIFACTS_TOTAL=$((ARTIFACTS_TOTAL+1))
     if [ "$STATUS" = "ok" ]
