@@ -315,6 +315,7 @@ set_STATUS_TEXT() {
         STATUS_TEXT="$STATUS"
     fi
 
+    local COUNT_ARGUMENT="$3"
 
     local COUNT=""
     case "$STATUS_TEXT" in
@@ -328,9 +329,14 @@ set_STATUS_TEXT() {
             ;;
     esac
 
+    if [ -n "$COUNT_ARGUMENT" ]
+    then
+        COUNT="$COUNT_ARGUMENT"
+    fi
+
     if [ "$ASPECT" = "counted" -a -n "$COUNT" ]
     then
-        STATUS_TEXT="$COUNT $STATUS_TEXT"
+        STATUS_TEXT="$COUNT&#160;$STATUS_TEXT"
         if [ "$COUNT" != "1" ]
         then
             STATUS_TEXT="${STATUS_TEXT}s"
@@ -591,11 +597,11 @@ cat_html_header_target_html() {
 .right {
   text-align: right;
 }
-table, tr, th, td {
-  border-collapse: collapse;
+th, td {
   border: 1px solid black;
 }
 table {
+  border-collapse: collapse;
   margin-left: 1em;
 }
 th, td {
@@ -619,6 +625,9 @@ th {
   margin-left: auto;
   margin-right: auto;
   text-align: right;
+}
+.borderless {
+  border: 0px solid black !important;
 }
   </style>
 </head>

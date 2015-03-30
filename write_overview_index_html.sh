@@ -60,19 +60,86 @@ cat_html_header_target_html \
 cat_target_html <<EOF
 <table>
   <tr>
-    <th>Build</th>
+    <td class="borderless" colspan="1"/>
+    <th rowspan="2">Build</th>
+    <td class="borderless" colspan="3"/>
+    <th colspan="4">Status per artifact group</th>
+  </tr>
+
+  <tr>
     <th>Status</th>
     <th>Gerrit HEAD</th>
     <th>API version</th>
-    <th>DB schema version</th>
+    <th>DB schema</br>version</th>
+    <th>WAR</th>
+    <th>API</th>
+    <th>Bundled<br/>plugins</th>
+    <th>Separate<br/>plugins</th>
   </tr>
 EOF
+
+declare -A ARTIFACT_GROUP_CELLS=()
+declare -A ARTIFACT_GROUP_CELL_EXTRAS=()
+
+add_artifact_group_cell() {
+    local ADDITION="$1"
+    ARTIFACT_GROUP_CELLS["$ARTIFACT_GROUP"]="${ARTIFACT_GROUP_CELLS["$ARTIFACT_GROUP"]}$ADDITION"
+}
+
+read_artifact_group_statuses() {
+    ARTIFACT_GROUP_CELLS=()
+    ARTIFACT_GROUP_CELL_EXTRAS=()
+
+    INPUT_FILE_RELO="$BUILD_DIR_RELO/artifacts_group_numbers.txt"
+    if [ -e "$INPUT_FILE_RELO" ]
+    then
+        while IFS="," read ARTIFACT_GROUP TOTAL_COUNT GROUP_STATUS GROUP_COUNT
+        do
+            add_artifact_group_cell "<a href=\"$BUILD_DIR_RELO/index.html#group-$ARTIFACT_GROUP\">"
+            add_artifact_group_cell "<img src=\"$IMAGE_BASE_URL/$GROUP_STATUS.png\" alt=\"Build $GROUP_STATUS\" />"
+            if [ "$ARTIFACT_GROUP" = "total" ]
+            then
+                local COUNT_ARGUMENT=""
+                if [ "$GROUP_STATUS" != "ok" ]
+                then
+                    COUNT_ARGUMENT="$GROUP_COUNT"
+                fi
+                local STATUS_TEXT=
+                set_STATUS_TEXT "counted" "$GROUP_STATUS" "$COUNT_ARGUMENT"
+                add_artifact_group_cell "&#160;$STATUS_TEXT"
+            else
+                add_artifact_group_cell " "
+                if [ "$GROUP_STATUS" = "ok" ]
+                then
+                    add_artifact_group_cell "$GROUP_STATUS"
+                else
+                    add_artifact_group_cell "$GROUP_COUNT/$TOTAL_COUNT"
+                fi
+            fi
+            add_artifact_group_cell "</a>"
+            ARTIFACT_GROUP_CELL_EXTRAS["$ARTIFACT_GROUP"]=" class=\"$STATUS\""
+        done < "$INPUT_FILE_RELO"
+    fi
+}
+
+echo_group_status_cell_target_html() {
+    local ARTIFACT_GROUP="$1"
+    local GROUP_CELL="${ARTIFACT_GROUP_CELLS["$ARTIFACT_GROUP"]}"
+    local GROUP_CELL_EXTRA="${ARTIFACT_GROUP_CELL_EXTRAS["$ARTIFACT_GROUP"]}"
+    if [ -z "$GROUP_CELL" ]
+    then
+        GROUP_CELL="---"
+        GROUP_CELL_EXTRA=""
+    fi
+    echo_target_html "<td>$GROUP_CELL</td>"
+}
 
 pushd "$OVERVIEW_DIR_ABS" >/dev/null
 for BUILD_DIR_RELO in *
 do
     if [ -d "$BUILD_DIR_RELO" ]
     then
+        read_artifact_group_statuses || true
         STATUS=$(cat "$BUILD_DIR_RELO/status.txt" || true)
         case "$STATUS" in
             "failed" )
@@ -121,13 +188,23 @@ do
 
         cat_target_html <<EOF
   <tr>
-    <td><a href="$BUILD_DIR_RELO/index.html">$BUILD_DIR_RELO</a></td>
-    <td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" />&#160;$STATUS_CELL_TEXT</td>
+EOF
+        echo_group_status_cell_target_html "total"
+        cat_target_html <<EOF
+    <td class="th-semi-dark"><a href="$BUILD_DIR_RELO/index.html">$BUILD_DIR_RELO</a></td>
+EOF
+
+
+        cat_target_html <<EOF
     <td>$REPO_DESCRIPTION</td>
     <td>$API_VERSION</td>
     <td>$DB_SCHEMA_VERSION</td>
-  </tr>
 EOF
+        for ARTIFACT_GROUP in war api bundled separate
+        do
+            echo_group_status_cell_target_html "$ARTIFACT_GROUP"
+        done
+        echo_target_html "  </tr>"
     fi
 done
 popd >/dev/null
