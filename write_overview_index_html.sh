@@ -4,17 +4,6 @@
 source "$(dirname "$0")/common.inc"
 #---------------------------------------------------------------------
 
-DATE="$(date --utc +'%Y-%m-%d')"
-
-FORCE=no
-PULL=yes
-CHECKOUT=yes
-CLEAN=yes
-TEST=yes
-STATUS=died
-IGNORED_PLUGINS=()
-
-
 print_help() {
     cat <<EOF
 $0 ARGUMENTS
