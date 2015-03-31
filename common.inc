@@ -24,6 +24,16 @@ EXTRA_PLUGINS_DIR_ABS="$SCRIPT_DIR_ABS/plugins"
 ARTIFACTS_DIR_ABS="$SCRIPT_DIR_ABS/artifacts"
 ARTIFACTS_NIGHTLY_DIR_ABS="$ARTIFACTS_DIR_ABS/nightly"
 
+TEST_SITE_DIR_ABS="$SCRIPT_DIR_ABS/test-site"
+TEST_SITE_HOST="127.0.0.1"
+TEST_SITE_HTTP_PORT="8089"
+TEST_SITE_SSH_PORT="29419"
+TEST_SITE_URL="http://$TEST_SITE_HOST:$TEST_SITE_HTTP_PORT"
+TEST_SITE_USER_CREDENTIALS_DIR_ABS="$TEST_SITE_DIR_ABS/user-credentials"
+TEST_SITE_GERRIT_RUN_FILE_ABS="$TEST_SITE_DIR_ABS/logs/gerrit.run"
+
+USER_CREDENTIALS_DIR_ABS="$SCRIPT_DIR_ABS/user-credentials"
+
 ANT_HOME="$ANT_DIR_ABS"
 JAVA_HOME="$JAVA_DIR_ABS"
 #---------------------------------------------------------------------
@@ -261,6 +271,67 @@ update_artifact_group_statistics () {
 }
 
 #---------------------------------------------------------------------
+run_system_test() {
+    local ARTIFACT_BASENAME="$1"
+    local TEST_SITE_STARTED="no"
+
+    local RUN_ID="$(date +%s).$$"
+    local TARGET_FILE_ABS="$TARGET_DIR_ABS/$ARTIFACT_BASENAME"
+    local RETURN_CODE=0
+
+    if [ "${ARTIFACT_BASENAME: -4}" = ".war" ]
+    then
+        "$SCRIPT_DIR_ABS"/stop_test_site.sh
+        rm -rf "$TEST_SITE_DIR_ABS"
+        if [ -e "$TEST_SITE_DIR_ABS" ]
+        then
+            info "Despite removing $TEST_SITE_DIR_ABS, the directory still exists"
+            RETURN_CODE=2
+        else
+            info "Trying to start test-site (this may take a minute)"
+            # Not doing tee redirection on stdout and stderr, as the
+            # boot_fresh_test_site.sh is spawning a background
+            # process, which got the tees hung and blocking here.
+            if "$SCRIPT_DIR_ABS"/boot_fresh_test_site.sh "$TARGET_FILE_ABS" "$RUN_ID" </dev/null 2>"$TARGET_FILE_ABS.system.stderr.txt" >"$TARGET_FILE_ABS.system.stdout.txt"
+            then
+                TEST_SITE_STARTED="yes"
+            else
+                info "Gerrit did not come up"
+                echo "===stdout==="
+                cat "$TARGET_FILE_ABS.system.stdout.txt"
+                echo "===stderr==="
+                cat "$TARGET_FILE_ABS.system.stderr.txt" >&2
+                RETURN_CODE=1
+            fi
+        fi
+    else
+        RETURN_CODE=0
+    fi
+
+    for LOG_FILE_RELL in \
+        error_log \
+        gc_log \
+        httpd_log \
+        replication_log \
+        sshd_log \
+
+    do
+        if [ -e "$TEST_SITE_DIR_ABS/logs/$LOG_FILE_RELL" ]
+        then
+            cp "$TEST_SITE_DIR_ABS/logs/$LOG_FILE_RELL" "$TARGET_FILE_ABS.system.$LOG_FILE_RELL.txt"
+        fi
+    done
+
+    if [ "$TEST_SITE_STARTED" = "yes" ]
+    then
+        "$SCRIPT_DIR_ABS"/stop_test_site.sh
+        rm -rf "$TEST_SITE_DIR_ABS"
+    fi
+
+    return "$RETURN_CODE"
+}
+
+#---------------------------------------------------------------------
 run_buck_build() {
     local DESCRIPTION="$1"
     local BUCK_TARGET="$2"
@@ -303,9 +374,17 @@ run_buck_build() {
         fi
     fi
 
-    if [ "$STATUS" = "ok" -a "$TEST" = "yes" -a -n "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" ]
+    if [ "$STATUS" = "ok" -a "$TEST_UNIT" = "yes" -a -n "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" ]
     then
         if ! run_buck_logged test --include "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" then
+        then
+            STATUS="broken"
+        fi
+    fi
+
+    if [ "$STATUS" = "ok" -a "$TEST_SYSTEM" = "yes" ]
+    then
+        if ! run_system_test "$ARTIFACT_BASENAME"
         then
             STATUS="broken"
         fi
@@ -362,16 +441,18 @@ echo_logged_build_cell() {
     local ASPECT="$2"
     local CONNECTOR=""
 
-    local LOG=
-    for LOG in stderr stdout buck_log
+    pushd "$TARGET_DIR_ABS" >/dev/null
+    for LOG_FILE_RELT in "$ARTIFACT_FILE_RELT.$ASPECT."*".txt"
     do
-        local LOG_FILE_RELT="$ARTIFACT_FILE_RELT.$ASPECT.$LOG.txt"
-        if [ -e "$TARGET_DIR_ABS/$LOG_FILE_RELT" ]
+        if [ -e "$LOG_FILE_RELT" ]
         then
+            local LOG=$(sed -e 's/^.*\.\([^.]*\)\.[^.]*$/\1/' <<<"$LOG_FILE_RELT")
             echo -n "$CONNECTOR<a href=\"$LOG_FILE_RELT\">$LOG</a>"
             CONNECTOR=", "
         fi
     done
+    popd >/dev/null
+
     if [ -z "$CONNECTOR" ]
     then
         echo -n "---"
@@ -386,7 +467,8 @@ cat_file_header_target_html() {
     <th>Artifact</th>
     <th>Size</th>
     <th>Build logs</th>
-    <th>Test logs</th>
+    <th>Unit test logs</th>
+    <th>System test logs</th>
     <th>Repository</th>
     <th>Description</th>
     <th>Commit</th>
@@ -464,7 +546,8 @@ EOF
     fi
 
     local BUILD_LOG_CELL="---"
-    local TEST_LOG_CELL="---"
+    local UNIT_TEST_LOG_CELL="---"
+    local SYSTEM_TEST_LOG_CELL="---"
     local REPO_CELL="---"
     local DESCRIPTION_CELL="---"
     local COMMIT_CELL="---"
@@ -474,7 +557,8 @@ EOF
     if [ -n "$BUCK_TARGET" ]
     then
         BUILD_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "build")"
-        TEST_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "test")"
+        UNIT_TEST_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "test")"
+        SYSTEM_TEST_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "system")"
 
         local REPO="$(cut -f 1 -d : <<<"$BUCK_TARGET")"
         if [ "${REPO:0:8}" != "plugins/" ]
@@ -509,7 +593,8 @@ EOF
     <th class=\"left th-semi-dark th-$STATUS\">$ARTIFACT_CELL</th>
     <td class=\"right\">$SIZE_CELL</td>
     <td>$BUILD_LOG_CELL</td>
-    <td>$TEST_LOG_CELL</td>
+    <td>$UNIT_TEST_LOG_CELL</td>
+    <td>$SYSTEM_TEST_LOG_CELL</td>
     <td>$REPO_CELL</td>
     <td>$DESCRIPTION_CELL</td>
     <td>$COMMIT_CELL</td>
@@ -683,4 +768,138 @@ setup_git_hooks() {
     # Hook to guard against spaces
     cp "$REPO_DIR_ABS/hooks/pre-commit.sample" "$REPO_DIR_ABS/hooks/pre-commit"
     chmod 755 "$REPO_DIR_ABS/hooks/pre-commit"
+}
+
+#---------------------------------------------------------------------
+set_config_value_file() {
+    local FILE="$1"
+    local LABEL="$2"
+    local VALUE="$3"
+    run_git config -f "$FILE" "$LABEL" "$VALUE"
+}
+
+#---------------------------------------------------------------------
+set_config_value_file_stub() {
+    local FILE_STUB="$1"
+    local LABEL="$2"
+    local VALUE="$3"
+    set_config_value_file "$TEST_SITE_DIR_ABS"/etc/"$FILE_STUB".config "$LABEL" "$VALUE"
+}
+
+#---------------------------------------------------------------------
+set_config_value() {
+    local LABEL="$1"
+    local VALUE="$2"
+    set_config_value_file_stub "gerrit" "$LABEL" "$VALUE"
+}
+
+#---------------------------------------------------------------------
+add_config_value_file() {
+    local FILE="$1"
+    local LABEL="$2"
+    local VALUE="$3"
+    run_git config -f "$FILE" --add "$LABEL" "$VALUE"
+}
+
+#---------------------------------------------------------------------
+add_config_value_file_stub() {
+    local FILE_STUB="$1"
+    local LABEL="$2"
+    local VALUE="$3"
+    add_config_value_file "$TEST_SITE_DIR_ABS"/etc/"$FILE_STUB".config "$LABEL" "$VALUE"
+}
+
+#---------------------------------------------------------------------
+add_config_value() {
+    local LABEL="$1"
+    local VALUE="$2"
+    add_config_value_file_stub "gerrit" "$LABEL" "$VALUE"
+}
+
+#---------------------------------------------------------------------
+set_config_value_secure() {
+    local LABEL="$1"
+    local VALUE="$2"
+    set_config_value_file_stub "secure" "$LABEL" "$VALUE"
+}
+
+#---------------------------------------------------------------------
+unset_config_value_file() {
+    local FILE="$1"
+    local LABEL="$2"
+    run_git config --unset -f "$FILE" "$LABEL"
+}
+
+#---------------------------------------------------------------------
+unset_config_value_file_stub() {
+    local FILE_STUB="$1"
+    local LABEL="$2"
+    unset_config_value_file "$TEST_SITE_DIR_ABS"/etc/"$FILE_STUB".config "$LABEL"
+}
+
+#---------------------------------------------------------------------
+unset_config_value() {
+    local LABEL="$1"
+    unset_config_value_file_stub "gerrit" "$LABEL"
+}
+
+#---------------------------------------------------------------------
+remove_config_section_file() {
+    local FILE="$1"
+    local LABEL="$2"
+    run_git config -f "$FILE" --remove-section "$LABEL"
+}
+
+#---------------------------------------------------------------------
+remove_config_section_stub() {
+    local FILE_STUB="$1"
+    local LABEL="$2"
+    set_config_value_file "$TEST_SITE_DIR_ABS"/etc/"$FILE_STUB".config "$LABEL.dummy" "dummy"
+    remove_config_section_file "$TEST_SITE_DIR_ABS"/etc/"$FILE_STUB".config "$LABEL"
+}
+
+#---------------------------------------------------------------------
+remove_config_section() {
+    local LABEL="$1"
+    remove_config_section_stub "gerrit" "$LABEL"
+}
+
+#---------------------------------------------------------------------
+curl_as () {
+    local USER_NAME="$1"
+    shift
+
+    local USERNAME="$(cat "$TEST_SITE_USER_CREDENTIALS_DIR_ABS/$USER_NAME/username")"
+    local PASSWORD="$(cat "$TEST_SITE_USER_CREDENTIALS_DIR_ABS/$USER_NAME/password")"
+
+    if [ -z "${TEST_SITE_SESSIONS[$USER_NAME]}" ]
+    then
+        TEST_SITE_SESSIONS[$USER_NAME]=$(curl --silent --show-error -D - 'http://127.0.0.1:8089/login/%23%2F?user_name='"$USER_NAME" | grep Set-Cookie | sed -e 's/^.*GerritAccount=\([^;]*\);.*/\1/')
+    fi
+    local SESSION="${TEST_SITE_SESSIONS[$USER_NAME]}"
+
+    curl --silent --show-error --digest --user "$USERNAME:$PASSWORD" --cookie 'GerritAccount=$SESSION' "$@" >/dev/null
+}
+
+#---------------------------------------------------------------------
+check_error_log_for () {
+    local CHECK_RE="$1"
+    local ITERATION_COUNT=0
+    local MAX_ITERATION_COUNT=3
+    local RETURN_CODE=1
+    while [ $ITERATION_COUNT -lt $ITERATION_COUNT -a "$RETURN_CODE" = "1" ]
+    do
+        if [[ "$(tail -n 1 "$TEST_SITE_DIR_ABS/logs/error.log" | cut -f 5- -d ' ')" =~ "$CHECK_RE" ]]
+        then
+            RETURN_CODE=0
+        else
+            sleep 1s
+        fi
+        ITERATION_COUNT=$((ITERATION_COUNT+1))
+    done
+    if [ "$RETURN_CODE" = "1" ]
+    then
+        info "Could not find '$CHECK_RE' in test site's error log"
+    fi
+    return "$RETURN_CODE"
 }

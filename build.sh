@@ -10,7 +10,8 @@ FORCE=no
 PULL=yes
 CHECKOUT=yes
 CLEAN=yes
-TEST=yes
+TEST_UNIT=yes
+TEST_SYSTEM=yes
 STATUS=died
 IGNORED_PLUGINS=()
 LIMIT_TO=
@@ -33,7 +34,10 @@ ARGUMENTS:
   --no-clean         - Don't clean before building
   --no-pull          - Don't 'git pull' before building
   --no-repo-mangling - Neither 'git checkout' nor 'git pull' before building
-  --no-testing       - Don't run tests
+  --no-system-testing
+                     - Don't run system tests
+  --no-testing       - Don't run any tests
+  --no-unit-testing  - Don't run unit tests
   --only-artifact ARTIFACT
                      - Build only the artifact ARTIFACT
 EOF
@@ -77,8 +81,15 @@ do
             CHECKOUT=no
             PULL=no
             ;;
+        "--no-system-testing" )
+            TEST_SYSTEM=no
+            ;;
         "--no-testing" )
-            TEST=no
+            TEST_UNIT=no
+            TEST_SYSTEM=no
+            ;;
+        "--no-unit-testing" )
+            TEST_UNIT=no
             ;;
         "--only-artifact" )
             [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
