@@ -32,14 +32,7 @@ setup_watchman
 setup_buck
 for REPO in \
     gerrit \
-    plugins/delete-project \
-    plugins/its-base \
-    plugins/its-bugzilla \
-    plugins/its-jira \
-    plugins/its-phabricator \
-    plugins/its-rtc \
-    plugins/its-storyboard \
-
+    "${DEFAULT_EXTERNAL_PLUGINS[@]/#/plugins/}"
 do
     ./setup_repository.sh "$REPO"
 done

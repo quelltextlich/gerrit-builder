@@ -47,6 +47,19 @@ add_to_path "$BUCK_DIR_ABS/bin"
 add_to_path "$WATCHMAN_DIR_ABS"
 add_to_path "$MAVEN_DIR_ABS/bin"
 
+DEFAULT_EXTERNAL_PLUGINS=()
+add_to_plugins() {
+    local ADDITION="$1"
+    DEFAULT_EXTERNAL_PLUGINS=( "${DEFAULT_EXTERNAL_PLUGINS[@]}" "$ADDITION" )
+}
+add_to_plugins "delete-project"
+add_to_plugins "its-base"
+add_to_plugins "its-bugzilla"
+add_to_plugins "its-jira"
+add_to_plugins "its-phabricator"
+add_to_plugins "its-rtc"
+add_to_plugins "its-storyboard"
+
 ARTIFACTS_TOTAL=0
 ARTIFACTS_OK=0
 ARTIFACTS_BROKEN=0
