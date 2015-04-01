@@ -13,6 +13,7 @@ CLEAN=yes
 TEST_UNIT=yes
 TEST_SYSTEM=yes
 STATUS=died
+PRINT_VERSIONS=yes
 IGNORED_PLUGINS=()
 LIMIT_TO=
 
@@ -38,6 +39,7 @@ ARGUMENTS:
                      - Don't run system tests
   --no-testing       - Don't run any tests
   --no-unit-testing  - Don't run unit tests
+  --no-versions      - Don't print version information of helper programs
   --only-artifact ARTIFACT
                      - Build only the artifact ARTIFACT
 EOF
@@ -90,6 +92,9 @@ do
             ;;
         "--no-unit-testing" )
             TEST_UNIT=no
+            ;;
+        "--no-versions" )
+            PRINT_VERSIONS=no
             ;;
         "--only-artifact" )
             [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
@@ -554,7 +559,9 @@ EOF
 
 cat_artifacts_summary_target_html
 
-cat_target_html <<EOF
+if [ "$PRINT_VERSIONS" = "yes" ]
+then
+    cat_target_html <<EOF
 
 <h2>Build environment</h2>
 
@@ -566,6 +573,7 @@ cat_target_html <<EOF
   <tr><th>Watchman</th><td>$(watchman --version)</td></tr>
 </table>
 EOF
+fi
 
 echo_target_html "<p>Unless otherwise noted or implied from the sources, the artifacts are provided under the <a href=\"http://www.apache.org/licenses/LICENSE-2.0\">Apache License, Version 2.0</a>.</p>"
 
