@@ -27,6 +27,7 @@ ARGUMENTS:
   --branch BRANCH    - Build branch BRANCH instead of the default, which is
                        inferred from the basename of the directory, with
                        "master" as fallback.
+  --building         - Build artifacts (On per default)
   --force            - Overwrite eventual existing artifacts target directory
   --ignore-plugin PLUGIN
                      - Don't build, test, ... the plugin PLUGIN
@@ -67,6 +68,9 @@ do
             [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
             BRANCH="$1"
             shift || true
+            ;;
+        "--building" )
+            BUILD_ARTIFACTS=yes
             ;;
         "--no-building" )
             BUILD_ARTIFACTS=no
