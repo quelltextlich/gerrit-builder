@@ -40,6 +40,7 @@ ARGUMENTS:
   --no-testing       - Don't run any tests
   --no-unit-testing  - Don't run unit tests
   --no-versions      - Don't print version information of helper programs
+  --nothing          - Don't run things that can be turned off
   --only-artifact ARTIFACT
                      - Build only the artifact ARTIFACT
 EOF
@@ -95,6 +96,15 @@ do
             ;;
         "--no-versions" )
             PRINT_VERSIONS=no
+            ;;
+        "--nothing" )
+            BUILD_ARTIFACTS=no
+            CHECKOUT=no
+            CLEAN=no
+            PRINT_VERSIONS=no
+            PULL=no
+            TEST_SYSTEM=no
+            TEST_UNIT=no
             ;;
         "--only-artifact" )
             [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
