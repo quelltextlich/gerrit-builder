@@ -46,6 +46,7 @@ ARGUMENTS:
   --nothing          - Don't run things that can be turned off
   --only-artifact ARTIFACT
                      - Build only the artifact ARTIFACT
+  --pull             - 'git pull' before building (On per default)
 EOF
 }
 
@@ -122,6 +123,9 @@ do
             [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
             LIMIT_TO="$1"
             shift || true
+            ;;
+        "--pull" )
+            PULL=yes
             ;;
         * )
             error "Unknown argument '$ARGUMENT'"
