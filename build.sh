@@ -49,6 +49,8 @@ ARGUMENTS:
   --pull             - 'git pull' before building (On per default)
   --system-testing   - Run system tests on artifacts
   --unit-testing     - Run unit tests on artifacts
+  --versions         - Print version information of helper programs (On per
+                       default)
 EOF
 }
 
@@ -134,6 +136,9 @@ do
             ;;
         "--unit-testing" )
             TEST_UNIT=yes
+            ;;
+        "--versions" )
+            PRINT_VERSIONS=yes
             ;;
         * )
             error "Unknown argument '$ARGUMENT'"
