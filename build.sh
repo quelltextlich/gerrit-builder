@@ -28,6 +28,7 @@ ARGUMENTS:
                        inferred from the basename of the directory, with
                        "master" as fallback.
   --building         - Build artifacts (On per default)
+  --checkout         - 'git checkout' before building (On per default)
   --force            - Overwrite eventual existing artifacts target directory
   --ignore-plugin PLUGIN
                      - Don't build, test, ... the plugin PLUGIN
@@ -71,6 +72,9 @@ do
             ;;
         "--building" )
             BUILD_ARTIFACTS=yes
+            ;;
+        "--checkout" )
+            CHECKOUT=yes
             ;;
         "--no-building" )
             BUILD_ARTIFACTS=no
