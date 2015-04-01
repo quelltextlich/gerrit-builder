@@ -47,8 +47,8 @@ ARGUMENTS:
   --only-artifact ARTIFACT
                      - Build only the artifact ARTIFACT
   --pull             - 'git pull' before building (On per default)
-  --system-testing   - Run system tests on artifacts
-  --unit-testing     - Run unit tests on artifacts
+  --system-testing   - Run system tests on artifacts (On per default)
+  --unit-testing     - Run unit tests on artifacts (On per default)
   --versions         - Print version information of helper programs (On per
                        default)
 EOF
