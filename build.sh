@@ -48,6 +48,7 @@ ARGUMENTS:
                      - Build only the artifact ARTIFACT
   --pull             - 'git pull' before building (On per default)
   --system-testing   - Run system tests on artifacts
+  --unit-testing     - Run unit tests on artifacts
 EOF
 }
 
@@ -130,6 +131,9 @@ do
             ;;
         "--system-testing" )
             TEST_SYSTEM=yes
+            ;;
+        "--unit-testing" )
+            TEST_UNIT=yes
             ;;
         * )
             error "Unknown argument '$ARGUMENT'"
