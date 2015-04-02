@@ -59,7 +59,7 @@ cat_target_html <<EOF
     <th>Status</th>
     <th>Gerrit HEAD</th>
     <th>API version</th>
-    <th>DB schema</br>version</th>
+    <th>DB schema<br/>version</th>
     <th>WAR</th>
     <th>API</th>
     <th>Bundled<br/>plugins</th>
