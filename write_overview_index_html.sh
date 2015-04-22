@@ -80,35 +80,33 @@ read_artifact_group_statuses() {
     ARTIFACT_GROUP_CELL_EXTRAS=()
 
     INPUT_FILE_RELO="$BUILD_DIR_RELO/artifacts_group_numbers.txt"
-    if [ -e "$INPUT_FILE_RELO" ]
-    then
-        while IFS="," read ARTIFACT_GROUP TOTAL_COUNT GROUP_STATUS GROUP_COUNT
-        do
-            add_artifact_group_cell "<a href=\"$BUILD_DIR_RELO/index.html#group-$ARTIFACT_GROUP\">"
-            add_artifact_group_cell "<img src=\"$IMAGE_BASE_URL/$GROUP_STATUS.png\" alt=\"Build $GROUP_STATUS\" />"
-            if [ "$ARTIFACT_GROUP" = "total" ]
+    while IFS="," read ARTIFACT_GROUP TOTAL_COUNT GROUP_STATUS GROUP_COUNT
+    do
+        ARTIFACT_GROUP_CELLS["$ARTIFACT_GROUP"]=""
+        add_artifact_group_cell "<a href=\"$BUILD_DIR_RELO/index.html#group-$ARTIFACT_GROUP\">"
+        add_artifact_group_cell "<img src=\"$IMAGE_BASE_URL/$GROUP_STATUS.png\" alt=\"Build $GROUP_STATUS\" />"
+        if [ "$ARTIFACT_GROUP" = "total" ]
+        then
+            local COUNT_ARGUMENT=""
+            if [ "$GROUP_STATUS" != "ok" ]
             then
-                local COUNT_ARGUMENT=""
-                if [ "$GROUP_STATUS" != "ok" ]
-                then
-                    COUNT_ARGUMENT="$GROUP_COUNT"
-                fi
-                local STATUS_TEXT=
-                set_STATUS_TEXT "counted" "$GROUP_STATUS" "$COUNT_ARGUMENT"
-                add_artifact_group_cell "&#160;$STATUS_TEXT"
-            else
-                add_artifact_group_cell " "
-                if [ "$GROUP_STATUS" = "ok" ]
-                then
-                    add_artifact_group_cell "$GROUP_STATUS"
-                else
-                    add_artifact_group_cell "$GROUP_COUNT/$TOTAL_COUNT"
-                fi
+                COUNT_ARGUMENT="$GROUP_COUNT"
             fi
-            add_artifact_group_cell "</a>"
-            ARTIFACT_GROUP_CELL_EXTRAS["$ARTIFACT_GROUP"]=" class=\"$STATUS\""
-        done < "$INPUT_FILE_RELO"
-    fi
+            local STATUS_TEXT=
+            set_STATUS_TEXT "counted" "$GROUP_STATUS" "$COUNT_ARGUMENT"
+            add_artifact_group_cell "&#160;$STATUS_TEXT"
+        else
+            add_artifact_group_cell " "
+            if [ "$GROUP_STATUS" = "ok" ]
+            then
+                add_artifact_group_cell "$GROUP_STATUS"
+            else
+                add_artifact_group_cell "$GROUP_COUNT/$TOTAL_COUNT"
+            fi
+        fi
+        add_artifact_group_cell "</a>"
+        ARTIFACT_GROUP_CELL_EXTRAS["$ARTIFACT_GROUP"]=" class=\"$STATUS\""
+    done < <( echo "total,,died," ; if [ -e "$INPUT_FILE_RELO" ] ; then cat "$INPUT_FILE_RELO" ; fi)
 }
 
 echo_group_status_cell_target_html() {
