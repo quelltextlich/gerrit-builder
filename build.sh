@@ -207,6 +207,10 @@ cd "$GERRIT_DIR_ABS"
 if [ "$CHECKOUT" = "yes" ]
 then
     run_git checkout "$BRANCH"
+    if [ -e ".gitmodules" ]
+    then
+        run_git submodule update --recursive
+    fi
 fi
 if [ "$PULL" = "yes" ]
 then
