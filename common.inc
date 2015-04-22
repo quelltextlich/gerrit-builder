@@ -279,15 +279,15 @@ run_system_test() {
     local TARGET_FILE_ABS="$TARGET_DIR_ABS/$ARTIFACT_BASENAME"
     local RETURN_CODE=0
 
-    if [ "${ARTIFACT_BASENAME: -4}" = ".war" ]
+    "$SCRIPT_DIR_ABS"/stop_test_site.sh
+    rm -rf "$TEST_SITE_DIR_ABS"
+    if [ -e "$TEST_SITE_DIR_ABS" ]
     then
-        "$SCRIPT_DIR_ABS"/stop_test_site.sh
-        rm -rf "$TEST_SITE_DIR_ABS"
-        if [ -e "$TEST_SITE_DIR_ABS" ]
+        info "Despite removing $TEST_SITE_DIR_ABS, the directory still exists"
+        RETURN_CODE=2
+    else
+        if [ "${ARTIFACT_BASENAME: -4}" = ".war" ]
         then
-            info "Despite removing $TEST_SITE_DIR_ABS, the directory still exists"
-            RETURN_CODE=2
-        else
             info "Trying to start test-site (this may take a minute)"
             # Not doing tee redirection on stdout and stderr, as the
             # boot_fresh_test_site.sh is spawning a background
@@ -303,24 +303,27 @@ run_system_test() {
                 cat "$TARGET_FILE_ABS.system.stderr.txt" >&2
                 RETURN_CODE=1
             fi
+        else
+            RETURN_CODE=0
         fi
-    else
-        RETURN_CODE=0
     fi
 
-    for LOG_FILE_RELL in \
-        error_log \
-        gc_log \
-        httpd_log \
-        replication_log \
-        sshd_log \
+    if [ "$RETURN_CODE" != "2" ]
+    then
+        for LOG_FILE_RELL in \
+            error_log \
+            gc_log \
+            httpd_log \
+            replication_log \
+            sshd_log \
 
-    do
-        if [ -e "$TEST_SITE_DIR_ABS/logs/$LOG_FILE_RELL" ]
-        then
-            cp "$TEST_SITE_DIR_ABS/logs/$LOG_FILE_RELL" "$TARGET_FILE_ABS.system.$LOG_FILE_RELL.txt"
-        fi
-    done
+        do
+            if [ -e "$TEST_SITE_DIR_ABS/logs/$LOG_FILE_RELL" ]
+            then
+                cp "$TEST_SITE_DIR_ABS/logs/$LOG_FILE_RELL" "$TARGET_FILE_ABS.system.$LOG_FILE_RELL.txt"
+            fi
+        done
+    fi
 
     if [ "$TEST_SITE_STARTED" = "yes" ]
     then
