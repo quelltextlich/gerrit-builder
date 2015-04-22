@@ -301,6 +301,7 @@ run_system_test() {
                 cat "$TARGET_FILE_ABS.system.stdout.txt"
                 echo "===stderr==="
                 cat "$TARGET_FILE_ABS.system.stderr.txt" >&2
+                echo "============"
                 RETURN_CODE=1
             fi
         else
