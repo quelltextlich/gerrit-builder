@@ -68,7 +68,7 @@ run_war daemon --run-id "$RUN_ID" </dev/null &>/dev/null &
 GERRIT_PID="$!"
 
 ITERATION_COUNT=0
-MAX_ITERATION_COUNT=150
+MAX_ITERATION_COUNT=600
 GERRIT_IS_READY=no
 
 while [ -e "/proc/$GERRIT_PID" \
