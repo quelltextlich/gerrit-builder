@@ -11,7 +11,8 @@ setup_watchman() {
         run_git clone https://github.com/facebook/watchman.git
         cd watchman
         ./autogen.sh
-        ./configure
+        ./configure --prefix="$(pwd)"
+        mkdir -p "var/run/watchman"
         make
         cd "$SCRIPT_DIR_ABS"
     fi
