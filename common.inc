@@ -70,6 +70,8 @@ add_to_plugins "its-phabricator"
 add_to_plugins "its-rtc"
 add_to_plugins "its-storyboard"
 
+IGNORED_PLUGINS=()
+
 ARTIFACTS_TOTAL=0
 ARTIFACTS_OK=0
 ARTIFACTS_BROKEN=0
@@ -101,6 +103,16 @@ in_array() {
             return 0
         fi
     done
+    return 1
+}
+
+#---------------------------------------------------------------------
+is_ignored_plugin () {
+    local PLUGIN_NAME="$1"
+    if in_array "$PLUGIN_NAME" "${IGNORED_PLUGINS[@]}"
+    then
+        return 0
+    fi
     return 1
 }
 

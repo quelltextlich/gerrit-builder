@@ -14,7 +14,6 @@ TEST_UNIT=yes
 TEST_SYSTEM=yes
 STATUS=died
 PRINT_VERSIONS=yes
-IGNORED_PLUGINS=()
 LIMIT_TO=
 
 
@@ -258,15 +257,6 @@ fi
 pushd "$GERRIT_DIR_ABS" >/dev/null
 GERRIT_EXCLUDE_FILE_ABS="$(git rev-parse --git-dir)/info/exclude"
 popd >/dev/null
-
-is_ignored_plugin () {
-    local PLUGIN_NAME="$1"
-    if in_array "$PLUGIN_NAME" "${IGNORED_PLUGINS[@]}"
-    then
-        return 0
-    fi
-    return 1
-}
 
 remove_plugin_links() {
     local EXTRA_PLUGIN_DIR_ABS=
