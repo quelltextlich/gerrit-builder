@@ -919,3 +919,53 @@ check_error_log_for () {
     fi
     return "$RETURN_CODE"
 }
+
+#---------------------------------------------------------------------
+checked_kill_helper() {
+    local PID="$1"
+    shift
+
+    if [ -e "/proc/$PID" ]
+    then
+        kill "$@" "$PID"
+        COUNT=0
+        while [ -e "/proc/$PID" -a "$COUNT" -lt 10 ]
+        do
+            sleep 1
+            COUNT=$((COUNT+1))
+        done
+    fi
+}
+
+#---------------------------------------------------------------------
+checked_kill() {
+    local COMMAND="$1"
+    local FILTER_RE="$2"
+
+    if [ -z "$FILTER_RE" ]
+    then
+        FILTER_RE="."
+    fi
+
+    local PIDS=$( \
+        ps -C "$COMMAND" -o pid,cmd \
+        | grep -e "$FILTER_RE" \
+        | grep -e '^[[:space:]]*\([0-9]\+\)[[:space:]].*' \
+        | sed -e 's/^[[:space:]]*\([0-9]\+\)[[:space:]].*/\1/' \
+    )
+
+    if [ -n "$PIDS" ]
+    then
+        for PID in "$PIDS"
+        do
+            checked_kill_helper "$PID"
+            checked_kill_helper "$PID"
+            checked_kill_helper "$PID" "-KILL"
+
+            if [ -e "/proc/$PID" ]
+            then
+                error "$COMMAND pid $PID still alive"
+            fi
+        done
+    fi
+}

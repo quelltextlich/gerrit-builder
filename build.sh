@@ -201,6 +201,13 @@ cat_target_html <<EOF
 <h2 id="artifacts">Artifacts</h2>
 EOF
 
+kill_old_daemons() {
+    checked_kill watchman "$SCRIPT_DIR_ABS"
+    checked_kill java "$SCRIPT_DIR_ABS"
+}
+
+kill_old_daemons
+
 section "Updating gerrit"
 cd "$GERRIT_DIR_ABS"
 if [ "$CHECKOUT" = "yes" ]
@@ -638,6 +645,8 @@ dump_status
 compute_checksums
 
 "$SCRIPT_DIR_ABS/write_overview_index_html.sh"
+
+kill_old_daemons
 
 case "$STATUS" in
     "ok" )
