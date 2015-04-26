@@ -666,4 +666,6 @@ case "$STATUS" in
         ;;
 esac
 
+info "Final status: $STATUS"
+
 finalize "$EXIT_CODE"
