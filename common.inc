@@ -673,7 +673,7 @@ set_LEGAL_URL() {
         pushd "$SCRIPT_DIR_ABS" >/dev/null
         if [ -e "$LEGAL_URL_RELS" ]
         then
-            LEGAL_URL="$(cat "$LEGAL_URL_RELS")"
+            LEGAL_URL="$(cat "$LEGAL_URL_RELS" | grep '^[^#]' | head -n 1)"
             if [ -z "$LEGAL_URL" ]
             then
                 error "'$SCRIPT_DIR_ABS/$LEGAL_URL_RELS' is empty. Please make that file contain the 'Contact / Legal' URL"
