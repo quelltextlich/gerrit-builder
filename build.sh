@@ -4,8 +4,6 @@
 source "$(dirname "$0")/common.inc"
 #---------------------------------------------------------------------
 
-DATE="$(date --utc +'%Y-%m-%d')"
-
 FORCE=no
 PULL=yes
 CHECKOUT=yes
@@ -15,6 +13,7 @@ TEST_SYSTEM=yes
 STATUS=died
 PRINT_VERSIONS=yes
 LIMIT_TO=
+TARGET_DIRECTORY_FORMAT="%Y-%m-%d"
 
 
 print_help() {
@@ -47,6 +46,12 @@ ARGUMENTS:
                      - Build only the artifact ARTIFACT
   --pull             - 'git pull' before building (On per default)
   --system-testing   - Run system tests on artifacts (On per default)
+  --target-directory-format FORMAT
+                     - Format of the directory holding the built artifacts as
+                       FORMAT. You can use any % specifiers of the POSIX date
+                       utility to refer to now, and $BRANCH to refer to the
+                       built branch (Be sure to escape the dollar sign!).
+                       (Default: %Y-%m-%d)
   --unit-testing     - Run unit tests on artifacts (On per default)
   --versions         - Print version information of helper programs (On per
                        default)
@@ -133,6 +138,11 @@ do
         "--system-testing" )
             TEST_SYSTEM=yes
             ;;
+        "--target-directory-format" )
+            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+            TARGET_DIRECTORY_FORMAT="$1"
+            shift || true
+            ;;
         "--unit-testing" )
             TEST_UNIT=yes
             ;;
@@ -145,7 +155,9 @@ do
     esac
 done
 
-TARGET_DIR_ABS="$ARTIFACTS_DIR_ABS/$DATE"
+TARGET_DIR_RELA="$(date --utc +"$TARGET_DIRECTORY_FORMAT")"
+TARGET_DIR_RELA=${TARGET_DIR_RELA//\$BRANCH/$BRANCH}
+TARGET_DIR_ABS="$ARTIFACTS_DIR_ABS/$TARGET_DIR_RELA"
 
 if [ -e "$TARGET_DIR_ABS" -a "$FORCE" = yes ]
 then
@@ -172,16 +184,16 @@ dump_status() {
 
 dump_status
 
-info "Date: $DATE"
+info "Target directory: $TARGET_DIR_RELA"
 info "Branch: $BRANCH"
 
 set_target_html_file_abs "$TARGET_DIR_ABS/index.html"
 
 cat_html_header_target_html \
-    "$DATE gerrit $BRANCH build" \
-    "Build of $BRANCH commitish of gerrit from $DATE" \
+    "$TARGET_DIR_RELA gerrit $BRANCH build" \
+    "Build of $BRANCH commitish of gerrit for $TARGET_DIR_RELA" \
     "gerrit, jar, $BRANCH" \
-    "$DATE build of $BRANCH of gerrit"
+    "$TARGET_DIR_RELA build of $BRANCH of gerrit"
 
 cat_target_html <<EOF
 <h2 id="summary">Build summary</h2>
