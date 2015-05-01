@@ -145,9 +145,7 @@ do
     esac
 done
 
-post_parameter_parsing_setup
-
-TARGET_DIR_ABS="$OVERVIEW_DIR_ABS/$DATE"
+TARGET_DIR_ABS="$ARTIFACTS_DIR_ABS/$DATE"
 
 if [ -e "$TARGET_DIR_ABS" -a "$FORCE" = yes ]
 then

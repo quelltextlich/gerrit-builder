@@ -22,7 +22,6 @@ MAVEN_DIR_ABS="$SCRIPT_DIR_ABS/apache-maven"
 EXTRA_PLUGINS_DIR_ABS="$SCRIPT_DIR_ABS/plugins"
 
 ARTIFACTS_DIR_ABS="$SCRIPT_DIR_ABS/artifacts"
-ARTIFACTS_NIGHTLY_DIR_ABS="$ARTIFACTS_DIR_ABS/nightly"
 
 TEST_SITE_DIR_ABS="$SCRIPT_DIR_ABS/test-site"
 TEST_SITE_HOST="127.0.0.1"
@@ -89,7 +88,6 @@ declare -A ARTIFACT_GROUP_STATUS_COUNT=()
 declare -A ARTIFACT_GROUP_TOTAL_COUNT=()
 #---------------------------------------------------------------------
 mkdir -p "$ARTIFACTS_DIR_ABS"
-mkdir -p "$ARTIFACTS_NIGHTLY_DIR_ABS"
 
 #---------------------------------------------------------------------
 in_array() {
@@ -115,15 +113,6 @@ is_ignored_plugin () {
     fi
     return 1
 }
-
-#---------------------------------------------------------------------
-post_parameter_parsing_setup() {
-    OVERVIEW_DIR_ABS="$ARTIFACTS_NIGHTLY_DIR_ABS/$BRANCH"
-}
-
-# Calling once already upon sourcing, put scripts are encouraged to
-# call it again once they are finished with parameter parsing
-post_parameter_parsing_setup
 
 #---------------------------------------------------------------------
 log() {

@@ -36,9 +36,9 @@ do
     esac
 done
 
-mkdir -p "$OVERVIEW_DIR_ABS"
+mkdir -p "$ARTIFACTS_DIR_ABS"
 
-set_target_html_file_abs "$OVERVIEW_DIR_ABS/index.html"
+set_target_html_file_abs "$ARTIFACTS_DIR_ABS/index.html"
 
 cat_html_header_target_html \
     "Gerrit $BRANCH builds" \
@@ -121,7 +121,7 @@ echo_group_status_cell_target_html() {
     echo_target_html "<td>$GROUP_CELL</td>"
 }
 
-pushd "$OVERVIEW_DIR_ABS" >/dev/null
+pushd "$ARTIFACTS_DIR_ABS" >/dev/null
 for BUILD_DIR_RELO in *
 do
     if [ -d "$BUILD_DIR_RELO" ]
