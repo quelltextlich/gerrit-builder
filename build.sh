@@ -454,7 +454,19 @@ echo_artifacts_group_numbers_txt() {
         echo -n "$ARTIFACT_GROUP,"
         echo -n "${ARTIFACT_GROUP_TOTAL_COUNT[$ARTIFACT_GROUP]},"
         echo -n "${ARTIFACT_GROUP_STATUS[$ARTIFACT_GROUP]},"
-        echo "${ARTIFACT_GROUP_STATUS_COUNT[$ARTIFACT_GROUP]}"
+        echo -n "${ARTIFACT_GROUP_STATUS_COUNT[$ARTIFACT_GROUP]}"
+        if [ "$ARTIFACT_GROUP" = "total" ]
+        then
+            case "${ARTIFACT_GROUP_STATUS[$ARTIFACT_GROUP]}" in
+                "failed" )
+                    echo -n ",$FIRST_FAILED_ARTIFACT"
+                    ;;
+                "broken" )
+                    echo -n ",$FIRST_BROKEN_ARTIFACT"
+                    ;;
+            esac
+        fi
+        echo
     done | sort --field-separator=',' --key=1,1 --key=2,2n
 }
 

@@ -80,10 +80,15 @@ read_artifact_group_statuses() {
     ARTIFACT_GROUP_CELL_EXTRAS=()
 
     INPUT_FILE_RELO="$BUILD_DIR_RELO/artifacts_group_numbers.txt"
-    while IFS="," read ARTIFACT_GROUP TOTAL_COUNT GROUP_STATUS GROUP_COUNT
+    while IFS="," read ARTIFACT_GROUP TOTAL_COUNT GROUP_STATUS GROUP_COUNT FIRST_ARTIFACT_W_STATUS
     do
         ARTIFACT_GROUP_CELLS["$ARTIFACT_GROUP"]=""
-        add_artifact_group_cell "<a href=\"$BUILD_DIR_RELO/index.html#group-$ARTIFACT_GROUP\">"
+        if [ "$ARTIFACT_GROUP" = "total" -a -n "$FIRST_ARTIFACT_W_STATUS" ]
+        then
+            add_artifact_group_cell "<a href=\"$BUILD_DIR_RELO/index.html#$FIRST_ARTIFACT_W_STATUS\">"
+        else
+            add_artifact_group_cell "<a href=\"$BUILD_DIR_RELO/index.html#group-$ARTIFACT_GROUP\">"
+        fi
         add_artifact_group_cell "<img src=\"$IMAGE_BASE_URL/$GROUP_STATUS.png\" alt=\"Build $GROUP_STATUS\" />"
         if [ "$ARTIFACT_GROUP" = "total" ]
         then
