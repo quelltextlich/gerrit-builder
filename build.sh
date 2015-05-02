@@ -610,6 +610,7 @@ fi
 cat_artifacts_summary_row_target_html() {
     local STATUS="$1"
     local COUNT="$2"
+    local ARTIFACT_TO_LINK="$3"
 
     local STATUS_TEXT=
     set_STATUS_TEXT "uncounted"
@@ -620,14 +621,21 @@ cat_artifacts_summary_row_target_html() {
         ATTRIBUTE=" class=\"$STATUS\""
     fi
 
-    CONTENT="$CONTENT\n  <tr><td$ATTRIBUTE>${STATUS_TEXT^}</td><td$ATTRIBUTE>$COUNT</td></tr>"
+    local LINK_START=
+    local LINK_END=
+    if [ -n "$ARTIFACT_TO_LINK" ]
+    then
+        LINK_START="<a href=\"#$ARTIFACT_TO_LINK\">"
+        LINK_END="</a>"
+    fi
+    CONTENT="$CONTENT\n  <tr><td$ATTRIBUTE>$LINK_START${STATUS_TEXT^}$LINK_END</td><td$ATTRIBUTE>$LINK_START$COUNT$LINK_END</td></tr>"
 }
 
 cat_artifacts_summary_target_html() {
     local CONTENT="<table>\n  <tr><th>Artifacts</th><th>Count</th></tr>"
 
-    cat_artifacts_summary_row_target_html "failed" "$ARTIFACTS_FAILED"
-    cat_artifacts_summary_row_target_html "broken" "$ARTIFACTS_BROKEN"
+    cat_artifacts_summary_row_target_html "failed" "$ARTIFACTS_FAILED" "$FIRST_FAILED_ARTIFACT"
+    cat_artifacts_summary_row_target_html "broken" "$ARTIFACTS_BROKEN" "$FIRST_BROKEN_ARTIFACT"
     cat_artifacts_summary_row_target_html "ok" "$ARTIFACTS_OK"
     cat_artifacts_summary_row_target_html "total" "$ARTIFACTS_TOTAL"
 
