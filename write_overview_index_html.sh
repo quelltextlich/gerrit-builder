@@ -123,11 +123,14 @@ echo_group_status_cell_target_html() {
 
 dump_first_line_if_exists() {
     local FILE_BASENAME="$1"
+    local DEFAULT_LINE="$2"
     local FILE_RELO="$BUILD_DIR_RELO/$FILE_BASENAME"
+    local LINE="$DEFAULT_LINE"
     if [ -f "$FILE_RELO" ]
     then
-        head -n 1 <"$FILE_RELO"
+        LINE="$(head -n 1 <"$FILE_RELO")"
     fi
+    echo "$LINE"
 }
 
 pushd "$ARTIFACTS_DIR_ABS" >/dev/null
@@ -136,22 +139,14 @@ do
     if [ -d "$BUILD_DIR_RELO" ]
     then
         read_artifact_group_statuses || true
-        STATUS=$(cat "$BUILD_DIR_RELO/status.txt" || true)
+        STATUS=$(dump_first_line_if_exists "status.txt")
         case "$STATUS" in
             "failed" )
-                ARTIFACTS_FAILED=$(cat "$BUILD_DIR_RELO/failure_count.txt" || true)
-                if [ -z "$ARTIFACTS_FAILED" ]
-                then
-                    ARTIFACTS_FAILED="?"
-                fi
+                ARTIFACTS_FAILED=$(dump_first_line_if_exists "failure_count.txt" "?")
                 STATUS_CELL_TEXT="$ARTIFACTS_FAILED $STATUS"
                 ;;
             "broken" )
-                ARTIFACTS_BROKEN=$(cat "$BUILD_DIR_RELO/broken_count.txt" || true)
-                if [ -z "$ARTIFACTS_BROKEN" ]
-                then
-                    ARTIFACTS_BROKEN="?"
-                fi
+                ARTIFACTS_BROKEN=$(dump_first_line_if_exists "broken_count.txt" "?")
                 STATUS_CELL_TEXT="$ARTIFACTS_BROKEN $STATUS"
                 ;;
             "ok" | \
@@ -164,23 +159,9 @@ do
                 ;;
         esac
 
-        API_VERSION=$(cat "$BUILD_DIR_RELO/api_version.txt" || true)
-        if [ -z "$API_VERSION" ]
-        then
-            API_VERSION="---"
-        fi
-
-        DB_SCHEMA_VERSION=$(cat "$BUILD_DIR_RELO/db_schema_version.txt" || true)
-        if [ -z "$DB_SCHEMA_VERSION" ]
-        then
-            DB_SCHEMA_VERSION="---"
-        fi
-
-        REPO_DESCRIPTION=$(cat "$BUILD_DIR_RELO/gerrit_description.txt" || true)
-        if [ -z "$REPO_DESCRIPTION" ]
-        then
-            REPO_DESCRIPTION="---"
-        fi
+        API_VERSION=$(dump_first_line_if_exists "api_version.txt" "---")
+        DB_SCHEMA_VERSION=$(dump_first_line_if_exists "db_schema_version.txt" "---")
+        REPO_DESCRIPTION=$(dump_first_line_if_exists "gerrit_description.txt" "---")
 
         README="$(dump_first_line_if_exists "README.txt")"
         README_PREFIX=
