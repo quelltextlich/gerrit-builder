@@ -198,6 +198,9 @@ cat_html_header_target_html \
 cat_target_html <<EOF
 <h2 id="summary">Build summary</h2>
 
+<div class="tablerow">
+
+<h3>Key indicators</h3>
 <table>
 <tr class="$STATUS"><th class="th-$STATUS">Build status</th><td><img src="$IMAGE_BASE_URL/$STATUS.png" alt="Build $STATUS" />&#160;$STATUS</td></tr>
 <tr><th>Build start</th><td>$(timestamp)</td></tr>
@@ -207,6 +210,11 @@ cat_target_html <<EOF
 <tr><th>API version</th><td>---</td></tr>
 <tr><th>DB schema version</th><td>---</td></tr>
 </table>
+
+<h3>Artifacts</h3>
+<!-- ARTIFACTS_TABLE -->
+
+</div>
 
 <h2 id="artifacts">Artifacts</h2>
 EOF
@@ -586,25 +594,24 @@ cat_artifacts_summary_row_target_html() {
         ATTRIBUTE=" class=\"$STATUS\""
     fi
 
-    echo_target_html "<tr><td$ATTRIBUTE>${STATUS_TEXT^}</td><td$ATTRIBUTE>$COUNT</td></tr>"
+    CONTENT="$CONTENT\n  <tr><td$ATTRIBUTE>${STATUS_TEXT^}</td><td$ATTRIBUTE>$COUNT</td></tr>"
 }
 
 cat_artifacts_summary_target_html() {
-    cat_target_html <<EOF
-
-<h3>Artifacts summary</h3>
-<table>
-  <tr><th>Artifacts</th><th>Count</th></tr>
-EOF
+    local CONTENT="<table>\n  <tr><th>Artifacts</th><th>Count</th></tr>"
 
     cat_artifacts_summary_row_target_html "failed" "$ARTIFACTS_FAILED"
     cat_artifacts_summary_row_target_html "broken" "$ARTIFACTS_BROKEN"
     cat_artifacts_summary_row_target_html "ok" "$ARTIFACTS_OK"
     cat_artifacts_summary_row_target_html "total" "$ARTIFACTS_TOTAL"
 
-    cat_target_html <<EOF
-</table>
-EOF
+    CONTENT="$CONTENT\n</table>"
+
+    CONTENT="${CONTENT//&/\\&}"
+
+    sed -i \
+        -e '/<!-- ARTIFACTS_TABLE -->/s@<!-- ARTIFACTS_TABLE -->@'"$CONTENT"'@g' \
+        "$TARGET_HTML_FILE_ABS"
 }
 
 cat_artifacts_summary_target_html

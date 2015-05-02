@@ -732,6 +732,14 @@ th {
 .borderless {
   border: 0px solid black !important;
 }
+.tablerow table {
+  display: inline-block;
+  vertical-align: top;
+  margin-right: 3em;
+}
+.tablerow h3 {
+  display: none;
+}
   </style>
 </head>
 <body>
