@@ -217,7 +217,21 @@ cat_target_html <<EOF
 </div>
 
 <h2 id="artifacts">Artifacts</h2>
+
+-
 EOF
+
+for ARTIFACT_GROUP in \
+    war \
+    api \
+    bundled \
+    separate \
+    info \
+
+do
+    echo_target_html "<a href=\"#group-${ARTIFACT_GROUP}\">$(echo_artifact_group_name "$ARTIFACT_GROUP")</a> -"
+done
+
 
 kill_old_daemons() {
     checked_kill watchman "$SCRIPT_DIR_ABS"

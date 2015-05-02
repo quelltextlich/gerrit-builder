@@ -482,6 +482,30 @@ cat_file_header_target_html() {
 EOF
 }
 
+echo_artifact_group_name() {
+    local NAME=""
+    case "$ARTIFACT_GROUP" in
+        "war" )
+            NAME="WAR"
+            ;;
+        "api" )
+            NAME="API"
+            ;;
+        "bundled" )
+            NAME="Bundled plugins"
+            ;;
+        "separate" )
+            NAME="Separate plugins"
+            ;;
+        "info" )
+            NAME="Build information"
+            ;;
+        * )
+            NAME="$ARTIFACT_GROUP"
+            ;;
+    esac
+    echo "$NAME"
+}
 #---------------------------------------------------------------------
 echo_file_target_html() {
     local STATUS="$1"
@@ -502,27 +526,7 @@ echo_file_target_html() {
             echo_target_html "</table>"
         fi
 
-        local HEADER=
-        case "$ARTIFACT_GROUP" in
-            "war" )
-                HEADER="WAR"
-                ;;
-            "api" )
-                HEADER="API"
-                ;;
-            "bundled" )
-                HEADER="Bundled plugins"
-                ;;
-            "separate" )
-                HEADER="Separate plugins"
-                ;;
-            "info" )
-                HEADER="Build information"
-                ;;
-            * )
-                HEADER="$ARTIFACT_GROUP"
-                ;;
-        esac
+        local HEADER="$(echo_artifact_group_name "$ARTIFACT_GROUP")"
 cat_target_html <<EOF
 <h3 id="group-$ARTIFACT_GROUP">$HEADER</h3>
 <table>
