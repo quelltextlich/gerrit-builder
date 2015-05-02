@@ -121,6 +121,15 @@ echo_group_status_cell_target_html() {
     echo_target_html "<td>$GROUP_CELL</td>"
 }
 
+dump_first_line_if_exists() {
+    local FILE_BASENAME="$1"
+    local FILE_RELO="$BUILD_DIR_RELO/$FILE_BASENAME"
+    if [ -f "$FILE_RELO" ]
+    then
+        head -n 1 <"$FILE_RELO"
+    fi
+}
+
 pushd "$ARTIFACTS_DIR_ABS" >/dev/null
 for BUILD_DIR_RELO in *
 do
@@ -173,6 +182,18 @@ do
             REPO_DESCRIPTION="---"
         fi
 
+        README="$(dump_first_line_if_exists "README.txt")"
+        README_PREFIX=
+        README_POSTFIX=
+        if [ -f "$BUILD_DIR_RELO/README.txt" ]
+        then
+            if [ "$(wc -l <"$BUILD_DIR_RELO/README.txt")" -gt 2 ]
+            then
+                README_PREFIX="<a href=\"$BUILD_DIR_RELO/README.txt\">"
+                README_POSTFIX="</a>"
+            fi
+        fi
+
         cat_target_html <<EOF
   <tr>
 EOF
@@ -191,6 +212,10 @@ EOF
         do
             echo_group_status_cell_target_html "$ARTIFACT_GROUP"
         done
+        if [ -n "$README" ]
+        then
+            echo_target_html "    <td>$README_PREFIX$README$README_POSTFIX</td>"
+        fi
         echo_target_html "  </tr>"
     fi
 done
