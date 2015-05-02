@@ -164,16 +164,6 @@ do
         REPO_DESCRIPTION=$(dump_first_line_if_exists "gerrit_description.txt" "---")
 
         README="$(dump_first_line_if_exists "README.txt")"
-        README_PREFIX=
-        README_POSTFIX=
-        if [ -f "$BUILD_DIR_RELO/README.txt" ]
-        then
-            if [ "$(wc -l <"$BUILD_DIR_RELO/README.txt")" -gt 2 ]
-            then
-                README_PREFIX="<a href=\"$BUILD_DIR_RELO/README.txt\">"
-                README_POSTFIX="</a>"
-            fi
-        fi
 
         cat_target_html <<EOF
   <tr>
@@ -195,7 +185,7 @@ EOF
         done
         if [ -n "$README" ]
         then
-            echo_target_html "    <td>$README_PREFIX$README$README_POSTFIX</td>"
+            echo_target_html "    <td><a href=\"$BUILD_DIR_RELO/README.txt\">Note</a></td>"
         fi
         echo_target_html "  </tr>"
     fi
