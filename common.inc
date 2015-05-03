@@ -69,6 +69,9 @@ add_to_plugins "its-phabricator"
 add_to_plugins "its-rtc"
 add_to_plugins "its-storyboard"
 
+JARS_WO_SYSTEM_TEST=()
+JARS_WO_SYSTEM_TEST+=( 'its-base.jar' )
+
 IGNORED_PLUGINS=()
 
 ARTIFACTS_TOTAL=0
@@ -274,28 +277,72 @@ update_artifact_group_statistics () {
 #---------------------------------------------------------------------
 run_system_test() {
     local ARTIFACT_BASENAME="$1"
+    local ARTIFACT_GROUP="$2"
     local TEST_SITE_STARTED="no"
 
-    local RUN_ID="$(date +%s).$$"
     local TARGET_FILE_ABS="$TARGET_DIR_ABS/$ARTIFACT_BASENAME"
+
+    local GERRIT_WAR_FILE_ABS=""
+    local PLUGIN_JAR_FILE_ABS=""
+    case "${ARTIFACT_GROUP}" in
+        "war")
+            GERRIT_WAR_FILE_ABS="$TARGET_FILE_ABS"
+            PLUGIN_JAR_FILE_ABS=""
+            ;;
+        "bundled" | \
+            "separate" )
+            if ! in_array "$ARTIFACT_BASENAME" "${JARS_WO_SYSTEM_TEST[@]}"
+            then
+                GERRIT_WAR_FILE_ABS="$TARGET_DIR_ABS/gerrit.war"
+                PLUGIN_JAR_FILE_ABS="$TARGET_FILE_ABS"
+            fi
+            ;;
+    esac
+
     local RETURN_CODE=0
 
-    "$SCRIPT_DIR_ABS"/stop_test_site.sh
-    rm -rf "$TEST_SITE_DIR_ABS"
-    if [ -e "$TEST_SITE_DIR_ABS" ]
+    if [ -n "$GERRIT_WAR_FILE_ABS" ]
     then
-        info "Despite removing $TEST_SITE_DIR_ABS, the directory still exists"
-        RETURN_CODE=2
-    else
-        if [ "${ARTIFACT_BASENAME: -4}" = ".war" ]
+        local RUN_ID="$(date +%s).$$"
+
+        "$SCRIPT_DIR_ABS"/stop_test_site.sh
+        rm -rf "$TEST_SITE_DIR_ABS"
+        if [ -e "$TEST_SITE_DIR_ABS" ]
         then
+            info "Despite removing $TEST_SITE_DIR_ABS, the directory still exists"
+            RETURN_CODE=2
+        else
             info "Trying to start test-site (this may take a minute)"
             # Not doing tee redirection on stdout and stderr, as the
             # boot_fresh_test_site.sh is spawning a background
             # process, which got the tees hung and blocking here.
-            if "$SCRIPT_DIR_ABS"/boot_fresh_test_site.sh "$TARGET_FILE_ABS" "$RUN_ID" </dev/null 2>"$TARGET_FILE_ABS.system.stderr.txt" >"$TARGET_FILE_ABS.system.stdout.txt"
+            if "$SCRIPT_DIR_ABS"/boot_fresh_test_site.sh "$GERRIT_WAR_FILE_ABS" "$RUN_ID" </dev/null 2>"$TARGET_FILE_ABS.system.stderr.txt" >"$TARGET_FILE_ABS.system.stdout.txt"
             then
                 TEST_SITE_STARTED="yes"
+
+                if [ -n "$PLUGIN_JAR_FILE_ABS" ]
+                then
+                    if [ -e "$PLUGIN_JAR_FILE_ABS" ]
+                    then
+                        local PLUGIN_JAR_BASENAME="$(basename "$PLUGIN_JAR_FILE_ABS")"
+                        if "$SCRIPT_DIR_ABS"/ssh_test-site.sh admin gerrit plugin install --name "$PLUGIN_JAR_BASENAME" - < "$PLUGIN_JAR_FILE_ABS" 2>>"$TARGET_FILE_ABS.system.stderr.txt" >>"$TARGET_FILE_ABS.system.stdout.txt"
+                        then
+                            if [ "$("$SCRIPT_DIR_ABS"/ssh_test-site.sh admin gerrit plugin ls | cut -f 1 -d ' ' | tail -n 1).jar" = "$PLUGIN_JAR_BASENAME" ]
+                            then
+                                info "Plugin loaded and listed"
+                            else
+                                info "Plugin loaded, but was not listed"
+                                RETURN_CODE=1
+                            fi
+                        else
+                            info Failed to install plugin
+                            RETURN_CODE=1
+                        fi
+                    else
+                        info "Plugin $PLUGIN_JAR_FILE_ABS does not exist"
+                        RETURN_CODE=1
+                    fi
+                fi
             else
                 info "Gerrit did not come up"
                 echo "===stdout==="
@@ -305,8 +352,6 @@ run_system_test() {
                 echo "============"
                 RETURN_CODE=1
             fi
-        else
-            RETURN_CODE=0
         fi
     fi
 
@@ -389,7 +434,7 @@ run_buck_build() {
 
     if [ "$STATUS" = "ok" -a "$TEST_SYSTEM" = "yes" ]
     then
-        if ! run_system_test "$ARTIFACT_BASENAME"
+        if ! run_system_test "$ARTIFACT_BASENAME" "$ARTIFACT_GROUP"
         then
             STATUS="broken"
         fi
