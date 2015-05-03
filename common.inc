@@ -275,6 +275,24 @@ update_artifact_group_statistics () {
 }
 
 #---------------------------------------------------------------------
+plugin_jar_to_name() {
+    local PLUGIN_JAR_FILE_ABS="$1"
+    local PLUGIN_JAR_BASENAME="$(basename "$PLUGIN_JAR_FILE_ABS")"
+    local PLUGIN_NAME=
+    case "$PLUGIN_JAR_BASENAME" in
+        "cookbook-plugin.jar" )
+            PLUGIN_NAME="cookbook"
+            ;;
+        "delete-project.jar" )
+            PLUGIN_NAME="deleteproject"
+            ;;
+        * )
+            PLUGIN_NAME="${PLUGIN_JAR_BASENAME:0:-4}"
+            ;;
+    esac
+    echo "$PLUGIN_NAME"
+}
+#---------------------------------------------------------------------
 run_system_test() {
     local ARTIFACT_BASENAME="$1"
     local ARTIFACT_GROUP="$2"
@@ -324,14 +342,14 @@ run_system_test() {
                 then
                     if [ -e "$PLUGIN_JAR_FILE_ABS" ]
                     then
-                        local PLUGIN_JAR_BASENAME="$(basename "$PLUGIN_JAR_FILE_ABS")"
-                        if "$SCRIPT_DIR_ABS"/ssh_test-site.sh admin gerrit plugin install --name "$PLUGIN_JAR_BASENAME" - < "$PLUGIN_JAR_FILE_ABS" 2>>"$TARGET_FILE_ABS.system.stderr.txt" >>"$TARGET_FILE_ABS.system.stdout.txt"
+                        local PLUGIN_NAME="$(plugin_jar_to_name "$PLUGIN_JAR_FILE_ABS")"
+                        if "$SCRIPT_DIR_ABS"/ssh_test-site.sh admin gerrit plugin install --name "${PLUGIN_NAME}.jar" - < "$PLUGIN_JAR_FILE_ABS" 2>>"$TARGET_FILE_ABS.system.stderr.txt" >>"$TARGET_FILE_ABS.system.stdout.txt"
                         then
-                            if [ "$("$SCRIPT_DIR_ABS"/ssh_test-site.sh admin gerrit plugin ls | cut -f 1 -d ' ' | tail -n 1).jar" = "$PLUGIN_JAR_BASENAME" ]
+                            if [ "$("$SCRIPT_DIR_ABS"/ssh_test-site.sh admin gerrit plugin ls | cut -f 1 -d ' ' | tail -n 1)" = "$PLUGIN_NAME" ]
                             then
-                                info "Plugin loaded and listed"
+                                info "Plugin loaded and listed as '$PLUGIN_NAME'"
                             else
-                                info "Plugin loaded, but was not listed"
+                                info "Plugin loaded, but was not listed as '$PLUGIN_NAME'"
                                 RETURN_CODE=1
                             fi
                         else
