@@ -293,7 +293,7 @@ run_system_test() {
             "separate" )
             if ! in_array "$ARTIFACT_BASENAME" "${JARS_WO_SYSTEM_TEST[@]}"
             then
-                GERRIT_WAR_FILE_ABS="$TARGET_DIR_ABS/gerrit.war"
+                GERRIT_WAR_FILE_ABS="$SYSTEM_TESTING_WAR_FILE_ABS"
                 PLUGIN_JAR_FILE_ABS="$TARGET_FILE_ABS"
             fi
             ;;

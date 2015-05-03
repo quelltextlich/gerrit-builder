@@ -46,6 +46,9 @@ ARGUMENTS:
                      - Build only the artifact ARTIFACT
   --pull             - 'git pull' before building (On per default)
   --system-testing   - Run system tests on artifacts (On per default)
+  --system-testing-war WAR_FILE
+                     - Use WAR_FILE for system testing jars instead of this
+                       build's gerrit.war.
   --target-directory-format FORMAT
                      - Format of the directory holding the built artifacts as
                        FORMAT. You can use any % specifiers of the POSIX date
@@ -138,6 +141,11 @@ do
         "--system-testing" )
             TEST_SYSTEM=yes
             ;;
+        "--system-testing-war" )
+            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+            SYSTEM_TESTING_WAR="$1"
+            shift || true
+            ;;
         "--target-directory-format" )
             [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
             TARGET_DIRECTORY_FORMAT="$1"
@@ -158,6 +166,23 @@ done
 TARGET_DIR_RELA="$(date --utc +"$TARGET_DIRECTORY_FORMAT")"
 TARGET_DIR_RELA=${TARGET_DIR_RELA//\$BRANCH/$BRANCH}
 TARGET_DIR_ABS="$ARTIFACTS_DIR_ABS/$TARGET_DIR_RELA"
+
+if [ -z "$SYSTEM_TESTING_WAR" ]
+then
+    SYSTEM_TESTING_WAR_FILE_ABS="$TARGET_DIR_ABS/gerrit.war"
+else
+    if [ "${SYSTEM_TESTING_WAR:0:1}" = "/" ]
+    then
+        SYSTEM_TESTING_WAR_FILE_ABS="$SYSTEM_TESTING_WAR"
+    else
+        SYSTEM_TESTING_WAR_FILE_ABS="$ORIG_DIR_ABS/$SYSTEM_TESTING_WAR"
+    fi
+fi
+
+if [ ! -e "$SYSTEM_TESTING_WAR_FILE_ABS" ]
+then
+    error "The WAR for system testing ($SYSTEM_TESTING_WAR_FILE_ABS) does not exist"
+fi
 
 if [ -e "$TARGET_DIR_ABS" -a "$FORCE" = yes ]
 then
