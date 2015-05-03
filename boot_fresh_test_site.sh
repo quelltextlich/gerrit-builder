@@ -94,6 +94,7 @@ info "gerrit is up"
 section "Setting up admin user"
 
 cp -a "$USER_CREDENTIALS_DIR_ABS" "$TEST_SITE_USER_CREDENTIALS_DIR_ABS"
+chmod 400 "$TEST_SITE_USER_CREDENTIALS_DIR_ABS/"*"/id_rsa"
 setup_ssh_user admin
 
 finalize
