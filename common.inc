@@ -592,7 +592,7 @@ echo_file_size() {
                 FORMATTED_SIZE="0.0"
             elif [ "$SIZE" -lt 50000 ]
             then
-                FORMATTED_SIZE="<0.1"
+                FORMATTED_SIZE="&lt;0.1"
             else
                 FORMATTED_SIZE="$(( (SIZE + 50000) / 1000 / 100))"
                 FORMATTED_SIZE="${FORMATTED_SIZE:0:-1}.${FORMATTED_SIZE: -1:1}"

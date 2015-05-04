@@ -245,7 +245,7 @@ cat_target_html <<EOF
 
 <h2 id="artifacts">Artifacts</h2>
 
--
+<p>-
 EOF
 
 for ARTIFACT_GROUP in \
@@ -258,6 +258,8 @@ for ARTIFACT_GROUP in \
 do
     echo_target_html "<a href=\"#group-${ARTIFACT_GROUP}\">$(echo_artifact_group_name "$ARTIFACT_GROUP")</a> -"
 done
+
+echo_target_html "</p>"
 
 
 kill_old_daemons() {
