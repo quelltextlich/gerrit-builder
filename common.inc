@@ -319,7 +319,7 @@ run_system_test() {
 
     local RETURN_CODE=0
 
-    if [ -n "$GERRIT_WAR_FILE_ABS" ]
+    if [ -e "$GERRIT_WAR_FILE_ABS" ]
     then
         local RUN_ID="$(date +%s).$$"
 
@@ -370,6 +370,13 @@ run_system_test() {
                 echo "============"
                 RETURN_CODE=1
             fi
+        fi
+    elif [ -n "$GERRIT_WAR_FILE_ABS" ]
+    then
+        # $GERRIT_WAR_FILE_ABS has a value, but the file does not exist
+        if [ ! -e "$GERRIT_WAR_FILE_ABS" ]
+        then
+            error "The WAR for system testing ($GERRIT_WAR_FILE_ABS) does not exist"
         fi
     fi
 

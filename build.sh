@@ -170,6 +170,8 @@ TARGET_DIR_ABS="$ARTIFACTS_DIR_ABS/$TARGET_DIR_RELA"
 if [ -z "$SYSTEM_TESTING_WAR" ]
 then
     SYSTEM_TESTING_WAR_FILE_ABS="$TARGET_DIR_ABS/gerrit.war"
+    # No early checking for war file existence, as this war file will be built
+    # by this run (given that "--only-artifact" or other means are not used).
 else
     if [ "${SYSTEM_TESTING_WAR:0:1}" = "/" ]
     then
@@ -177,11 +179,11 @@ else
     else
         SYSTEM_TESTING_WAR_FILE_ABS="$ORIG_DIR_ABS/$SYSTEM_TESTING_WAR"
     fi
-fi
-
-if [ ! -e "$SYSTEM_TESTING_WAR_FILE_ABS" ]
-then
-    error "The WAR for system testing ($SYSTEM_TESTING_WAR_FILE_ABS) does not exist"
+    # Early warning against war not existing
+    if [ ! -e "$SYSTEM_TESTING_WAR_FILE_ABS" ]
+    then
+        error "The WAR for system testing ($SYSTEM_TESTING_WAR_FILE_ABS) does not exist"
+    fi
 fi
 
 if [ -e "$TARGET_DIR_ABS" -a "$FORCE" = yes ]
