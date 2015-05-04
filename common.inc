@@ -576,6 +576,37 @@ echo_artifact_group_name() {
     esac
     echo "$NAME"
 }
+
+#---------------------------------------------------------------------
+echo_file_size() {
+    local FILE_ABS="$1"
+    FORMATTED_SIZE="---"
+
+    if [ -e "$FILE_ABS" ]
+    then
+        local SIZE="$(stat -c%s "$FILE_ABS")"
+        if [ -n "$SIZE" ]
+        then
+            if [ "$SIZE" = 0 ]
+            then
+                FORMATTED_SIZE="0.0"
+            elif [ "$SIZE" -lt 50000 ]
+            then
+                FORMATTED_SIZE="<0.1"
+            else
+                FORMATTED_SIZE="$(( (SIZE + 50000) / 1000 / 100))"
+                FORMATTED_SIZE="${FORMATTED_SIZE:0:-1}.${FORMATTED_SIZE: -1:1}"
+                if [ "${FORMATTED_SIZE:0:1}" = "." ]
+                then
+                    FORMATTED_SIZE="0$FORMATTED_SIZE"
+                fi
+            fi
+            FORMATTED_SIZE="$FORMATTED_SIZE&#160;MB"
+        fi
+    fi
+    echo "$FORMATTED_SIZE"
+}
+
 #---------------------------------------------------------------------
 echo_file_target_html() {
     local STATUS="$1"
@@ -610,16 +641,7 @@ EOF
     if [ -e "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT" ]
     then
         ARTIFACT_CELL="<a href=\"$ARTIFACT_FILE_RELT\">$ARTIFACT_FILE_RELT</a>"
-        local SIZE="$(stat -c%s "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT")"
-        if [ -n "$SIZE" ]
-        then
-            if [ "$SIZE" -lt 2000000 ]
-            then
-                SIZE_CELL="$((SIZE / 1000 + 1))&#160;KB"
-            else
-                SIZE_CELL="$((SIZE / 1000 / 1000 + 1))&#160;MB"
-            fi
-        fi
+        SIZE_CELL="$(echo_file_size "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT")"
     else
         ARTIFACT_CELL="$ARTIFACT_FILE_RELT"
     fi
