@@ -282,6 +282,10 @@ fi
 if [ "$PULL" = "yes" ]
 then
     run_git pull --recurse-submodules=yes
+    if [ -e ".gitmodules" ]
+    then
+        run_git submodule update --recursive
+    fi
 fi
 
 API_VERSION="$(grep ^GERRIT_VERSION "$GERRIT_DIR_ABS"/VERSION | cut -f 2 -d \')"
