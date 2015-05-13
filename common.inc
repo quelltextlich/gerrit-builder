@@ -169,6 +169,11 @@ run_git() {
 describe_repo() {
     local CURRENT_REPO_NAME="$(run_git config --get 'remote.origin.url' | cut -f 4- -d /)"
 
+    if [ "$(basename "$CURRENT_REPO_NAME")" = "gerrit-builder" ]
+    then
+       CURRENT_REPO_NAME="gerrit-builder"
+    fi
+
     local REPO_NAME=
     local FOUND_REPO=no
     for REPO_NAME in "${REPO_NAMES[@]}"

@@ -269,6 +269,8 @@ kill_old_daemons() {
 
 kill_old_daemons
 
+describe_repo
+
 section "Updating gerrit"
 cd "$GERRIT_DIR_ABS"
 if [ "$CHECKOUT" = "yes" ]
@@ -693,6 +695,7 @@ then
   <tr><th>Hostname</th><td>$(hostname --fqdn)</td></tr>
   <tr><th>Ant</th><td>$(ant -version | head -n 1 | sed -e 's/^.*version \(.*\) compiled.*/\1/')</td></tr>
   <tr><th>Buck</th><td>$(buck --version 2>/dev/null | head -n 1 | sed -e 's/^.* version //')</td></tr>
+  <tr><th>Build script</th><td>${REPO_DESCRIPTIONS["gerrit-builder"]}</td></tr>
   <tr><th>Java</th><td>$(java -version 2>&1 | head -n 1 | cut -f 2 -d '"')</td></tr>
   <tr><th>Maven</th><td>$(mvn -version | head -n 1 | sed -e 's/^Apache Maven \(.*\) (.*/\1/')</td></tr>
   <tr><th>Watchman</th><td>$(watchman --version)</td></tr>
