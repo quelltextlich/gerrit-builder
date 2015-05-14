@@ -193,7 +193,8 @@ fi
 
 if [ -e "$TARGET_DIR_ABS" ]
 then
-    error "'$TARGET_DIR_ABS' already exists"
+    error "'$TARGET_DIR_ABS' already exists.
+(You can use '--force' to force over-writing the directory)"
 fi
 
 mkdir -p "$TARGET_DIR_ABS"
