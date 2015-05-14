@@ -764,12 +764,6 @@ set_LEGAL_URL() {
         if [ -e "$LEGAL_URL_RELS" ]
         then
             LEGAL_URL="$(cat "$LEGAL_URL_RELS" | grep '^[^#]' | head -n 1)"
-            if [ -z "$LEGAL_URL" ]
-            then
-                error "'$SCRIPT_DIR_ABS/$LEGAL_URL_RELS' is empty. Please make that file contain the 'Contact / Legal' URL"
-            fi
-        else
-            error "'$SCRIPT_DIR_ABS/$LEGAL_URL_RELS' does not exist. Please make that file contain the 'Contact / Legal' URL"
         fi
         popd >/dev/null
     fi
@@ -854,9 +848,14 @@ EOF
 cat_html_footer_target_html() {
     echo_html_split_target_html
 
+    echo_target_html -n "<p class="legal-footer">Last update: $(timestamp)"
+    if [ ! -z "$LEGAL_URL" ]
+    then
+        echo_target_html -n "<br/><a href="$LEGAL_URL">Contact / Legal</a>"
+    fi
+    echo_target_html "</p>"
     cat_target_html <<EOF
 
-<p class="legal-footer">Last update: $(timestamp)<br/><a href="$LEGAL_URL">Contact / Legal</a></p>
 </body>
 </html>
 EOF
