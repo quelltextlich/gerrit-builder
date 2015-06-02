@@ -61,6 +61,7 @@ add_to_plugins() {
     local ADDITION="$1"
     DEFAULT_EXTERNAL_PLUGINS=( "${DEFAULT_EXTERNAL_PLUGINS[@]}" "$ADDITION" )
 }
+add_to_plugins "avatars/external"
 add_to_plugins "delete-project"
 add_to_plugins "its-base"
 add_to_plugins "its-bugzilla"
