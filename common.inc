@@ -387,7 +387,9 @@ run_system_test() {
         # $GERRIT_WAR_FILE_ABS has a value, but the file does not exist
         if [ ! -e "$GERRIT_WAR_FILE_ABS" ]
         then
-            error "The WAR for system testing ($GERRIT_WAR_FILE_ABS) does not exist"
+            error "The WAR for system testing ($GERRIT_WAR_FILE_ABS) does \
+not exist. (You can specify a WAR file using the --system-testing-war \
+argument)"
         fi
     fi
 
