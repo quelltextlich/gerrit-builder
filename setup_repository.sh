@@ -14,15 +14,23 @@ fi
 setup_repo() {
     local REPO="$1"
     section "Setting up $REPO"
-    mkdir -p "$(dirname "$REPO")"
-    cd "$(dirname "$REPO")"
-    if [ -e "$(basename "$REPO")" ]
+
+    local REPO_DIR_RELS
+    if [ "${REPO:0:8}" = "plugins/" ]
     then
-        cd "$(basename "$REPO")"
+        plugin_name_to_REPO_DIR_RELS "$REPO"
+    else
+        REPO_DIR_RELS="$REPO"
+    fi
+
+    if [ -e "$REPO_DIR_RELS" ]
+    then
+        cd "$REPO_DIR_RELS"
         run_git fetch origin
     else
-        run_git clone --recurse-submodules "https://gerrit.googlesource.com/$REPO"
-        cd "$(basename "$REPO")"
+        mkdir -p "$REPO_DIR_RELS"
+        cd "$REPO_DIR_RELS"
+        run_git clone --recurse-submodules "https://gerrit.googlesource.com/$REPO" .
     fi
     run_git checkout "$BRANCH"
 

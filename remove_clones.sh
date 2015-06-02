@@ -5,9 +5,11 @@ source "$(dirname "$0")/common.inc"
 #---------------------------------------------------------------------
 
 remove_clone() {
-    CLONE_DIR_RELS="$1"
+    REPO="$1"
     section "Removing $CLONE_DIR_RELS"
-    rm -rf "$CLONE_DIR_RELS"
+    local REPO_DIR_RELS
+    plugin_name_to_REPO_DIR_RELS "$REPO"
+    rm -rf "$REPO_DIR_RELS"
 }
 
 

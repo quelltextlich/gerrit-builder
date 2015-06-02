@@ -172,6 +172,11 @@ describe_repo() {
     if [ "$(basename "$CURRENT_REPO_NAME")" = "gerrit-builder" ]
     then
        CURRENT_REPO_NAME="gerrit-builder"
+    elif [ "${CURRENT_REPO_NAME:0:8}" = "plugins/" ]
+    then
+        local REPO_DIR_RELS
+        plugin_name_to_REPO_DIR_RELS "$CURRENT_REPO_NAME"
+        CURRENT_REPO_NAME="$REPO_DIR_RELS"
     fi
 
     local REPO_NAME=
@@ -674,19 +679,24 @@ EOF
         else
             pushd "$GERRIT_DIR_ABS/$REPO" >/dev/null
         fi
+        REPO_UPSTREAM_NAME=$(git config --get remote.origin.url | cut -d / -f 4-)
+        if [ -z "$REPO_UPSTREAM_NAME" ]
+        then
+            REPO_UPSTREAM_NAME="$REPO"
+        fi
         local COMMIT_HASH="$(run_git rev-parse HEAD)"
         popd  >/dev/null
-        REPO_CELL="<a href=\"https://gerrit-review.googlesource.com/#/admin/projects/$REPO\">$REPO</a>"
-        DESCRIPTION_CELL="<a href=\"https://gerrit.googlesource.com/$REPO/+/$COMMIT_HASH\">${REPO_DESCRIPTIONS["$REPO"]}</a>"
-        COMMIT_CELL="<a href=\"https://gerrit.googlesource.com/$REPO/+/$COMMIT_HASH\"><code>${COMMIT_HASH:0:8}</code></a>"
+        REPO_CELL="<a href=\"https://gerrit-review.googlesource.com/#/admin/projects/$REPO_UPSTREAM_NAME\">$REPO_UPSTREAM_NAME</a>"
+        DESCRIPTION_CELL="<a href=\"https://gerrit.googlesource.com/$REPO_UPSTREAM_NAME/+/$COMMIT_HASH\">${REPO_DESCRIPTIONS["$REPO"]}</a>"
+        COMMIT_CELL="<a href=\"https://gerrit.googlesource.com/$REPO_UPSTREAM_NAME/+/$COMMIT_HASH\"><code>${COMMIT_HASH:0:8}</code></a>"
         if [ -n "${REPO_ARTIFACTS["$REPO"]}" ]
         then
             REPO_ARTIFACTS["$REPO"]="${REPO_ARTIFACTS["$REPO"]},"
         fi
         REPO_ARTIFACTS["$REPO"]="${REPO_ARTIFACTS["$REPO"]}$ARTIFACT_FILE_RELT"
-        DASHBOARD_CELL="<a href=\"https://gerrit-review.googlesource.com/#/projects/$REPO,dashboards/default\">dashboard</a>"
-        OPEN_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO+branch:$BRANCH+status:open\">open</a>"
-        CLOSED_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO+branch:$BRANCH+status:closed\">closed</a>"
+        DASHBOARD_CELL="<a href=\"https://gerrit-review.googlesource.com/#/projects/$REPO_UPSTREAM_NAME,dashboards/default\">dashboard</a>"
+        OPEN_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:open\">open</a>"
+        CLOSED_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:closed\">closed</a>"
     fi
 
     local STATUS_TEXT=
@@ -1065,4 +1075,17 @@ checked_kill() {
             fi
         done
     fi
+}
+
+plugin_name_to_REPO_DIR_RELS() {
+    local PLUGIN_NAME="$1"
+    if [ "${PLUGIN_NAME:0:8}" = "plugins/" ]
+    then
+        REPO_DIR_RELS="${PLUGIN_NAME:8}"
+    else
+        REPO_DIR_RELS="${PLUGIN_NAME}"
+    fi
+
+    REPO_DIR_RELS="${REPO_DIR_RELS////-}" # all slashes to dashes
+    REPO_DIR_RELS="plugins/$REPO_DIR_RELS" # force slash in "plugins/"
 }
