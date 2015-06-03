@@ -70,6 +70,7 @@ add_to_plugins "its-phabricator"
 add_to_plugins "its-rtc"
 add_to_plugins "its-storyboard"
 add_to_plugins "quota"
+add_to_plugins "x-docs"
 
 JARS_WO_SYSTEM_TEST=()
 JARS_WO_SYSTEM_TEST+=( 'its-base.jar' )
