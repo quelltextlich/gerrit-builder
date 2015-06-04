@@ -8,6 +8,7 @@ FORCE=no
 PULL=yes
 CHECKOUT=yes
 CLEAN=yes
+REMOVE_LINKS=yes
 TEST_UNIT=yes
 TEST_SYSTEM=yes
 STATUS=died
@@ -31,11 +32,15 @@ ARGUMENTS:
   --force            - Overwrite eventual existing artifacts target directory
   --ignore-plugin PLUGIN
                      - Don't build, test, ... the plugin PLUGIN
+  --link-removing    - Remove unneeded links to extra plugins underneath
+                       "gerrit/plugins". (On per default)
   --no-building      - Don't build artifacts
   --no-checkout      - Don't 'git checkout' before building
   --no-clean         - Don't clean before building
   --no-pull          - Don't 'git pull' before building
   --no-repo-mangling - Neither 'git checkout' nor 'git pull' before building
+  --no-link-removing - Don't remove unneeded links to extra plugins in
+                       "gerrit/plugins".
   --no-system-testing
                      - Don't run system tests
   --no-testing       - Don't run any tests
@@ -92,6 +97,9 @@ do
         "--clean" )
             CLEAN=yes
             ;;
+        "--link-removing" )
+            REMOVE_LINKS=yes
+            ;;
         "--no-building" )
             BUILD_ARTIFACTS=no
             ;;
@@ -100,6 +108,9 @@ do
             ;;
         "--no-clean" )
             CLEAN=no
+            ;;
+        "--no-link-removing" )
+            REMOVE_LINKS=no
             ;;
         "--no-pull" )
             PULL=no
@@ -127,6 +138,7 @@ do
             CLEAN=no
             PRINT_VERSIONS=no
             PULL=no
+            REMOVE_LINKS=no
             TEST_SYSTEM=no
             TEST_UNIT=no
             ;;
@@ -335,14 +347,17 @@ popd >/dev/null
 
 remove_plugin_links() {
     local EXTRA_PLUGIN_DIR_ABS=
-    for EXTRA_PLUGIN_DIR_ABS in "$EXTRA_PLUGINS_DIR_ABS"/*
-    do
-        local EXTRA_PLUGIN_NAME="$(basename "$EXTRA_PLUGIN_DIR_ABS")"
-        if [ -h "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME" ]
-        then
-            rm "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME"
-        fi
-    done
+    if [ "$REMOVE_LINKS" = "yes" ]
+    then
+        for EXTRA_PLUGIN_DIR_ABS in "$EXTRA_PLUGINS_DIR_ABS"/*
+        do
+            local EXTRA_PLUGIN_NAME="$(basename "$EXTRA_PLUGIN_DIR_ABS")"
+            if [ -h "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME" ]
+            then
+                rm "$GERRIT_DIR_ABS/plugins/$EXTRA_PLUGIN_NAME"
+            fi
+        done
+    fi
 }
 
 add_plugin_link() {
