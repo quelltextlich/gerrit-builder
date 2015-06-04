@@ -412,7 +412,7 @@ argument)"
         done
     fi
 
-    if [ "$TEST_SITE_STARTED" = "yes" ]
+    if [ "$TEST_SITE_STARTED" = "yes" -a "$STOP_TEST_SITE" = "yes" ]
     then
         "$SCRIPT_DIR_ABS"/stop_test_site.sh
         rm -rf "$TEST_SITE_DIR_ABS"

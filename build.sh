@@ -9,6 +9,7 @@ PULL=yes
 CHECKOUT=yes
 CLEAN=yes
 REMOVE_LINKS=yes
+STOP_TEST_SITE=yes
 TEST_UNIT=yes
 TEST_SYSTEM=yes
 STATUS=died
@@ -43,6 +44,8 @@ ARGUMENTS:
                        "gerrit/plugins".
   --no-system-testing
                      - Don't run system tests
+  --no-test-site-stopping
+                     - Don't stop test site for last system test
   --no-testing       - Don't run any tests
   --no-unit-testing  - Don't run unit tests
   --no-versions      - Don't print version information of helper programs
@@ -60,6 +63,8 @@ ARGUMENTS:
                        utility to refer to now, and $BRANCH to refer to the
                        built branch (Be sure to escape the dollar sign!).
                        (Default: %Y-%m-%d)
+  --test-site-stopping
+                     - Stop test site for last system test (On per default)
   --unit-testing     - Run unit tests on artifacts (On per default)
   --versions         - Print version information of helper programs (On per
                        default)
@@ -122,6 +127,9 @@ do
         "--no-system-testing" )
             TEST_SYSTEM=no
             ;;
+        "--no-test-site-stopping" )
+            STOP_TEST_SITE=no
+            ;;
         "--no-testing" )
             TEST_UNIT=no
             TEST_SYSTEM=no
@@ -139,6 +147,7 @@ do
             PRINT_VERSIONS=no
             PULL=no
             REMOVE_LINKS=no
+            STOP_TEST_SITE=no
             TEST_SYSTEM=no
             TEST_UNIT=no
             ;;
@@ -162,6 +171,9 @@ do
             [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
             TARGET_DIRECTORY_FORMAT="$1"
             shift || true
+            ;;
+        "--test-site-stopping" )
+            STOP_TEST_SITE=yes
             ;;
         "--unit-testing" )
             TEST_UNIT=yes
