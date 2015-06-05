@@ -421,7 +421,9 @@ run_system_test() {
                             if [ "$GENERATE_MANUAL" = "yes" ]
                             then
                                 DOC_MANUAL_FILE_RELM="plugins/$PLUGIN_NAME/Documentation/index.html"
-                                dump_manual "$DOC_MANUAL_FILE_RELM"
+                                dump_manual "$DOC_MANUAL_FILE_RELM" \
+                                    2> >(tee "$TARGET_FILE_ABS.manual.stderr.txt" >&2) \
+                                    | tee "$TARGET_FILE_ABS.manual.stdout.txt"
                             fi
                         else
                             info Failed to install plugin
@@ -438,7 +440,9 @@ run_system_test() {
                         DOC_MANUAL_FILE_RELM="Documentation/index.html"
                         dump_manual \
                             "$DOC_MANUAL_FILE_RELM" \
-                            "Documentation/images/link.png"
+                            "Documentation/images/link.png" \
+                            2> >(tee "$TARGET_FILE_ABS.manual.stderr.txt" >&2) \
+                            | tee "$TARGET_FILE_ABS.manual.stdout.txt"
                     fi
                 fi
             else
@@ -777,6 +781,8 @@ EOF
         if [ -n "$DOC_MANUAL_FILE_RELM" ]
         then
             DOCUMENTATION_CELL="<a href=\"$MANUAL_DIR_RELT/$DOC_MANUAL_FILE_RELM\">manual</a>"
+            DOCUMENTATION_CELL+=" (<a href=\"$ARTIFACT_FILE_RELT.manual.stderr.txt\">stderr</a>"
+            DOCUMENTATION_CELL+=", <a href=\"$ARTIFACT_FILE_RELT.manual.stdout.txt\">stdout</a>)"
         fi
     fi
 
