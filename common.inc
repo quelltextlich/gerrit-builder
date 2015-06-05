@@ -36,9 +36,12 @@ USER_CREDENTIALS_DIR_ABS="$SCRIPT_DIR_ABS/user-credentials"
 ANT_HOME="$ANT_DIR_ABS"
 JAVA_HOME="$JAVA_DIR_ABS"
 
-MANUAL_DIR_RELT="docs/manual"
-MANUAL_INDEX_FILE_RELM="index.html"
-JAVADOC_DIR_RELT="docs/javadoc"
+INDEX_FILE_RELC="index.html"
+DOCS_DIR_RELT="docs"
+MANUAL_DIR_RELD="manual"
+MANUAL_DIR_RELT="$DOCS_DIR_RELT/$MANUAL_DIR_RELD"
+JAVADOC_DIR_RELD="javadoc"
+JAVADOC_DIR_RELT="$DOCS_DIR_RELT/$JAVADOC_DIR_RELD"
 #---------------------------------------------------------------------
 BUILD_ARTIFACTS=yes
 LEGAL_URL_RELS="legal.url"
@@ -99,7 +102,7 @@ mkdir -p "$ARTIFACTS_DIR_ABS"
 #---------------------------------------------------------------------
 post_parameter_parsing_setup() {
     DOC_MANUAL_DIR_ABS="$TARGET_DIR_ABS/$MANUAL_DIR_RELT"
-    MANUAL_INDEX_FILE_ABS="$DOC_MANUAL_DIR_ABS/$MANUAL_INDEX_FILE_RELM"
+    MANUAL_INDEX_FILE_ABS="$DOC_MANUAL_DIR_ABS/$INDEX_FILE_RELC"
     DOC_JAVADOC_DIR_ABS="$TARGET_DIR_ABS/$JAVADOC_DIR_RELT"
 }
 

@@ -326,8 +326,38 @@ cat_manual_index_footer() {
     fi
 }
 
+generate_docu_index() {
+    if [ "$GENERATE_MANUAL" -o "$GENERATE_JAVADOC" ]
+    then
+        local TARGET_HTML_FILE_ABS="$TARGET_DIR_ABS/$DOCS_DIR_RELT/$INDEX_FILE_RELC"
+
+        cat_html_header_target_html \
+            "Documentation for $TARGET_DIR_RELA gerrit $BRANCH build" \
+            "Documentation for $TARGET_DIR_RELA gerrit $BRANCH build" \
+            "gerrit, documentation, $BRANCH" \
+            "Documentation for $TARGET_DIR_RELA gerrit $BRANCH build"
+
+        echo_target_html "<ol>"
+
+        if [ "$GENERATE_MANUAL"  ]
+        then
+            echo_target_html "<li><a href=\"$MANUAL_DIR_RELD/$INDEX_FILE_RELC\">Manual</a></li>"
+        fi
+
+        if [ "$GENERATE_JAVADOC" ]
+        then
+            echo_target_html "<li><a href=\"$JAVADOC_DIR_RELD\">Javadoc</a></li>"
+        fi
+
+        echo_target_html "</ol>"
+        cat_html_footer_target_html
+    fi
+}
+
 mkdir -p "$DOC_MANUAL_DIR_ABS"
 mkdir -p "$DOC_JAVADOC_DIR_ABS"
+
+generate_docu_index
 
 compute_checksums() {
     pushd "$TARGET_DIR_ABS" >/dev/null
@@ -352,7 +382,7 @@ EOF
 
         if [ "$GENERATE_MANUAL" = "yes" ]
         then
-            echo_target_html "<li><a href=\"$MANUAL_DIR_RELT/$MANUAL_INDEX_FILE_RELM\">Manual across all artifacts</a></li>"
+            echo_target_html "<li><a href=\"$MANUAL_DIR_RELT/$INDEX_FILE_RELC\">Manual across all artifacts</a></li>"
         fi
 
         if [ "$GENERATE_JAVADOC" = "yes" ]
