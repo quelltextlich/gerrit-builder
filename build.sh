@@ -8,6 +8,7 @@ FORCE=no
 PULL=yes
 CHECKOUT=yes
 CLEAN=yes
+GENERATE_MANUAL=yes
 REMOVE_LINKS=yes
 STOP_TEST_SITE=yes
 TEST_UNIT=yes
@@ -35,9 +36,11 @@ ARGUMENTS:
                      - Don't build, test, ... the plugin PLUGIN
   --link-removing    - Remove unneeded links to extra plugins underneath
                        "gerrit/plugins". (On per default)
+  --manual           - Generate the manual. Implies running system tests. (On per default)
   --no-building      - Don't build artifacts
   --no-checkout      - Don't 'git checkout' before building
   --no-clean         - Don't clean before building
+  --no-manual        - Don't generate the manual
   --no-pull          - Don't 'git pull' before building
   --no-repo-mangling - Neither 'git checkout' nor 'git pull' before building
   --no-link-removing - Don't remove unneeded links to extra plugins in
@@ -105,6 +108,10 @@ do
         "--link-removing" )
             REMOVE_LINKS=yes
             ;;
+        "--manual" )
+            GENERATE_MANUAL=yes
+            TEST_SYSTEM=yes
+            ;;
         "--no-building" )
             BUILD_ARTIFACTS=no
             ;;
@@ -116,6 +123,9 @@ do
             ;;
         "--no-link-removing" )
             REMOVE_LINKS=no
+            ;;
+        "--no-manual" )
+            GENERATE_MANUAL=no
             ;;
         "--no-pull" )
             PULL=no
@@ -144,6 +154,7 @@ do
             BUILD_ARTIFACTS=no
             CHECKOUT=no
             CLEAN=no
+            GENERATE_MANUAL=no
             PRINT_VERSIONS=no
             PULL=no
             REMOVE_LINKS=no
@@ -223,10 +234,14 @@ fi
 
 mkdir -p "$TARGET_DIR_ABS"
 
+post_parameter_parsing_setup
+
+mkdir -p "$DOC_MANUAL_DIR_ABS"
+
 compute_checksums() {
     pushd "$TARGET_DIR_ABS" >/dev/null
     rm -f sha1sums.txt
-    sha1sum * >sha1sums.txt
+    find -- * -maxdepth 1 -type f | xargs sha1sum >sha1sums.txt
     popd >/dev/null
 }
 

@@ -35,6 +35,8 @@ USER_CREDENTIALS_DIR_ABS="$SCRIPT_DIR_ABS/user-credentials"
 
 ANT_HOME="$ANT_DIR_ABS"
 JAVA_HOME="$JAVA_DIR_ABS"
+
+MANUAL_DIR_RELT="docs/manual"
 #---------------------------------------------------------------------
 BUILD_ARTIFACTS=yes
 LEGAL_URL_RELS="legal.url"
@@ -94,6 +96,15 @@ declare -A ARTIFACT_GROUP_STATUS_COUNT=()
 declare -A ARTIFACT_GROUP_TOTAL_COUNT=()
 #---------------------------------------------------------------------
 mkdir -p "$ARTIFACTS_DIR_ABS"
+
+#---------------------------------------------------------------------
+post_parameter_parsing_setup() {
+    DOC_MANUAL_DIR_ABS="$TARGET_DIR_ABS/$MANUAL_DIR_RELT"
+}
+
+# Calling once already upon sourcing, put scripts are encouraged to
+# call it again once they are finished with parameter parsing
+post_parameter_parsing_setup
 
 #---------------------------------------------------------------------
 in_array() {
@@ -305,7 +316,35 @@ plugin_jar_to_name() {
     esac
     echo "$PLUGIN_NAME"
 }
+
+
+
 #---------------------------------------------------------------------
+dump_manual() {
+    URL_RELS="$1"
+
+    pushd "$DOC_MANUAL_DIR_ABS" >/dev/null
+
+    info "Dumping manual at $URL_RELS"
+
+    if ! wget \
+        --no-host-directories \
+        --recursive \
+        --level=inf \
+        --page-requisites \
+        --no-parent \
+        "http://$TEST_SITE_HOST:$TEST_SITE_HTTP_PORT/$URL_RELS"
+    then
+        info "Dumping manual recursively at $URL_RELS failed"
+    fi
+
+    popd >/dev/null
+}
+
+
+
+#---------------------------------------------------------------------
+# sets $DOC_MANUAL_FILE_RELM if appropriate
 run_system_test() {
     local ARTIFACT_BASENAME="$1"
     local ARTIFACT_GROUP="$2"
@@ -365,6 +404,12 @@ run_system_test() {
                                 info "Plugin loaded, but was not listed as '$PLUGIN_NAME'"
                                 RETURN_CODE=1
                             fi
+
+                            if [ "$GENERATE_MANUAL" = "yes" ]
+                            then
+                                DOC_MANUAL_FILE_RELM="plugins/$PLUGIN_NAME/Documentation/index.html"
+                                dump_manual "$DOC_MANUAL_FILE_RELM"
+                            fi
                         else
                             info Failed to install plugin
                             RETURN_CODE=1
@@ -372,6 +417,14 @@ run_system_test() {
                     else
                         info "Plugin $PLUGIN_JAR_FILE_ABS does not exist"
                         RETURN_CODE=1
+                    fi
+                elif [ "$ARTIFACT_BASENAME" = "withdocs.war" ]
+                then
+                    if [ "$GENERATE_MANUAL" = "yes" ]
+                    then
+                        DOC_MANUAL_FILE_RELM="Documentation/index.html"
+                        dump_manual "$DOC_MANUAL_FILE_RELM"
+                        dump_manual "Documentation/images/link.png"
                     fi
                 fi
             else
@@ -429,6 +482,8 @@ run_buck_build() {
     local ARTIFACT_GROUP="$4"
     local INSERT_BEFORE="$5"
 
+    local DOC_MANUAL_FILE_RELM=""
+
     if [ -z "$ARTIFACT_GROUP" ]
     then
         ARTIFACT_GROUP="info"
@@ -480,7 +535,7 @@ run_buck_build() {
         fi
     fi
 
-    echo_file_target_html "$STATUS" "$ARTIFACT_BASENAME" "$BUCK_TARGET" "$INSERT_BEFORE" "$ARTIFACT_GROUP"
+    echo_file_target_html "$STATUS" "$ARTIFACT_BASENAME" "$BUCK_TARGET" "$INSERT_BEFORE" "$ARTIFACT_GROUP" "$DOC_MANUAL_FILE_RELM"
 }
 
 #---------------------------------------------------------------------
@@ -563,6 +618,7 @@ cat_file_header_target_html() {
     <th>Description</th>
     <th>Commit</th>
     <th colspan="3">Changes</th>
+    <th>Documentation</th>
   </tr>
 EOF
 }
@@ -629,6 +685,7 @@ echo_file_target_html() {
     local BUCK_TARGET="$3"
     local INSERT_BEFORE="$4"
     local ARTIFACT_GROUP="$5"
+    local DOC_MANUAL_FILE_RELM="$6"
 
     if [ -z "$ARTIFACT_GROUP" ]
     then
@@ -670,6 +727,7 @@ EOF
     local DASHBOARD_CELL="---"
     local OPEN_CHANGES_CELL="---"
     local CLOSED_CHANGES_CELL="---"
+    local DOCUMENTATION_CELL="---"
     if [ -n "$BUCK_TARGET" ]
     then
         BUILD_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "build")"
@@ -702,7 +760,25 @@ EOF
         DASHBOARD_CELL="<a href=\"https://gerrit-review.googlesource.com/#/projects/$REPO_UPSTREAM_NAME,dashboards/default\">dashboard</a>"
         OPEN_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:open\">open</a>"
         CLOSED_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:closed\">closed</a>"
+        if [ -n "$DOC_MANUAL_FILE_RELM" ]
+        then
+            DOCUMENTATION_CELL="<a href=\"$MANUAL_DIR_RELT/$DOC_MANUAL_FILE_RELM\">manual</a>"
+        fi
     fi
+
+    # Patching up WAR artifacts with documentation from withdocs.jar
+    case "$ARTIFACT_FILE_RELT" in
+        "release.war" )
+            if [ "$DOCUMENTATION_CELL" = "---" \
+                -a "$DOCUMENTATION_CELL_WITHDOCS_WAR" != "---" ]
+            then
+                DOCUMENTATION_CELL="$DOCUMENTATION_CELL_WITHDOCS_WAR"
+            fi
+            ;;
+        "withdocs.war" )
+            DOCUMENTATION_CELL_WITHDOCS_WAR="$DOCUMENTATION_CELL"
+            ;;
+    esac
 
     local STATUS_TEXT=
     set_STATUS_TEXT "uncounted"
@@ -722,6 +798,7 @@ EOF
     <td>$DASHBOARD_CELL</td>
     <td>$OPEN_CHANGES_CELL</td>
     <td>$CLOSED_CHANGES_CELL</td>
+    <td>$DOCUMENTATION_CELL</td>
   </tr>"
 
     if [ -z "$INSERT_BEFORE" ]
