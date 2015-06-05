@@ -318,11 +318,17 @@ plugin_jar_to_name() {
 
 #---------------------------------------------------------------------
 dump_manual() {
-    URL_RELS="$1"
+    local URLS_RELS=( "$@" )
 
     pushd "$DOC_MANUAL_DIR_ABS" >/dev/null
 
-    info "Dumping manual at $URL_RELS"
+    info "Dumping manual at ${URL_RELS[@]}"
+
+    local URLS=()
+    for URL_RELS in "${URLS_RELS[@]}"
+    do
+        URLS+=( "http://$TEST_SITE_HOST:$TEST_SITE_HTTP_PORT/$URL_RELS" )
+    done
 
     if ! wget \
         --no-host-directories \
@@ -330,7 +336,7 @@ dump_manual() {
         --level=inf \
         --page-requisites \
         --no-parent \
-        "http://$TEST_SITE_HOST:$TEST_SITE_HTTP_PORT/$URL_RELS"
+        "${URLS[@]}"
     then
         info "Dumping manual recursively at $URL_RELS failed"
     fi
@@ -417,8 +423,9 @@ run_system_test() {
                     if [ "$GENERATE_MANUAL" = "yes" ]
                     then
                         DOC_MANUAL_FILE_RELM="Documentation/index.html"
-                        dump_manual "$DOC_MANUAL_FILE_RELM"
-                        dump_manual "Documentation/images/link.png"
+                        dump_manual \
+                            "$DOC_MANUAL_FILE_RELM" \
+                            "Documentation/images/link.png"
                     fi
                 fi
             else
