@@ -341,6 +341,19 @@ dump_manual() {
         info "Dumping manual recursively at $URL_RELS failed"
     fi
 
+    # Finally, replace the hostname with 'gerrit.example.org', so documentation
+    # is more generic, and less tuned to the build host.
+    local HOSTNAME="$(hostname --fqdn)"
+    local HOSTNAME_ESCAPED="${HOSTNAME//./\.}"
+    for URL_RELS in "${URLS_RELS[@]}"
+    do
+        if [ -e "$URL_RELS" ]
+        then
+            find "$(dirname "$URL_RELS")" -type f \
+                | xargs sed -i -e "s/${HOSTNAME_ESCAPED}/gerrit.example.org/g"
+        fi
+    done
+
     popd >/dev/null
 }
 
