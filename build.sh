@@ -301,6 +301,19 @@ dump_status() {
     echo "$STATUS" >"$TARGET_DIR_ABS/status.txt"
 }
 
+generate_overall_docs() {
+    if [ "$GENERATE_MANUAL" = "yes" -o "$GENERATE_JAVADOC" = "yes" ]
+    then
+        cat_target_html <<EOF
+
+<h2>Documentation</h2>
+
+<ul>
+EOF
+        echo_target_html "</ul>"
+    fi
+}
+
 dump_status
 
 info "Target directory: $TARGET_DIR_RELA"
@@ -782,6 +795,8 @@ cat_artifacts_summary_target_html() {
 }
 
 cat_artifacts_summary_target_html
+
+generate_overall_docs
 
 if [ "$PRINT_VERSIONS" = "yes" ]
 then
