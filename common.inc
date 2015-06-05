@@ -37,6 +37,7 @@ ANT_HOME="$ANT_DIR_ABS"
 JAVA_HOME="$JAVA_DIR_ABS"
 
 MANUAL_DIR_RELT="docs/manual"
+MANUAL_INDEX_FILE_RELM="index.html"
 JAVADOC_DIR_RELT="docs/javadoc"
 #---------------------------------------------------------------------
 BUILD_ARTIFACTS=yes
@@ -98,6 +99,7 @@ mkdir -p "$ARTIFACTS_DIR_ABS"
 #---------------------------------------------------------------------
 post_parameter_parsing_setup() {
     DOC_MANUAL_DIR_ABS="$TARGET_DIR_ABS/$MANUAL_DIR_RELT"
+    MANUAL_INDEX_FILE_ABS="$DOC_MANUAL_DIR_ABS/$MANUAL_INDEX_FILE_RELM"
     DOC_JAVADOC_DIR_ABS="$TARGET_DIR_ABS/$JAVADOC_DIR_RELT"
 }
 
@@ -320,6 +322,8 @@ plugin_jar_to_name() {
 
 #---------------------------------------------------------------------
 dump_manual() {
+    local DESCRIPTION="$1"
+    shift
     local URLS_RELS=( "$@" )
 
     pushd "$DOC_MANUAL_DIR_ABS" >/dev/null
@@ -355,6 +359,8 @@ dump_manual() {
                 | xargs sed -i -e "s/${HOSTNAME_ESCAPED}/gerrit.example.org/g"
         fi
     done
+
+    echo_manual_index "<li><a href=\"${URLS_RELS[0]}\">$DESCRIPTION</a></li>"
 
     popd >/dev/null
 }
@@ -423,7 +429,9 @@ run_system_test() {
                             if [ "$GENERATE_MANUAL" = "yes" ]
                             then
                                 local DOC_MANUAL_FILE_RELM="plugins/$PLUGIN_NAME/Documentation/index.html"
-                                dump_manual "$DOC_MANUAL_FILE_RELM" \
+                                dump_manual \
+                                    "Plugin: $PLUGIN_NAME" \
+                                    "$DOC_MANUAL_FILE_RELM" \
                                     2> >(tee "$TARGET_FILE_ABS.manual.stderr.txt" >&2) \
                                     | tee "$TARGET_FILE_ABS.manual.stdout.txt"
                                 DOC_MANUAL_FILE_RELT="$MANUAL_DIR_RELT/$DOC_MANUAL_FILE_RELM"
@@ -442,6 +450,7 @@ run_system_test() {
                     then
                         local DOC_MANUAL_FILE_RELM="Documentation/index.html"
                         dump_manual \
+                            "Gerrit core" \
                             "$DOC_MANUAL_FILE_RELM" \
                             "Documentation/images/link.png" \
                             2> >(tee "$TARGET_FILE_ABS.manual.stderr.txt" >&2) \

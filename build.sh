@@ -287,6 +287,45 @@ fi
 
 post_parameter_parsing_setup
 
+cat_manual_index_header() {
+    if [ "$GENERATE_MANUAL" ]
+    then
+        local TARGET_HTML_FILE_ABS="$MANUAL_INDEX_FILE_ABS"
+
+        cat_html_header_target_html \
+            "Manual for all artifacts" \
+            "Manual for all artifacts of $TARGET_DIR_RELA gerrit $BRANCH build" \
+            "gerrit, manual, $BRANCH" \
+            "Manual for all artifacts of $TARGET_DIR_RELA gerrit $BRANCH build"
+
+        cat_target_html <<EOF
+<h2>Chapters</h2>
+
+<ol>
+EOF
+    fi
+}
+
+echo_manual_index() {
+    if [ "$GENERATE_MANUAL" ]
+    then
+        local TARGET_HTML_FILE_ABS="$MANUAL_INDEX_FILE_ABS"
+
+        echo_target_html "$@"
+    fi
+}
+
+cat_manual_index_footer() {
+    if [ "$GENERATE_MANUAL" ]
+    then
+        local TARGET_HTML_FILE_ABS="$MANUAL_INDEX_FILE_ABS"
+
+        echo_target_html "</ol>"
+
+        cat_html_footer_target_html
+    fi
+}
+
 mkdir -p "$DOC_MANUAL_DIR_ABS"
 mkdir -p "$DOC_JAVADOC_DIR_ABS"
 
@@ -310,6 +349,11 @@ generate_overall_docs() {
 
 <ul>
 EOF
+
+        if [ "$GENERATE_MANUAL" = "yes" ]
+        then
+            echo_target_html "<li><a href=\"$MANUAL_DIR_RELT/$MANUAL_INDEX_FILE_RELM\">Manual across all artifacts</a></li>"
+        fi
 
         if [ "$GENERATE_JAVADOC" = "yes" ]
         then
@@ -654,6 +698,8 @@ then
     rm -rf "$GERRIT_DIR_ABS/buck-cache"
 fi
 
+cat_manual_index_header
+
 # Building WARs that do not depend on plugins
 run_buck_build "gerrit, gerrit.war" "//:gerrit" "gerrit.war" "war"
 run_buck_build "gerrit, withdocs.war" "//:withdocs" "withdocs.war" "war"
@@ -817,6 +863,8 @@ cat_artifacts_summary_target_html() {
 }
 
 cat_artifacts_summary_target_html
+
+cat_manual_index_footer
 
 generate_overall_docs
 
