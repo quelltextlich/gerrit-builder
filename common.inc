@@ -42,6 +42,7 @@ MANUAL_DIR_RELD="manual"
 MANUAL_DIR_RELT="$DOCS_DIR_RELT/$MANUAL_DIR_RELD"
 JAVADOC_DIR_RELD="javadoc"
 JAVADOC_DIR_RELT="$DOCS_DIR_RELT/$JAVADOC_DIR_RELD"
+JAVADOC_CLASSPATH_DIR_RELJ="classpath"
 #---------------------------------------------------------------------
 BUILD_ARTIFACTS=yes
 LEGAL_URL_RELS="legal.url"
@@ -104,6 +105,7 @@ post_parameter_parsing_setup() {
     DOC_MANUAL_DIR_ABS="$TARGET_DIR_ABS/$MANUAL_DIR_RELT"
     MANUAL_INDEX_FILE_ABS="$DOC_MANUAL_DIR_ABS/$INDEX_FILE_RELC"
     DOC_JAVADOC_DIR_ABS="$TARGET_DIR_ABS/$JAVADOC_DIR_RELT"
+    JAVADOC_CLASSPATH_DIR_ABS="$DOC_JAVADOC_DIR_ABS/$JAVADOC_CLASSPATH_DIR_RELJ"
 }
 
 # Calling once already upon sourcing, put scripts are encouraged to
@@ -569,6 +571,24 @@ generate_javadoc() {
 
     local TARGET_FILE_ABS="$TARGET_DIR_ABS/$ARTIFACT_BASENAME"
 
+    # Building shared classpath with classes from current artifact and (if
+    # needed) gerrit.war. This is needed to have javadoc find all class files,
+    # the current artifact sources depend on, which is required to render all
+    # implemented interfaces and so on.
+    mkdir -p "$JAVADOC_CLASSPATH_DIR_ABS"
+    pushd "$JAVADOC_CLASSPATH_DIR_ABS" >/dev/null
+    if [ -e "$TARGET_DIR_ABS/gerrit.war" -a ! -d "com/google/gerrit/server" ]
+    then
+        info "Seeding shared classpath for javadoc (this may take a minute)"
+        jar xf "$TARGET_DIR_ABS/gerrit.war"
+        find WEB-INF -name '*.jar' -exec jar xf {} \;
+    fi
+    if [ -e "$TARGET_FILE_ABS" -a "${TARGET_FILE_ABS: -4}" != ".war" ]
+    then
+        jar xf "$TARGET_FILE_ABS"
+    fi
+    popd >/dev/null
+
     javadoc \
         -protected \
         -encoding UTF-8 \
@@ -577,6 +597,7 @@ generate_javadoc() {
         -windowtitle "$(basename "$ARTIFACT_BASENAME") Documentation" \
         -sourcepath "$JAVA_SOURCE_DIRS_RELG" \
         -subpackages "$PACKAGES" \
+        -classpath "$JAVADOC_CLASSPATH_DIR_ABS" \
         -d "$DOC_JAVADOC_DIR_ABS/$ARTIFACT_BASENAME" \
         2> >(tee "$TARGET_FILE_ABS.javadoc.stderr.txt" >&2) \
         | tee "$TARGET_FILE_ABS.javadoc.stdout.txt" \

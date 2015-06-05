@@ -898,6 +898,8 @@ cat_manual_index_footer
 
 generate_overall_docs
 
+rm -rf "$JAVADOC_CLASSPATH_DIR_ABS"
+
 if [ "$PRINT_VERSIONS" = "yes" ]
 then
     cat_target_html <<EOF
