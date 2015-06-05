@@ -74,9 +74,6 @@ add_to_plugins "its-storyboard"
 add_to_plugins "quota"
 add_to_plugins "x-docs"
 
-JARS_WO_SYSTEM_TEST=()
-JARS_WO_SYSTEM_TEST+=( 'its-base.jar' )
-
 IGNORED_PLUGINS=()
 
 ARTIFACTS_TOTAL=0
@@ -361,11 +358,8 @@ run_system_test() {
             ;;
         "bundled" | \
             "separate" )
-            if ! in_array "$ARTIFACT_BASENAME" "${JARS_WO_SYSTEM_TEST[@]}"
-            then
-                GERRIT_WAR_FILE_ABS="$SYSTEM_TESTING_WAR_FILE_ABS"
-                PLUGIN_JAR_FILE_ABS="$TARGET_FILE_ABS"
-            fi
+            GERRIT_WAR_FILE_ABS="$SYSTEM_TESTING_WAR_FILE_ABS"
+            PLUGIN_JAR_FILE_ABS="$TARGET_FILE_ABS"
             ;;
     esac
 
