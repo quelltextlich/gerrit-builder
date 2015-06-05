@@ -10,6 +10,7 @@ CHECKOUT=yes
 CLEAN=yes
 GENERATE_MANUAL=yes
 REMOVE_LINKS=yes
+MANAGE_LATEST_LINK=yes
 STOP_TEST_SITE=yes
 TEST_UNIT=yes
 TEST_SYSTEM=yes
@@ -34,6 +35,8 @@ ARGUMENTS:
   --force            - Overwrite eventual existing artifacts target directory
   --ignore-plugin PLUGIN
                      - Don't build, test, ... the plugin PLUGIN
+  --latest-linking   - Generate a 'latest' link in the artifacts directory
+                       pointing to the latest build
   --link-removing    - Remove unneeded links to extra plugins underneath
                        "gerrit/plugins". (On per default)
   --manual           - Generate the manual. Implies running system tests. (On per default)
@@ -43,6 +46,9 @@ ARGUMENTS:
   --no-manual        - Don't generate the manual
   --no-pull          - Don't 'git pull' before building
   --no-repo-mangling - Neither 'git checkout' nor 'git pull' before building
+  --no-latest-linking
+                     - Don't generate a 'latest' link pointing to the latest
+                       build
   --no-link-removing - Don't remove unneeded links to extra plugins in
                        "gerrit/plugins".
   --no-system-testing
@@ -105,6 +111,9 @@ do
         "--clean" )
             CLEAN=yes
             ;;
+        "--latest-link" )
+            MANAGE_LATEST_LINK=yes
+            ;;
         "--link-removing" )
             REMOVE_LINKS=yes
             ;;
@@ -120,6 +129,9 @@ do
             ;;
         "--no-clean" )
             CLEAN=no
+            ;;
+        "--no-latest-link" )
+            MANAGE_LATEST_LINK=no
             ;;
         "--no-link-removing" )
             REMOVE_LINKS=no
@@ -155,6 +167,7 @@ do
             CHECKOUT=no
             CLEAN=no
             GENERATE_MANUAL=no
+            MANAGE_LATEST_LINK=no
             PRINT_VERSIONS=no
             PULL=no
             REMOVE_LINKS=no
@@ -233,6 +246,21 @@ then
 fi
 
 mkdir -p "$TARGET_DIR_ABS"
+
+if [ "$MANAGE_LATEST_LINK" = "yes" ]
+then
+    LATEST_LINK_FILE_ABS="$ARTIFACTS_DIR_ABS/latest"
+
+    if [ -h "$LATEST_LINK_FILE_ABS" ]
+    then
+        rm "$LATEST_LINK_FILE_ABS"
+    fi
+
+    if [ ! -e "$LATEST_LINK_FILE_ABS" ]
+    then
+        ln -s "$TARGET_DIR_RELA" "$LATEST_LINK_FILE_ABS"
+    fi
+fi
 
 post_parameter_parsing_setup
 
