@@ -362,7 +362,7 @@ dump_manual() {
 
 
 #---------------------------------------------------------------------
-# sets $DOC_MANUAL_FILE_RELM if appropriate
+# sets $DOC_MANUAL_FILE_RELT if appropriate
 run_system_test() {
     local ARTIFACT_BASENAME="$1"
     local ARTIFACT_GROUP="$2"
@@ -422,10 +422,11 @@ run_system_test() {
 
                             if [ "$GENERATE_MANUAL" = "yes" ]
                             then
-                                DOC_MANUAL_FILE_RELM="plugins/$PLUGIN_NAME/Documentation/index.html"
+                                local DOC_MANUAL_FILE_RELM="plugins/$PLUGIN_NAME/Documentation/index.html"
                                 dump_manual "$DOC_MANUAL_FILE_RELM" \
                                     2> >(tee "$TARGET_FILE_ABS.manual.stderr.txt" >&2) \
                                     | tee "$TARGET_FILE_ABS.manual.stdout.txt"
+                                DOC_MANUAL_FILE_RELT="$MANUAL_DIR_RELT/$DOC_MANUAL_FILE_RELM"
                             fi
                         else
                             info Failed to install plugin
@@ -439,12 +440,13 @@ run_system_test() {
                 then
                     if [ "$GENERATE_MANUAL" = "yes" ]
                     then
-                        DOC_MANUAL_FILE_RELM="Documentation/index.html"
+                        local DOC_MANUAL_FILE_RELM="Documentation/index.html"
                         dump_manual \
                             "$DOC_MANUAL_FILE_RELM" \
                             "Documentation/images/link.png" \
                             2> >(tee "$TARGET_FILE_ABS.manual.stderr.txt" >&2) \
                             | tee "$TARGET_FILE_ABS.manual.stdout.txt"
+                        DOC_MANUAL_FILE_RELT="$MANUAL_DIR_RELT/$DOC_MANUAL_FILE_RELM"
                     fi
                 fi
             else
@@ -571,7 +573,7 @@ run_buck_build() {
     local ARTIFACT_GROUP="$4"
     local INSERT_BEFORE="$5"
 
-    local DOC_MANUAL_FILE_RELM=""
+    local DOC_MANUAL_FILE_RELT=""
     local DOC_JAVADOC_FILE_RELT=""
 
     if [ -z "$ARTIFACT_GROUP" ]
@@ -648,7 +650,7 @@ run_buck_build() {
         "$BUCK_TARGET" \
         "$INSERT_BEFORE" \
         "$ARTIFACT_GROUP" \
-        "$DOC_MANUAL_FILE_RELM" \
+        "$DOC_MANUAL_FILE_RELT" \
         "$DOC_JAVADOC_FILE_RELT"
 }
 
@@ -799,7 +801,7 @@ echo_file_target_html() {
     local BUCK_TARGET="$3"
     local INSERT_BEFORE="$4"
     local ARTIFACT_GROUP="$5"
-    local DOC_MANUAL_FILE_RELM="$6"
+    local DOC_MANUAL_FILE_RELT="$6"
     local DOC_JAVADOC_FILE_RELT="$7"
 
     if [ -z "$ARTIFACT_GROUP" ]
@@ -877,9 +879,14 @@ EOF
         OPEN_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:open\">open</a>"
         CLOSED_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:closed\">closed</a>"
 
-        if [ -n "$DOC_MANUAL_FILE_RELM" ]
+        if [ -e "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT.manual.stderr.txt" ]
         then
-            MANUAL_CELL="<a href=\"$MANUAL_DIR_RELT/$DOC_MANUAL_FILE_RELM\">manual</a>"
+            if [ -e "$TARGET_DIR_ABS/$DOC_MANUAL_FILE_RELT" ]
+            then
+                MANUAL_CELL="<a href=\"$DOC_MANUAL_FILE_RELT\">manual</a>"
+            else
+                MANUAL_CELL="manual"
+            fi
             MANUAL_CELL+=" (<a href=\"$ARTIFACT_FILE_RELT.manual.stderr.txt\">stderr</a>"
             MANUAL_CELL+=", <a href=\"$ARTIFACT_FILE_RELT.manual.stdout.txt\">stdout</a>)"
         fi
