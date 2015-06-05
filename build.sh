@@ -16,7 +16,7 @@ TEST_UNIT=yes
 TEST_SYSTEM=yes
 STATUS=died
 PRINT_VERSIONS=yes
-LIMIT_TO=
+LIMIT_TO=()
 TARGET_DIRECTORY_FORMAT="%Y-%m-%d"
 
 
@@ -177,7 +177,7 @@ do
             ;;
         "--only-artifact" )
             [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
-            LIMIT_TO="$1"
+            LIMIT_TO=("$1")
             shift || true
             ;;
         "--pull" )
@@ -645,9 +645,12 @@ do
 
     # We skip early, to not remove the plugin link again, if only a
     # single plugin is getting built.
-    if [ -n "$LIMIT_TO" -a "$LIMIT_TO" != "$EXTRA_PLUGIN_NAME.jar" ]
+    if [ "${#LIMIT_TO[@]}" != "0" ]
     then
-        continue
+        if ! in_array "$EXTRA_PLUGIN_NAME.jar" "${LIMIT_TO[@]}"
+        then
+            continue
+        fi
     fi
 
     # Setup plugin links as minimal as possible, to avoid plugins with

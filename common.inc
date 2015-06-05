@@ -510,9 +510,12 @@ run_buck_build() {
     local STATUS="failed"
     local ARTIFACT_BASENAME="$(basename "$BUCK_GENERATED_FILE_RELBG")"
 
-    if [ -n "$LIMIT_TO" -a "$LIMIT_TO" != "$ARTIFACT_BASENAME" ]
+    if [ "${#LIMIT_TO[@]}" != "0" ]
     then
-        return
+        if ! in_array "$ARTIFACT_BASENAME" "${LIMIT_TO[@]}"
+        then
+            return
+        fi
     fi
 
     local SOURCE_FILE_ABS="$GERRIT_DIR_ABS/buck-out/gen/$BUCK_GENERATED_FILE_RELBG"
