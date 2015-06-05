@@ -37,6 +37,7 @@ ANT_HOME="$ANT_DIR_ABS"
 JAVA_HOME="$JAVA_DIR_ABS"
 
 MANUAL_DIR_RELT="docs/manual"
+JAVADOC_DIR_RELT="docs/javadoc"
 #---------------------------------------------------------------------
 BUILD_ARTIFACTS=yes
 LEGAL_URL_RELS="legal.url"
@@ -97,6 +98,7 @@ mkdir -p "$ARTIFACTS_DIR_ABS"
 #---------------------------------------------------------------------
 post_parameter_parsing_setup() {
     DOC_MANUAL_DIR_ABS="$TARGET_DIR_ABS/$MANUAL_DIR_RELT"
+    DOC_JAVADOC_DIR_ABS="$TARGET_DIR_ABS/$JAVADOC_DIR_RELT"
 }
 
 # Calling once already upon sourcing, put scripts are encouraged to
@@ -492,6 +494,75 @@ argument)"
     return "$RETURN_CODE"
 }
 
+
+
+#---------------------------------------------------------------------
+#sets DOC_JAVADOC_FILE_RELT
+generate_javadoc() {
+    ARTIFACT_BASENAME="$1"
+    REPO_DIR_RELG="$2"
+
+    local SRC_DIRS_RELG=()
+    local SRC_DIR_RELG
+    for SRC_DIR_RELG in \
+        "$REPO_DIR_RELG"/src \
+        "$REPO_DIR_RELG"/*/src \
+
+    do
+        if [ -d "$SRC_DIR_RELG" ]
+        then
+            SRC_DIRS_RELG+=( "$SRC_DIR_RELG" )
+        fi
+    done
+
+    if [ "${#SRC_DIRS_RELG[@]}" = "0" ]
+    then
+        # No source directories. We won't get meaningful javadoc. So return
+        return
+    fi
+
+    local JAVA_SOURCE_DIRS_RELG=$(
+        find \
+            "${SRC_DIRS_RELG[@]}" \
+            -type d -name 'java' \
+            ! -regex '.*/test/java' \
+            2>/dev/null \
+            | sort -u \
+            | tr '\n' ':'
+    )
+
+    local PACKAGES=$(
+        find \
+            "${SRC_DIRS_RELG[@]}" \
+            -type f -name '*.java' \
+            ! -regex '.*/test/java/.*' \
+            -execdir grep --no-filename '^package \([a-z][^ ;]*\) *;' {} + \
+            2>/dev/null \
+            | sed -e 's/^package \([^ ;]*\) *;.*/\1/' \
+            | sort -u \
+            | tr '\n' ':'
+    )
+
+    local TARGET_FILE_ABS="$TARGET_DIR_ABS/$ARTIFACT_BASENAME"
+
+    javadoc \
+        -protected \
+        -encoding UTF-8 \
+        -charset UTF-8 \
+        -notimestamp \
+        -windowtitle "$(basename "$ARTIFACT_BASENAME") Documentation" \
+        -sourcepath "$JAVA_SOURCE_DIRS_RELG" \
+        -subpackages "$PACKAGES" \
+        -d "$DOC_JAVADOC_DIR_ABS/$ARTIFACT_BASENAME" \
+        2> >(tee "$TARGET_FILE_ABS.javadoc.stderr.txt" >&2) \
+        | tee "$TARGET_FILE_ABS.javadoc.stdout.txt" \
+        || true
+
+    DOC_JAVADOC_FILE_RELT="$JAVADOC_DIR_RELT/$ARTIFACT_BASENAME/index.html"
+}
+
+
+
 #---------------------------------------------------------------------
 run_buck_build() {
     local DESCRIPTION="$1"
@@ -501,6 +572,7 @@ run_buck_build() {
     local INSERT_BEFORE="$5"
 
     local DOC_MANUAL_FILE_RELM=""
+    local DOC_JAVADOC_FILE_RELT=""
 
     if [ -z "$ARTIFACT_GROUP" ]
     then
@@ -556,7 +628,28 @@ run_buck_build() {
         fi
     fi
 
-    echo_file_target_html "$STATUS" "$ARTIFACT_BASENAME" "$BUCK_TARGET" "$INSERT_BEFORE" "$ARTIFACT_GROUP" "$DOC_MANUAL_FILE_RELM"
+    if [ "$STATUS" = "ok" -a "$GENERATE_JAVADOC" = "yes" ]
+    then
+        # The directory of the buck generated file matches the source directory
+        # relative to the gerrit directory. Hence, we can reuse it below.
+        ARTIFACT_SOURCE_DIR_RELG="$(dirname "$BUCK_GENERATED_FILE_RELBG")"
+        if [ "${ARTIFACT_SOURCE_DIR_RELG:0:8}" = "plugins/" \
+            -o "$ARTIFACT_BASENAME" = "gerrit.war" ]
+        then
+            generate_javadoc \
+                "$ARTIFACT_BASENAME" \
+                "$ARTIFACT_SOURCE_DIR_RELG"
+        fi
+    fi
+
+    echo_file_target_html \
+        "$STATUS" \
+        "$ARTIFACT_BASENAME" \
+        "$BUCK_TARGET" \
+        "$INSERT_BEFORE" \
+        "$ARTIFACT_GROUP" \
+        "$DOC_MANUAL_FILE_RELM" \
+        "$DOC_JAVADOC_FILE_RELT"
 }
 
 #---------------------------------------------------------------------
@@ -639,7 +732,7 @@ cat_file_header_target_html() {
     <th>Description</th>
     <th>Commit</th>
     <th colspan="3">Changes</th>
-    <th>Documentation</th>
+    <th colspan="2">Documentation</th>
   </tr>
 EOF
 }
@@ -707,6 +800,7 @@ echo_file_target_html() {
     local INSERT_BEFORE="$4"
     local ARTIFACT_GROUP="$5"
     local DOC_MANUAL_FILE_RELM="$6"
+    local DOC_JAVADOC_FILE_RELT="$7"
 
     if [ -z "$ARTIFACT_GROUP" ]
     then
@@ -748,7 +842,8 @@ EOF
     local DASHBOARD_CELL="---"
     local OPEN_CHANGES_CELL="---"
     local CLOSED_CHANGES_CELL="---"
-    local DOCUMENTATION_CELL="---"
+    local MANUAL_CELL="---"
+    local JAVADOC_CELL="---"
     if [ -n "$BUCK_TARGET" ]
     then
         BUILD_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "build")"
@@ -781,25 +876,49 @@ EOF
         DASHBOARD_CELL="<a href=\"https://gerrit-review.googlesource.com/#/projects/$REPO_UPSTREAM_NAME,dashboards/default\">dashboard</a>"
         OPEN_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:open\">open</a>"
         CLOSED_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:closed\">closed</a>"
+
         if [ -n "$DOC_MANUAL_FILE_RELM" ]
         then
-            DOCUMENTATION_CELL="<a href=\"$MANUAL_DIR_RELT/$DOC_MANUAL_FILE_RELM\">manual</a>"
-            DOCUMENTATION_CELL+=" (<a href=\"$ARTIFACT_FILE_RELT.manual.stderr.txt\">stderr</a>"
-            DOCUMENTATION_CELL+=", <a href=\"$ARTIFACT_FILE_RELT.manual.stdout.txt\">stdout</a>)"
+            MANUAL_CELL="<a href=\"$MANUAL_DIR_RELT/$DOC_MANUAL_FILE_RELM\">manual</a>"
+            MANUAL_CELL+=" (<a href=\"$ARTIFACT_FILE_RELT.manual.stderr.txt\">stderr</a>"
+            MANUAL_CELL+=", <a href=\"$ARTIFACT_FILE_RELT.manual.stdout.txt\">stdout</a>)"
+        fi
+
+        if [ -e "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT.javadoc.stderr.txt" ]
+        then
+            if [ -e "$TARGET_DIR_ABS/$DOC_JAVADOC_FILE_RELT" ]
+            then
+                JAVADOC_CELL="<a href=\"$DOC_JAVADOC_FILE_RELT\">javadoc</a>"
+            else
+                JAVADOC_CELL="javadoc"
+            fi
+            JAVADOC_CELL+=" (<a href=\"$ARTIFACT_FILE_RELT.javadoc.stderr.txt\">stderr</a>"
+            JAVADOC_CELL+=", <a href=\"$ARTIFACT_FILE_RELT.javadoc.stdout.txt\">stdout</a>)"
         fi
     fi
 
     # Patching up WAR artifacts with documentation from withdocs.jar
     case "$ARTIFACT_FILE_RELT" in
+        "gerrit.war" )
+            JAVADOC_CELL_GERRIT_WAR="$JAVADOC_CELL"
+            ;;
         "release.war" )
-            if [ "$DOCUMENTATION_CELL" = "---" \
-                -a "$DOCUMENTATION_CELL_WITHDOCS_WAR" != "---" ]
+            if [ "$MANUAL_CELL" = "---" ]
             then
-                DOCUMENTATION_CELL="$DOCUMENTATION_CELL_WITHDOCS_WAR"
+                MANUAL_CELL="$MANUAL_CELL_WITHDOCS_WAR"
+            fi
+            if [ "$JAVADOC_CELL" = "---" ]
+            then
+                JAVADOC_CELL="$JAVADOC_CELL_WITHDOCS_WAR"
             fi
             ;;
         "withdocs.war" )
-            DOCUMENTATION_CELL_WITHDOCS_WAR="$DOCUMENTATION_CELL"
+            if [ "$JAVADOC_CELL" = "---" ]
+            then
+                JAVADOC_CELL="$JAVADOC_CELL_GERRIT_WAR"
+            fi
+            MANUAL_CELL_WITHDOCS_WAR="$MANUAL_CELL"
+            JAVADOC_CELL_WITHDOCS_WAR="$JAVADOC_CELL"
             ;;
     esac
 
@@ -821,7 +940,8 @@ EOF
     <td>$DASHBOARD_CELL</td>
     <td>$OPEN_CHANGES_CELL</td>
     <td>$CLOSED_CHANGES_CELL</td>
-    <td>$DOCUMENTATION_CELL</td>
+    <td>$MANUAL_CELL</td>
+    <td>$JAVADOC_CELL</td>
   </tr>"
 
     if [ -z "$INSERT_BEFORE" ]

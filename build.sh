@@ -9,6 +9,7 @@ PULL=yes
 CHECKOUT=yes
 CLEAN=yes
 GENERATE_MANUAL=yes
+GENERATE_JAVADOC=yes
 REMOVE_LINKS=yes
 MANAGE_LATEST_LINK=yes
 STOP_TEST_SITE=yes
@@ -33,6 +34,7 @@ ARGUMENTS:
   --checkout         - 'git checkout' before building (On per default)
   --clean            - clean before building (On per default)
   --force            - Overwrite eventual existing artifacts target directory
+  --javadoc          - Generate the javadoc documentation (On per default)
   --ignore-plugin PLUGIN
                      - Don't build, test, ... the plugin PLUGIN
   --latest-linking   - Generate a 'latest' link in the artifacts directory
@@ -43,6 +45,7 @@ ARGUMENTS:
   --no-building      - Don't build artifacts
   --no-checkout      - Don't 'git checkout' before building
   --no-clean         - Don't clean before building
+  --no-javadoc       - Don't generate the javadoc documentation
   --no-manual        - Don't generate the manual
   --no-pull          - Don't 'git pull' before building
   --no-repo-mangling - Neither 'git checkout' nor 'git pull' before building
@@ -113,6 +116,9 @@ do
         "--clean" )
             CLEAN=yes
             ;;
+        "--javadoc" )
+            GENERATE_JAVADOC=yes
+            ;;
         "--latest-link" )
             MANAGE_LATEST_LINK=yes
             ;;
@@ -138,6 +144,9 @@ do
         "--no-link-removing" )
             REMOVE_LINKS=no
             ;;
+        "--no-javadoc" )
+            GENERATE_JAVADOC=no
+            ;;
         "--no-manual" )
             GENERATE_MANUAL=no
             ;;
@@ -150,6 +159,7 @@ do
             ;;
         "--no-system-testing" )
             TEST_SYSTEM=no
+            GENERATE_MANUAL=no
             ;;
         "--no-test-site-stopping" )
             STOP_TEST_SITE=no
@@ -157,6 +167,7 @@ do
         "--no-testing" )
             TEST_UNIT=no
             TEST_SYSTEM=no
+            GENERATE_MANUAL=no
             ;;
         "--no-unit-testing" )
             TEST_UNIT=no
@@ -168,6 +179,7 @@ do
             BUILD_ARTIFACTS=no
             CHECKOUT=no
             CLEAN=no
+            GENERATE_JAVADOC=no
             GENERATE_MANUAL=no
             MANAGE_LATEST_LINK=no
             PRINT_VERSIONS=no
@@ -276,6 +288,7 @@ fi
 post_parameter_parsing_setup
 
 mkdir -p "$DOC_MANUAL_DIR_ABS"
+mkdir -p "$DOC_JAVADOC_DIR_ABS"
 
 compute_checksums() {
     pushd "$TARGET_DIR_ABS" >/dev/null
