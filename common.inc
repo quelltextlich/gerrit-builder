@@ -503,17 +503,27 @@ argument)"
 generate_javadoc() {
     ARTIFACT_BASENAME="$1"
     REPO_DIR_RELG="$2"
+    WITH_PLUGINS="$3"
 
-    local SRC_DIRS_RELG=()
-    local SRC_DIR_RELG
-    for SRC_DIR_RELG in \
+    local SRC_DIR_RELG_CANDIDATES=( \
         "$REPO_DIR_RELG"/src \
         "$REPO_DIR_RELG"/*/src \
+        )
+    if [ "$WITH_PLUGINS" = "yes" ]
+    then
+        SRC_DIR_RELG_CANDIDATES+=( \
+            "$REPO_DIR_RELG"/plugins/*/src \
+            "$REPO_DIR_RELG"/plugins/*/*/src \
+            )
+    fi
 
+    local SRC_DIRS_RELG=()
+    local SRC_DIR_RELG_CANDIDATE
+    for SRC_DIR_RELG_CANDIDATE in "${SRC_DIR_RELG_CANDIDATES[@]}"
     do
-        if [ -d "$SRC_DIR_RELG" ]
+        if [ -d "$SRC_DIR_RELG_CANDIDATE" ]
         then
-            SRC_DIRS_RELG+=( "$SRC_DIR_RELG" )
+            SRC_DIRS_RELG+=( "$SRC_DIR_RELG_CANDIDATE" )
         fi
     done
 
