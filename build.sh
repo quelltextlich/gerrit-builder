@@ -61,6 +61,8 @@ ARGUMENTS:
   --nothing          - Don't run things that can be turned off
   --only-artifact ARTIFACT
                      - Build only the artifact ARTIFACT
+  --only-artifacts ARTIFACT1,ARTIFACT2,...
+                     - Build only the artifacts ARTIFACT1, ARTIFACT2, ...
   --pull             - 'git pull' before building (On per default)
   --system-testing   - Run system tests on artifacts (On per default)
   --system-testing-war WAR_FILE
@@ -178,6 +180,15 @@ do
         "--only-artifact" )
             [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
             LIMIT_TO=("$1")
+            shift || true
+            ;;
+        "--only-artifacts" )
+            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+            LIMIT_TO=()
+            while read LINE
+            do
+                LIMIT_TO+=( "$LINE" )
+            done < <(tr ',' '\n' <<<"$1")
             shift || true
             ;;
         "--pull" )
