@@ -70,7 +70,12 @@ add_to_plugins() {
     DEFAULT_EXTERNAL_PLUGINS=( "${DEFAULT_EXTERNAL_PLUGINS[@]}" "$ADDITION" )
 }
 add_to_plugins "avatars/external"
+add_to_plugins "branch-network"
+add_to_plugins "codenvy"
 add_to_plugins "delete-project"
+add_to_plugins "events-log"
+add_to_plugins "force-draft"
+add_to_plugins "importer"
 add_to_plugins "its-base"
 add_to_plugins "its-bugzilla"
 add_to_plugins "its-jira"
@@ -78,6 +83,12 @@ add_to_plugins "its-phabricator"
 add_to_plugins "its-rtc"
 add_to_plugins "its-storyboard"
 add_to_plugins "quota"
+add_to_plugins "rabbitmq"
+add_to_plugins "ref-protection"
+add_to_plugins "reviewers"
+add_to_plugins "serviceuser"
+add_to_plugins "websession-flatfile"
+add_to_plugins "wip"
 add_to_plugins "x-docs"
 
 IGNORED_PLUGINS=()
