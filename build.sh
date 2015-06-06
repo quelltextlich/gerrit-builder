@@ -769,7 +769,7 @@ run_buck_build "gerrit, api" "api" "api.zip" "api"
 # Building bundled plugins
 for PLUGIN_DIR_ABS in "$GERRIT_DIR_ABS/plugins"/*
 do
-    if [ -d "$PLUGIN_DIR_ABS" ]
+    if [ -d "$PLUGIN_DIR_ABS" -a ! -h "$PLUGIN_DIR_ABS" ]
     then
         PLUGIN_NAME="$(basename "$PLUGIN_DIR_ABS")"
         build_plugin "$PLUGIN_NAME" "bundled"
