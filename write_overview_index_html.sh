@@ -6,6 +6,7 @@ source "$(dirname "$0")/common.inc"
 
 SORT_OPTION=
 OUTPUT_FILE_ABS="$ARTIFACTS_DIR_ABS/$INDEX_FILE_RELC"
+BUILD_SORT_ORDER_LINK=
 
 print_help() {
     cat <<EOF
@@ -16,6 +17,10 @@ ARGUMENTS:
   --branch BRANCH    - Build branch BRANCH instead of the default, which is
                        inferred from the basename of the directory, with
                        "master" as fallback.
+  --build-sort-link LINK
+                     - Link to use a link target for the 'Build' table header.
+                       If empty, do not format the 'Build' table header as
+                       link. (Default: empty)
   --descending       - Sorts the entries in descending order
   --output FILE      - Write output to FILE instead of
                          $OUTPUT_FILE_ABS
@@ -34,6 +39,11 @@ do
         "--branch" )
             [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
             BRANCH="$1"
+            shift || true
+            ;;
+        "--build-sort-link" )
+            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+            BUILD_SORT_ORDER_LINK="$1"
             shift || true
             ;;
         "--output" )
@@ -65,11 +75,18 @@ cat_html_header_target_html \
     "gerrit, jar, $BRANCH" \
     "Gerrit builds for $BRANCH"
 
+if [ -z "BUILD_SORT_ORDER_LINK" ]
+then
+    BUILD_CAPTION="Build"
+else
+    BUILD_CAPTION="<a href=\"$BUILD_SORT_ORDER_LINK\">Build</a>"
+fi
+
 cat_target_html <<EOF
 <table>
   <tr>
     <td class="borderless" colspan="1"/>
-    <th rowspan="2">Build</th>
+    <th rowspan="2">$BUILD_CAPTION</th>
     <td class="borderless" colspan="3"/>
     <th colspan="4">Status per artifact group</th>
   </tr>
