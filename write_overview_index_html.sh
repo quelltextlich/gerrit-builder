@@ -4,6 +4,8 @@
 source "$(dirname "$0")/common.inc"
 #---------------------------------------------------------------------
 
+SORT_OPTION=
+
 print_help() {
     cat <<EOF
 $0 ARGUMENTS
@@ -13,6 +15,7 @@ ARGUMENTS:
   --branch BRANCH    - Build branch BRANCH instead of the default, which is
                        inferred from the basename of the directory, with
                        "master" as fallback.
+  --descending       - Sorts the entries in descending order
 EOF
 }
 
@@ -29,6 +32,9 @@ do
             [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
             BRANCH="$1"
             shift || true
+            ;;
+        "--reverse" )
+            SORT_OPTION="--reverse"
             ;;
         * )
             error "Unknown argument '$ARGUMENT'"
@@ -139,7 +145,7 @@ dump_first_line_if_exists() {
 }
 
 pushd "$ARTIFACTS_DIR_ABS" >/dev/null
-for BUILD_DIR_RELO in *
+while read BUILD_DIR_RELO
 do
     if [ -d "$BUILD_DIR_RELO" ]
     then
@@ -194,7 +200,7 @@ EOF
         fi
         echo_target_html "  </tr>"
     fi
-done
+done < <(find * -maxdepth 0 \( -type d -o -type l \) | sort $SORT_OPTION)
 popd >/dev/null
 
 echo_target_html "</table>"
