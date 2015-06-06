@@ -33,6 +33,7 @@ ARGUMENTS:
   --building         - Build artifacts (On per default)
   --checkout         - 'git checkout' before building (On per default)
   --clean            - clean before building (On per default)
+  --documentation    - Build documentation (manual, javadoc) (On per default)
   --force            - Overwrite eventual existing artifacts target directory
   --javadoc          - Generate the javadoc documentation (On per default)
   --ignore-plugin PLUGIN
@@ -45,6 +46,7 @@ ARGUMENTS:
   --no-building      - Don't build artifacts
   --no-checkout      - Don't 'git checkout' before building
   --no-clean         - Don't clean before building
+  --no-documentation - Don't build documentation (manual, javadoc)
   --no-javadoc       - Don't generate the javadoc documentation
   --no-manual        - Don't generate the manual
   --no-pull          - Don't 'git pull' before building
@@ -116,6 +118,11 @@ do
         "--clean" )
             CLEAN=yes
             ;;
+        "--documentation" )
+            GENERATE_JAVADOC=yes
+            GENERATE_MANUAL=yes
+            TEST_SYSTEM=yes
+            ;;
         "--javadoc" )
             GENERATE_JAVADOC=yes
             ;;
@@ -137,6 +144,10 @@ do
             ;;
         "--no-clean" )
             CLEAN=no
+            ;;
+        "--no-documentation" )
+            GENERATE_JAVADOC=no
+            GENERATE_MANUAL=no
             ;;
         "--no-latest-link" )
             MANAGE_LATEST_LINK=no
