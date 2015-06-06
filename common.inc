@@ -434,8 +434,17 @@ run_system_test() {
                             if [ "$GENERATE_MANUAL" = "yes" ]
                             then
                                 local DOC_MANUAL_FILE_RELM="plugins/$PLUGIN_NAME/Documentation/index.html"
+                                local MANUAL_CHAPTER_LABEL="Plugin: $PLUGIN_NAME"
+                                case "$ARTIFACT_GROUP" in
+                                    "bundled" )
+                                        MANUAL_CHAPTER_LABEL="Bundled plugin: $PLUGIN"
+                                        ;;
+                                    "bundled" )
+                                        MANUAL_CHAPTER_LABEL="Separate plugin: $PLUGIN"
+                                        ;;
+                                esac
                                 dump_manual \
-                                    "Plugin: $PLUGIN_NAME" \
+                                    "$MANUAL_CHAPTER_LABEL" \
                                     "$DOC_MANUAL_FILE_RELM" \
                                     2> >(tee "$TARGET_FILE_ABS.manual.stderr.txt" >&2) \
                                     | tee "$TARGET_FILE_ABS.manual.stdout.txt"
