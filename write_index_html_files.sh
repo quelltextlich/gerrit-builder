@@ -69,7 +69,7 @@ write_base_index_html() {
     section "Writing index file for '$FILE_RELS'"
 
     local SKIP_PARENT_LINK=no
-    if [ "$FILE_RELS" = "index.html" ]
+    if [ "$FILE_RELS" = "$INDEX_FILE_RELC" ]
     then
         SKIP_PARENT_LINK=yes
     fi
@@ -105,7 +105,7 @@ EOF
             "favicon.ico" )
                 SKIP=yes
                 ;;
-            "index.html" )
+            "$INDEX_FILE_RELC" )
                 SKIP=yes
                 ;;
             "gerrit/" )
@@ -138,7 +138,7 @@ EOF
             HREF="$LINE"
             if [ "${HREF: -1}" = "/" ]
             then
-                HREF="${HREF}index.html"
+                HREF="${HREF}${INDEX_FILE_RELC}"
             fi
             cat_target_html <<EOF
   <tr>

@@ -1165,7 +1165,7 @@ echo_html_split_target_html() {
     local SPLIT="<p>- "
     if [ "$SKIP_PARENT_LINK" != "yes" ]
     then
-        SPLIT="$SPLIT<a href=\"../index.html\">View parent directory</a> - "
+        SPLIT="$SPLIT<a href=\"../$INDEX_FILE_RELC\">View parent directory</a> - "
     fi
     SPLIT="$SPLIT<a href=\".\">View raw listing</a> -</p>"
     echo_target_html "$SPLIT"

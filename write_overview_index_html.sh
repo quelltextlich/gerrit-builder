@@ -44,7 +44,7 @@ done
 
 mkdir -p "$ARTIFACTS_DIR_ABS"
 
-set_target_html_file_abs "$ARTIFACTS_DIR_ABS/index.html"
+set_target_html_file_abs "$ARTIFACTS_DIR_ABS/$INDEX_FILE_RELC"
 
 cat_html_header_target_html \
     "Gerrit $BRANCH builds" \
@@ -91,9 +91,9 @@ read_artifact_group_statuses() {
         ARTIFACT_GROUP_CELLS["$ARTIFACT_GROUP"]=""
         if [ "$ARTIFACT_GROUP" = "total" -a -n "$FIRST_ARTIFACT_W_STATUS" ]
         then
-            add_artifact_group_cell "<a href=\"$BUILD_DIR_RELO/index.html#$FIRST_ARTIFACT_W_STATUS\">"
+            add_artifact_group_cell "<a href=\"$BUILD_DIR_RELO/$INDEX_FILE_RELC#$FIRST_ARTIFACT_W_STATUS\">"
         else
-            add_artifact_group_cell "<a href=\"$BUILD_DIR_RELO/index.html#group-$ARTIFACT_GROUP\">"
+            add_artifact_group_cell "<a href=\"$BUILD_DIR_RELO/$INDEX_FILE_RELC#group-$ARTIFACT_GROUP\">"
         fi
         add_artifact_group_cell "<img src=\"$IMAGE_BASE_URL/$GROUP_STATUS.png\" alt=\"Build $GROUP_STATUS\" />"
         if [ "$ARTIFACT_GROUP" = "total" ]
@@ -181,7 +181,7 @@ do
 EOF
         echo_group_status_cell_target_html "total"
         cat_target_html <<EOF
-    <td class="th-semi-dark"><a href="$BUILD_DIR_RELO/index.html">$BUILD_DIR_RELO</a></td>
+    <td class="th-semi-dark"><a href="$BUILD_DIR_RELO/$INDEX_FILE_RELC">$BUILD_DIR_RELO</a></td>
 EOF
 
 
