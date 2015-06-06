@@ -5,6 +5,7 @@ source "$(dirname "$0")/common.inc"
 #---------------------------------------------------------------------
 
 SORT_OPTION=
+OUTPUT_FILE_ABS="$ARTIFACTS_DIR_ABS/$INDEX_FILE_RELC"
 
 print_help() {
     cat <<EOF
@@ -16,6 +17,8 @@ ARGUMENTS:
                        inferred from the basename of the directory, with
                        "master" as fallback.
   --descending       - Sorts the entries in descending order
+  --output FILE      - Write output to FILE instead of
+                         $OUTPUT_FILE_ABS
 EOF
 }
 
@@ -33,6 +36,16 @@ do
             BRANCH="$1"
             shift || true
             ;;
+        "--output" )
+            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+            OUTPUT_FILE_ABS="$1"
+            if [ "${OUTPUT_FILE_ABS:0:1}" != "/" ]
+            then
+                OUTPUT_FILE_ABS="$ORIG_DIR_ABS/$OUTPUT_FILE_ABS"
+            fi
+
+            shift || true
+            ;;
         "--reverse" )
             SORT_OPTION="--reverse"
             ;;
@@ -44,7 +57,7 @@ done
 
 mkdir -p "$ARTIFACTS_DIR_ABS"
 
-set_target_html_file_abs "$ARTIFACTS_DIR_ABS/$INDEX_FILE_RELC"
+set_target_html_file_abs "$OUTPUT_FILE_ABS"
 
 cat_html_header_target_html \
     "Gerrit $BRANCH builds" \
