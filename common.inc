@@ -945,7 +945,40 @@ EOF
         fi
         REPO_ARTIFACTS["$REPO"]="${REPO_ARTIFACTS["$REPO"]}$ARTIFACT_FILE_RELT"
         DASHBOARD_CELL="<a href=\"https://gerrit-review.googlesource.com/#/projects/$REPO_UPSTREAM_NAME,dashboards/default\">dashboard</a>"
-        OPEN_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:open\">open</a>"
+        local OPEN_CHANGES_COUNT="$( \
+          curl -Ss "https://gerrit-review.googlesource.com/changes/?q=project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:open&n=11" \
+          | grep '^    "id"' \
+          | wc -l)"
+        local OPEN_CHANGES_COUNT_VERBAL=""
+        local OPEN_CHANGES_COUNT_VISUAL=""
+        case "$OPEN_CHANGES_COUNT" in
+            "0" )
+                OPEN_CHANGES_COUNT_VERBAL="have been no open changes "
+                ;;
+            "1" )
+                OPEN_CHANGES_COUNT_VERBAL="has been $OPEN_CHANGES_COUNT open change"
+                OPEN_CHANGES_COUNT_VISUAL="$OPEN_CHANGES_COUNT"
+                ;;
+            "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" )
+                OPEN_CHANGES_COUNT_VERBAL="have been $OPEN_CHANGES_COUNT open changes"
+                OPEN_CHANGES_COUNT_VISUAL="$OPEN_CHANGES_COUNT"
+                ;;
+            "11" )
+                OPEN_CHANGES_COUNT_VERBAL="have been more than 10 open changes"
+                OPEN_CHANGES_COUNT_VISUAL=">10"
+                ;;
+        esac
+        local OPEN_CHANGES_TITLE_ATTRIBUTE=
+        if [ -n "$OPEN_CHANGES_COUNT_VERBAL" ]
+        then
+            OPEN_CHANGES_TITLE_ATTRIBUTE=" title=\"On $(timestamp) there $OPEN_CHANGES_COUNT_VERBAL waiting for review for $REPO_UPSTREAM_NAME on $BRANCH\""
+        fi
+        local OPEN_CHANGES_TEXT_ADDENDUM=
+        if [ -n "$OPEN_CHANGES_COUNT_VISUAL" ]
+        then
+            OPEN_CHANGES_TEXT_ADDENDUM="<span class=\"elevated\">($OPEN_CHANGES_COUNT_VISUAL)</span>"
+        fi
+        OPEN_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:open\"$OPEN_CHANGES_TITLE_ATTRIBUTE>open$OPEN_CHANGES_TEXT_ADDENDUM</a>"
         CLOSED_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:closed\">closed</a>"
 
         if [ -e "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT.manual.stderr.txt" ]
@@ -1105,6 +1138,10 @@ cat_html_header_target_html() {
 }
 .right {
   text-align: right;
+}
+.elevated {
+  font-size: 75%;
+  vertical-align: super;
 }
 th, td {
   border: 1px solid black;
