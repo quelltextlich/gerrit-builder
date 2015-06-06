@@ -589,12 +589,18 @@ generate_javadoc() {
     fi
     popd >/dev/null
 
+    local TITLE="$(basename "$ARTIFACT_BASENAME") Documentation"
+    if [ "$TITLE" = "overall Documentation" ]
+    then
+        TITLE="Gerrit Documentation"
+    fi
+
     javadoc \
         -protected \
         -encoding UTF-8 \
         -charset UTF-8 \
         -notimestamp \
-        -windowtitle "$(basename "$ARTIFACT_BASENAME") Documentation" \
+        -windowtitle "$TITLE" \
         -sourcepath "$JAVA_SOURCE_DIRS_RELG" \
         -subpackages "$PACKAGES" \
         -classpath "$JAVADOC_CLASSPATH_DIR_ABS" \
