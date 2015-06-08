@@ -69,6 +69,7 @@ add_to_plugins() {
     local ADDITION="$1"
     DEFAULT_EXTERNAL_PLUGINS=( "${DEFAULT_EXTERNAL_PLUGINS[@]}" "$ADDITION" )
 }
+add_to_plugins "admin-console"
 add_to_plugins "avatars/external"
 add_to_plugins "branch-network"
 add_to_plugins "codenvy"
