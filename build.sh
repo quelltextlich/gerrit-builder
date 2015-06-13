@@ -20,6 +20,7 @@ PRINT_VERSIONS=yes
 LIMIT_TO=()
 TARGET_DIRECTORY_FORMAT="%Y-%m-%d"
 
+DEFAULT_ARGUMENTS_FILE_RELS="build.sh.arguments"
 
 print_help() {
     cat <<EOF
@@ -84,6 +85,11 @@ ARGUMENTS:
   --unit-testing     - Run unit tests on artifacts (On per default)
   --versions         - Print version information of helper programs (On per
                        default)
+
+If the file ${DEFAULT_ARGUMENTS_FILE_RELS} exists in the script's directory, each of its lines
+treated as argument before the arguments supplied on the command line. You can
+use that file to for example use '--force' per default in your local dev
+environment.
 EOF
 }
 
@@ -246,6 +252,14 @@ parse_arguments() {
         esac
     done
 }
+
+DEFAULT_ARGUMENTS=()
+DEFAULT_ARGUMENTS_FILE_ABS="$SCRIPT_DIR_ABS/$DEFAULT_ARGUMENTS_FILE_RELS"
+if [ -f "$DEFAULT_ARGUMENTS_FILE_ABS" ]
+then
+    readarray -t DEFAULT_ARGUMENTS <"$DEFAULT_ARGUMENTS_FILE_ABS"
+    parse_arguments "${DEFAULT_ARGUMENTS[@]}"
+fi
 
 parse_arguments "$@"
 
@@ -917,7 +931,10 @@ rm -rf "$JAVADOC_CLASSPATH_DIR_ABS"
 
 if [ "$PRINT_VERSIONS" = "yes" ]
 then
-    FORMATTED_ARGUMENTS=( "${SCRIPT_ARGUMENTS[@]}" )
+    FORMATTED_ARGUMENTS=( \
+        "${DEFAULT_ARGUMENTS[@]}" \
+        "${SCRIPT_ARGUMENTS[@]}" \
+        )
     if [ "${#FORMATTED_ARGUMENTS[@]}" = 0 ]
     then
         FORMATTED_ARGUMENTS="<em>&lt;none&gt;</em>"
