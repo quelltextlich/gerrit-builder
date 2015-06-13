@@ -87,163 +87,167 @@ ARGUMENTS:
 EOF
 }
 
-while [ $# -gt 0 ]
-do
-    ARGUMENT="$1"
-    shift
-    case "$ARGUMENT" in
-        "--help" | "-h" | "-?" )
-            print_help
-            exit 0
-            ;;
-        "--force" )
-            FORCE=yes
-            ;;
-        "--ignore-plugin" )
-            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
-            IGNORED_PLUGINS=( "${IGNORED_PLUGINS[@]}" "$1" )
-            shift || true
-            ;;
-        "--branch" )
-            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
-            BRANCH="$1"
-            shift || true
-            ;;
-        "--building" )
-            BUILD_ARTIFACTS=yes
-            ;;
-        "--checkout" )
-            CHECKOUT=yes
-            ;;
-        "--clean" )
-            CLEAN=yes
-            ;;
-        "--documentation" )
-            GENERATE_JAVADOC=yes
-            GENERATE_MANUAL=yes
-            TEST_SYSTEM=yes
-            ;;
-        "--javadoc" )
-            GENERATE_JAVADOC=yes
-            ;;
-        "--latest-link" )
-            MANAGE_LATEST_LINK=yes
-            ;;
-        "--link-removing" )
-            REMOVE_LINKS=yes
-            ;;
-        "--manual" )
-            GENERATE_MANUAL=yes
-            TEST_SYSTEM=yes
-            ;;
-        "--no-building" )
-            BUILD_ARTIFACTS=no
-            ;;
-        "--no-checkout" )
-            CHECKOUT=no
-            ;;
-        "--no-clean" )
-            CLEAN=no
-            ;;
-        "--no-documentation" )
-            GENERATE_JAVADOC=no
-            GENERATE_MANUAL=no
-            ;;
-        "--no-latest-link" )
-            MANAGE_LATEST_LINK=no
-            ;;
-        "--no-link-removing" )
-            REMOVE_LINKS=no
-            ;;
-        "--no-javadoc" )
-            GENERATE_JAVADOC=no
-            ;;
-        "--no-manual" )
-            GENERATE_MANUAL=no
-            ;;
-        "--no-pull" )
-            PULL=no
-            ;;
-        "--no-repo-mangling" )
-            CHECKOUT=no
-            PULL=no
-            ;;
-        "--no-system-testing" )
-            TEST_SYSTEM=no
-            GENERATE_MANUAL=no
-            ;;
-        "--no-test-site-stopping" )
-            STOP_TEST_SITE=no
-            ;;
-        "--no-testing" )
-            TEST_UNIT=no
-            TEST_SYSTEM=no
-            GENERATE_MANUAL=no
-            ;;
-        "--no-unit-testing" )
-            TEST_UNIT=no
-            ;;
-        "--no-versions" )
-            PRINT_VERSIONS=no
-            ;;
-        "--nothing" )
-            BUILD_ARTIFACTS=no
-            CHECKOUT=no
-            CLEAN=no
-            GENERATE_JAVADOC=no
-            GENERATE_MANUAL=no
-            MANAGE_LATEST_LINK=no
-            PRINT_VERSIONS=no
-            PULL=no
-            REMOVE_LINKS=no
-            STOP_TEST_SITE=no
-            TEST_SYSTEM=no
-            TEST_UNIT=no
-            ;;
-        "--only-artifact" )
-            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
-            LIMIT_TO=("$1")
-            shift || true
-            ;;
-        "--only-artifacts" )
-            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
-            LIMIT_TO=()
-            while read LINE
-            do
-                LIMIT_TO+=( "$LINE" )
-            done < <(tr ',' '\n' <<<"$1")
-            shift || true
-            ;;
-        "--pull" )
-            PULL=yes
-            ;;
-        "--system-testing" )
-            TEST_SYSTEM=yes
-            ;;
-        "--system-testing-war" )
-            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
-            SYSTEM_TESTING_WAR="$1"
-            shift || true
-            ;;
-        "--target-directory-format" )
-            [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
-            TARGET_DIRECTORY_FORMAT="$1"
-            shift || true
-            ;;
-        "--test-site-stopping" )
-            STOP_TEST_SITE=yes
-            ;;
-        "--unit-testing" )
-            TEST_UNIT=yes
-            ;;
-        "--versions" )
-            PRINT_VERSIONS=yes
-            ;;
-        * )
-            error "Unknown argument '$ARGUMENT'"
-            ;;
-    esac
-done
+parse_arguments() {
+    while [ $# -gt 0 ]
+    do
+        ARGUMENT="$1"
+        shift
+        case "$ARGUMENT" in
+            "--help" | "-h" | "-?" )
+                print_help
+                exit 0
+                ;;
+            "--force" )
+                FORCE=yes
+                ;;
+            "--ignore-plugin" )
+                [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+                IGNORED_PLUGINS=( "${IGNORED_PLUGINS[@]}" "$1" )
+                shift || true
+                ;;
+            "--branch" )
+                [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+                BRANCH="$1"
+                shift || true
+                ;;
+            "--building" )
+                BUILD_ARTIFACTS=yes
+                ;;
+            "--checkout" )
+                CHECKOUT=yes
+                ;;
+            "--clean" )
+                CLEAN=yes
+                ;;
+            "--documentation" )
+                GENERATE_JAVADOC=yes
+                GENERATE_MANUAL=yes
+                TEST_SYSTEM=yes
+                ;;
+            "--javadoc" )
+                GENERATE_JAVADOC=yes
+                ;;
+            "--latest-link" )
+                MANAGE_LATEST_LINK=yes
+                ;;
+            "--link-removing" )
+                REMOVE_LINKS=yes
+                ;;
+            "--manual" )
+                GENERATE_MANUAL=yes
+                TEST_SYSTEM=yes
+                ;;
+            "--no-building" )
+                BUILD_ARTIFACTS=no
+                ;;
+            "--no-checkout" )
+                CHECKOUT=no
+                ;;
+            "--no-clean" )
+                CLEAN=no
+                ;;
+            "--no-documentation" )
+                GENERATE_JAVADOC=no
+                GENERATE_MANUAL=no
+                ;;
+            "--no-latest-link" )
+                MANAGE_LATEST_LINK=no
+                ;;
+            "--no-link-removing" )
+                REMOVE_LINKS=no
+                ;;
+            "--no-javadoc" )
+                GENERATE_JAVADOC=no
+                ;;
+            "--no-manual" )
+                GENERATE_MANUAL=no
+                ;;
+            "--no-pull" )
+                PULL=no
+                ;;
+            "--no-repo-mangling" )
+                CHECKOUT=no
+                PULL=no
+                ;;
+            "--no-system-testing" )
+                TEST_SYSTEM=no
+                GENERATE_MANUAL=no
+                ;;
+            "--no-test-site-stopping" )
+                STOP_TEST_SITE=no
+                ;;
+            "--no-testing" )
+                TEST_UNIT=no
+                TEST_SYSTEM=no
+                GENERATE_MANUAL=no
+                ;;
+            "--no-unit-testing" )
+                TEST_UNIT=no
+                ;;
+            "--no-versions" )
+                PRINT_VERSIONS=no
+                ;;
+            "--nothing" )
+                BUILD_ARTIFACTS=no
+                CHECKOUT=no
+                CLEAN=no
+                GENERATE_JAVADOC=no
+                GENERATE_MANUAL=no
+                MANAGE_LATEST_LINK=no
+                PRINT_VERSIONS=no
+                PULL=no
+                REMOVE_LINKS=no
+                STOP_TEST_SITE=no
+                TEST_SYSTEM=no
+                TEST_UNIT=no
+                ;;
+            "--only-artifact" )
+                [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+                LIMIT_TO=("$1")
+                shift || true
+                ;;
+            "--only-artifacts" )
+                [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+                LIMIT_TO=()
+                while read LINE
+                do
+                    LIMIT_TO+=( "$LINE" )
+                done < <(tr ',' '\n' <<<"$1")
+                shift || true
+                ;;
+            "--pull" )
+                PULL=yes
+                ;;
+            "--system-testing" )
+                TEST_SYSTEM=yes
+                ;;
+            "--system-testing-war" )
+                [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+                SYSTEM_TESTING_WAR="$1"
+                shift || true
+                ;;
+            "--target-directory-format" )
+                [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+                TARGET_DIRECTORY_FORMAT="$1"
+                shift || true
+                ;;
+            "--test-site-stopping" )
+                STOP_TEST_SITE=yes
+                ;;
+            "--unit-testing" )
+                TEST_UNIT=yes
+                ;;
+            "--versions" )
+                PRINT_VERSIONS=yes
+                ;;
+            * )
+                error "Unknown argument '$ARGUMENT'"
+                ;;
+        esac
+    done
+}
+
+parse_arguments "$@"
 
 TARGET_DIR_RELA="$(date --utc +"$TARGET_DIRECTORY_FORMAT")"
 TARGET_DIR_RELA=${TARGET_DIR_RELA//\$BRANCH/$BRANCH}
