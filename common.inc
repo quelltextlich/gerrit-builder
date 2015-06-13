@@ -1200,7 +1200,7 @@ EOF
 cat_html_footer_target_html() {
     echo_html_split_target_html
 
-    echo_target_html -n "<p class="legal-footer">Last update: $(timestamp)"
+    echo_target_html -n "<p class=\"legal-footer\">Last update: $(timestamp)"
     if [ ! -z "$LEGAL_URL" ]
     then
         echo_target_html -n "<br/><a href=\"$LEGAL_URL\">Contact / Legal</a>"
