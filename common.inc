@@ -441,8 +441,10 @@ run_system_test() {
                             if [ "$("$SCRIPT_DIR_ABS"/ssh_test-site.sh admin gerrit plugin ls | cut -f 1 -d ' ' | tail -n 1)" = "$PLUGIN_NAME" ]
                             then
                                 info "Plugin loaded and listed as '$PLUGIN_NAME'"
+                                info "Plugin loaded and listed as '$PLUGIN_NAME'" 2>>"$TARGET_FILE_ABS.system.stdout.txt"
                             else
                                 info "Plugin loaded, but was not listed as '$PLUGIN_NAME'"
+                                info "Plugin loaded, but was not listed as '$PLUGIN_NAME'" 2>>"$TARGET_FILE_ABS.system.stdout.txt"
                                 RETURN_CODE=1
                             fi
 
@@ -466,11 +468,13 @@ run_system_test() {
                                 DOC_MANUAL_FILE_RELT="$MANUAL_DIR_RELT/$DOC_MANUAL_FILE_RELM"
                             fi
                         else
-                            info Failed to install plugin
+                            info "Failed to install plugin"
+                            info "Failed to install plugin" 2>>"$TARGET_FILE_ABS.system.stdout.txt"
                             RETURN_CODE=1
                         fi
                     else
                         info "Plugin $PLUGIN_JAR_FILE_ABS does not exist"
+                        info "Plugin $PLUGIN_JAR_FILE_ABS does not exist" 2>>"$TARGET_FILE_ABS.system.stdout.txt"
                         RETURN_CODE=1
                     fi
                 elif [ "$ARTIFACT_BASENAME" = "withdocs.war" ]
@@ -489,6 +493,7 @@ run_system_test() {
                 fi
             else
                 info "Gerrit did not come up"
+                info "Gerrit did not come up" 2>>"$TARGET_FILE_ABS.system.stdout.txt"
                 echo "===stdout==="
                 cat "$TARGET_FILE_ABS.system.stdout.txt"
                 echo "===stderr==="
