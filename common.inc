@@ -40,6 +40,8 @@ INDEX_FILE_RELC="index.html"
 DOCS_DIR_RELT="docs"
 MANUAL_DIR_RELD="manual"
 MANUAL_DIR_RELT="$DOCS_DIR_RELT/$MANUAL_DIR_RELD"
+declare -A DOC_MANUAL_FILE_RELT=()
+declare -A REUSE_MANUAL_FROM=()
 JAVADOC_DIR_RELD="javadoc"
 JAVADOC_DIR_RELT="$DOCS_DIR_RELT/$JAVADOC_DIR_RELD"
 JAVADOC_CLASSPATH_DIR_RELJ="classpath"
@@ -380,10 +382,10 @@ plugin_jar_to_name() {
 
 
 #---------------------------------------------------------------------
-# sets $DOC_MANUAL_FILE_RELT
 dump_manual() {
-    local DESCRIPTION="$1"
-    shift
+    local ARTIFACT_BASENAME="$1"
+    local DESCRIPTION="$2"
+    shift 2
     local URLS_RELS=( "$@" )
 
     pushd "$DOC_MANUAL_DIR_ABS" >/dev/null
@@ -422,7 +424,7 @@ dump_manual() {
 
     echo_manual_index "<li><a href=\"${URLS_RELS[0]}\">$DESCRIPTION</a></li>"
 
-    DOC_MANUAL_FILE_RELT="$MANUAL_DIR_RELT/${URLS[0]}"
+    DOC_MANUAL_FILE_RELT["$ARTIFACT_BASENAME"]="$MANUAL_DIR_RELT/${URLS_RELS[0]}"
 
     popd >/dev/null
 }
@@ -430,7 +432,6 @@ dump_manual() {
 
 
 #---------------------------------------------------------------------
-# sets $DOC_MANUAL_FILE_RELT if appropriate
 run_system_test() {
     local ARTIFACT_BASENAME="$1"
     local ARTIFACT_GROUP="$2"
@@ -502,6 +503,7 @@ run_system_test() {
                                         ;;
                                 esac
                                 dump_manual \
+                                    "$ARTIFACT_BASENAME" \
                                     "$MANUAL_CHAPTER_LABEL" \
                                     "plugins/$PLUGIN_NAME/Documentation/index.html" \
                                     2> >(tee "$TARGET_FILE_ABS.manual.stderr.txt" >&2) \
@@ -517,16 +519,28 @@ run_system_test() {
                         info "Plugin $PLUGIN_JAR_FILE_ABS does not exist" 2>>"$TARGET_FILE_ABS.system.stdout.txt"
                         RETURN_CODE=1
                     fi
-                elif [ "$ARTIFACT_BASENAME" = "withdocs.war" ]
+                elif is_war_artifact "$ARTIFACT_BASENAME"
                 then
-                    if [ "$GENERATE_MANUAL" = "yes" ]
+                    if [ "$GENERATE_MANUAL" = "yes" \
+                        -a "$ARTIFACT_BASENAME" != "gerrit.war" \
+                        -a -z "${REUSE_MANUAL_FROM[$ARTIFACT_BASENAME]}" ]
                     then
                         dump_manual \
+                            "$ARTIFACT_BASENAME" \
                             "Gerrit core" \
                             "Documentation/index.html" \
                             "Documentation/images/link.png" \
                             2> >(tee "$TARGET_FILE_ABS.manual.stderr.txt" >&2) \
                             > >(tee "$TARGET_FILE_ABS.manual.stdout.txt")
+
+                        local WAR_ARTIFACT=
+                        for WAR_ARTIFACT in "${ARTIFACTS_WAR[@]}"
+                        do
+                            if [ -z "${REUSE_MANUAL_FROM[$WAR_ARTIFACT]}" ]
+                            then
+                                REUSE_MANUAL_FROM["$WAR_ARTIFACT"]="$ARTIFACT_BASENAME"
+                            fi
+                        done
                     fi
                 fi
             else
@@ -686,8 +700,6 @@ run_buck_build() {
     local ARTIFACT_GROUP="$4"
     local INSERT_BEFORE="$5"
 
-    local DOC_MANUAL_FILE_RELT=""
-
     if [ -z "$ARTIFACT_GROUP" ]
     then
         ARTIFACT_GROUP="info"
@@ -775,8 +787,7 @@ run_buck_build() {
         "$ARTIFACT_BASENAME" \
         "$BUCK_TARGET" \
         "$INSERT_BEFORE" \
-        "$ARTIFACT_GROUP" \
-        "$DOC_MANUAL_FILE_RELT"
+        "$ARTIFACT_GROUP"
 }
 
 #---------------------------------------------------------------------
@@ -926,7 +937,6 @@ echo_file_target_html() {
     local BUCK_TARGET="$3"
     local INSERT_BEFORE="$4"
     local ARTIFACT_GROUP="$5"
-    local DOC_MANUAL_FILE_RELT="$6"
 
     if [ -z "$ARTIFACT_GROUP" ]
     then
@@ -1036,16 +1046,21 @@ EOF
         OPEN_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:open\"$OPEN_CHANGES_TITLE_ATTRIBUTE>open$OPEN_CHANGES_TEXT_ADDENDUM</a>"
         CLOSED_CHANGES_CELL="<a href=\"https://gerrit-review.googlesource.com/#/q/project:$REPO_UPSTREAM_NAME+branch:$BRANCH+status:closed\">closed</a>"
 
-        if [ -e "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT.manual.stderr.txt" ]
+        local MANUAL_ARTIFACT_FILE_RELT="$ARTIFACT_FILE_RELT"
+        if [ -n "${REUSE_MANUAL_FROM[$ARTIFACT_FILE_RELT]}" ]
         then
-            if [ -e "$TARGET_DIR_ABS/$DOC_MANUAL_FILE_RELT" ]
+            MANUAL_ARTIFACT_FILE_RELT="${REUSE_MANUAL_FROM[$ARTIFACT_FILE_RELT]}"
+        fi
+        if [ -e "$TARGET_DIR_ABS/$MANUAL_ARTIFACT_FILE_RELT.manual.stderr.txt" ]
+        then
+            if [ -e "$TARGET_DIR_ABS/${DOC_MANUAL_FILE_RELT["$MANUAL_ARTIFACT_FILE_RELT"]}" ]
             then
-                MANUAL_CELL="<a href=\"$DOC_MANUAL_FILE_RELT\">manual</a>"
+                MANUAL_CELL="<a href=\"${DOC_MANUAL_FILE_RELT["$MANUAL_ARTIFACT_FILE_RELT"]}\">manual</a>"
             else
                 MANUAL_CELL="manual"
             fi
-            MANUAL_CELL+=" (<a href=\"$ARTIFACT_FILE_RELT.manual.stderr.txt\">stderr</a>"
-            MANUAL_CELL+=", <a href=\"$ARTIFACT_FILE_RELT.manual.stdout.txt\">stdout</a>)"
+            MANUAL_CELL+=" (<a href=\"$MANUAL_ARTIFACT_FILE_RELT.manual.stderr.txt\">stderr</a>"
+            MANUAL_CELL+=", <a href=\"$MANUAL_ARTIFACT_FILE_RELT.manual.stdout.txt\">stdout</a>)"
         fi
 
         local JAVADOC_ARTIFACT_RELT="$ARTIFACT_FILE_RELT"
@@ -1066,19 +1081,6 @@ EOF
             JAVADOC_CELL+=", <a href=\"$JAVADOC_ARTIFACT_FILE_RELT.javadoc.stdout.txt\">stdout</a>)"
         fi
     fi
-
-    # Patching up WAR artifacts with documentation from withdocs.jar
-    case "$ARTIFACT_FILE_RELT" in
-        "release.war" )
-            if [ "$MANUAL_CELL" = "---" ]
-            then
-                MANUAL_CELL="$MANUAL_CELL_WITHDOCS_WAR"
-            fi
-            ;;
-        "withdocs.war" )
-            MANUAL_CELL_WITHDOCS_WAR="$MANUAL_CELL"
-            ;;
-    esac
 
     local STATUS_TEXT=
     set_STATUS_TEXT "uncounted"
