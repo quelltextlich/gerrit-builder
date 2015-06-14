@@ -492,7 +492,6 @@ run_system_test() {
 
                             if [ "$GENERATE_MANUAL" = "yes" ]
                             then
-                                local DOC_MANUAL_FILE_RELM="plugins/$PLUGIN_NAME/Documentation/index.html"
                                 local MANUAL_CHAPTER_LABEL="Plugin: $PLUGIN_NAME"
                                 case "$ARTIFACT_GROUP" in
                                     "bundled" )
@@ -504,7 +503,7 @@ run_system_test() {
                                 esac
                                 dump_manual \
                                     "$MANUAL_CHAPTER_LABEL" \
-                                    "$DOC_MANUAL_FILE_RELM" \
+                                    "plugins/$PLUGIN_NAME/Documentation/index.html" \
                                     2> >(tee "$TARGET_FILE_ABS.manual.stderr.txt" >&2) \
                                     > >(tee "$TARGET_FILE_ABS.manual.stdout.txt")
                             fi
@@ -522,10 +521,9 @@ run_system_test() {
                 then
                     if [ "$GENERATE_MANUAL" = "yes" ]
                     then
-                        local DOC_MANUAL_FILE_RELM="Documentation/index.html"
                         dump_manual \
                             "Gerrit core" \
-                            "$DOC_MANUAL_FILE_RELM" \
+                            "Documentation/index.html" \
                             "Documentation/images/link.png" \
                             2> >(tee "$TARGET_FILE_ABS.manual.stderr.txt" >&2) \
                             > >(tee "$TARGET_FILE_ABS.manual.stdout.txt")
