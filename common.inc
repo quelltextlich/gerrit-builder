@@ -493,7 +493,7 @@ run_system_test() {
                                 local MANUAL_CHAPTER_LABEL="Plugin: $PLUGIN_NAME"
                                 case "$ARTIFACT_GROUP" in
                                     "bundled" )
-                                        MANUAL_CHAPTER_LABEL="Bundled plugin: $PLUGIN"
+                                        MANUAL_CHAPTER_LABEL="Bundled plugin: $PLUGIN_NAME"
                                         ;;
                                     "separate" )
                                         MANUAL_CHAPTER_LABEL="Separate plugin: $PLUGIN_NAME"
