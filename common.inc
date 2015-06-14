@@ -43,6 +43,7 @@ MANUAL_DIR_RELT="$DOCS_DIR_RELT/$MANUAL_DIR_RELD"
 JAVADOC_DIR_RELD="javadoc"
 JAVADOC_DIR_RELT="$DOCS_DIR_RELT/$JAVADOC_DIR_RELD"
 JAVADOC_CLASSPATH_DIR_RELJ="classpath"
+declare -A REUSE_JAVADOC_FROM=()
 #---------------------------------------------------------------------
 BUILD_ARTIFACTS=yes
 LEGAL_URL_RELS="legal.url"
@@ -112,6 +113,24 @@ declare -A TARGET_TEST_LABELS=()
 declare -A ARTIFACT_GROUP_STATUS=()
 declare -A ARTIFACT_GROUP_STATUS_COUNT=()
 declare -A ARTIFACT_GROUP_TOTAL_COUNT=()
+
+ARTIFACTS_WAR=( \
+    "gerrit.war" \
+    "withdocs.war" \
+    "release.war" \
+)
+ARTIFACTS_API=( \
+    "extension-api.jar" \
+    "extension-api-src.jar" \
+    "extension-api-javadoc.jar" \
+    "plugin-api.jar" \
+    "plugin-api-src.jar" \
+    "plugin-api-javadoc.jar" \
+    "gwtui-api.jar" \
+    "gwtui-api-src.jar" \
+    "gwtui-api-javadoc.jar" \
+    "api.zip" \
+)
 #---------------------------------------------------------------------
 mkdir -p "$ARTIFACTS_DIR_ABS"
 
@@ -146,6 +165,26 @@ in_array() {
 is_ignored_plugin () {
     local PLUGIN_NAME="$1"
     if in_array "$PLUGIN_NAME" "${IGNORED_PLUGINS[@]}"
+    then
+        return 0
+    fi
+    return 1
+}
+
+#---------------------------------------------------------------------
+is_war_artifact () {
+    local ARTIFACT_BASENAME="$1"
+    if in_array "$ARTIFACT_BASENAME" "${ARTIFACTS_WAR[@]}"
+    then
+        return 0
+    fi
+    return 1
+}
+
+#---------------------------------------------------------------------
+is_api_artifact () {
+    local ARTIFACT_BASENAME="$1"
+    if in_array "$ARTIFACT_BASENAME" "${ARTIFACTS_API[@]}"
     then
         return 0
     fi
@@ -542,7 +581,6 @@ argument)"
 
 
 #---------------------------------------------------------------------
-#sets DOC_JAVADOC_FILE_RELT
 generate_javadoc() {
     ARTIFACT_BASENAME="$1"
     REPO_DIR_RELG="$2"
@@ -637,8 +675,6 @@ generate_javadoc() {
         2> >(tee "$TARGET_FILE_ABS.javadoc.stderr.txt" >&2) \
         | tee "$TARGET_FILE_ABS.javadoc.stdout.txt" \
         || true
-
-    DOC_JAVADOC_FILE_RELT="$JAVADOC_DIR_RELT/$ARTIFACT_BASENAME/index.html"
 }
 
 
@@ -652,7 +688,6 @@ run_buck_build() {
     local INSERT_BEFORE="$5"
 
     local DOC_MANUAL_FILE_RELT=""
-    local DOC_JAVADOC_FILE_RELT=""
 
     if [ -z "$ARTIFACT_GROUP" ]
     then
@@ -713,12 +748,26 @@ run_buck_build() {
         # The directory of the buck generated file matches the source directory
         # relative to the gerrit directory. Hence, we can reuse it below.
         ARTIFACT_SOURCE_DIR_RELG="$(dirname "$BUCK_GENERATED_FILE_RELBG")"
-        if [ "${ARTIFACT_SOURCE_DIR_RELG:0:8}" = "plugins/" \
-            -o "$ARTIFACT_BASENAME" = "gerrit.war" ]
+        if [ -z "${REUSE_JAVADOC_FROM[$ARTIFACT_BASENAME]}" ]
         then
-            generate_javadoc \
-                "$ARTIFACT_BASENAME" \
-                "$ARTIFACT_SOURCE_DIR_RELG"
+            if ! is_api_artifact "$ARTIFACT_BASENAME"
+            then
+                generate_javadoc \
+                    "$ARTIFACT_BASENAME" \
+                    "$ARTIFACT_SOURCE_DIR_RELG"
+
+                if is_war_artifact "$ARTIFACT_BASENAME"
+                then
+                    local WAR_ARTIFACT=
+                    for WAR_ARTIFACT in "${ARTIFACTS_WAR[@]}"
+                    do
+                        if [ -z "${REUSE_JAVADOC_FROM[$WAR_ARTIFACT]}" ]
+                        then
+                            REUSE_JAVADOC_FROM[$WAR_ARTIFACT]="$ARTIFACT_BASENAME"
+                        fi
+                    done
+                fi
+            fi
         fi
     fi
 
@@ -728,8 +777,7 @@ run_buck_build() {
         "$BUCK_TARGET" \
         "$INSERT_BEFORE" \
         "$ARTIFACT_GROUP" \
-        "$DOC_MANUAL_FILE_RELT" \
-        "$DOC_JAVADOC_FILE_RELT"
+        "$DOC_MANUAL_FILE_RELT"
 }
 
 #---------------------------------------------------------------------
@@ -880,7 +928,6 @@ echo_file_target_html() {
     local INSERT_BEFORE="$4"
     local ARTIFACT_GROUP="$5"
     local DOC_MANUAL_FILE_RELT="$6"
-    local DOC_JAVADOC_FILE_RELT="$7"
 
     if [ -z "$ARTIFACT_GROUP" ]
     then
@@ -1002,41 +1049,35 @@ EOF
             MANUAL_CELL+=", <a href=\"$ARTIFACT_FILE_RELT.manual.stdout.txt\">stdout</a>)"
         fi
 
-        if [ -e "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT.javadoc.stderr.txt" ]
+        local JAVADOC_ARTIFACT_RELT="$ARTIFACT_FILE_RELT"
+        if [ -n "${REUSE_JAVADOC_FROM[$ARTIFACT_FILE_RELT]}" ]
         then
-            if [ -e "$TARGET_DIR_ABS/$DOC_JAVADOC_FILE_RELT" ]
+            JAVADOC_ARTIFACT_RELT="${REUSE_JAVADOC_FROM[$ARTIFACT_FILE_RELT]}"
+        fi
+        if [ -e "$TARGET_DIR_ABS/$JAVADOC_ARTIFACT_RELT.javadoc.stderr.txt" ]
+        then
+            local JAVADOC_INDEX_FILE_RELT="$JAVADOC_DIR_RELT/$JAVADOC_ARTIFACT_RELT/index.html"
+            if [ -e "$TARGET_DIR_ABS/$JAVADOC_INDEX_FILE_RELT" ]
             then
-                JAVADOC_CELL="<a href=\"$DOC_JAVADOC_FILE_RELT\">javadoc</a>"
+                JAVADOC_CELL="<a href=\"$JAVADOC_INDEX_FILE_RELT\">javadoc</a>"
             else
                 JAVADOC_CELL="javadoc"
             fi
-            JAVADOC_CELL+=" (<a href=\"$ARTIFACT_FILE_RELT.javadoc.stderr.txt\">stderr</a>"
-            JAVADOC_CELL+=", <a href=\"$ARTIFACT_FILE_RELT.javadoc.stdout.txt\">stdout</a>)"
+            JAVADOC_CELL+=" (<a href=\"$JAVADOC_ARTIFACT_FILE_RELT.javadoc.stderr.txt\">stderr</a>"
+            JAVADOC_CELL+=", <a href=\"$JAVADOC_ARTIFACT_FILE_RELT.javadoc.stdout.txt\">stdout</a>)"
         fi
     fi
 
     # Patching up WAR artifacts with documentation from withdocs.jar
     case "$ARTIFACT_FILE_RELT" in
-        "gerrit.war" )
-            JAVADOC_CELL_GERRIT_WAR="$JAVADOC_CELL"
-            ;;
         "release.war" )
             if [ "$MANUAL_CELL" = "---" ]
             then
                 MANUAL_CELL="$MANUAL_CELL_WITHDOCS_WAR"
             fi
-            if [ "$JAVADOC_CELL" = "---" ]
-            then
-                JAVADOC_CELL="$JAVADOC_CELL_WITHDOCS_WAR"
-            fi
             ;;
         "withdocs.war" )
-            if [ "$JAVADOC_CELL" = "---" ]
-            then
-                JAVADOC_CELL="$JAVADOC_CELL_GERRIT_WAR"
-            fi
             MANUAL_CELL_WITHDOCS_WAR="$MANUAL_CELL"
-            JAVADOC_CELL_WITHDOCS_WAR="$JAVADOC_CELL"
             ;;
     esac
 
