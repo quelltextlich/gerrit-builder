@@ -495,8 +495,8 @@ run_system_test() {
                                     "bundled" )
                                         MANUAL_CHAPTER_LABEL="Bundled plugin: $PLUGIN"
                                         ;;
-                                    "bundled" )
-                                        MANUAL_CHAPTER_LABEL="Separate plugin: $PLUGIN"
+                                    "separate" )
+                                        MANUAL_CHAPTER_LABEL="Separate plugin: $PLUGIN_NAME"
                                         ;;
                                 esac
                                 dump_manual \
