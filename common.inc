@@ -380,6 +380,7 @@ plugin_jar_to_name() {
 
 
 #---------------------------------------------------------------------
+# sets $DOC_MANUAL_FILE_RELT
 dump_manual() {
     local DESCRIPTION="$1"
     shift
@@ -420,6 +421,8 @@ dump_manual() {
     done
 
     echo_manual_index "<li><a href=\"${URLS_RELS[0]}\">$DESCRIPTION</a></li>"
+
+    DOC_MANUAL_FILE_RELT="$MANUAL_DIR_RELT/${URLS[0]}"
 
     popd >/dev/null
 }
@@ -503,8 +506,7 @@ run_system_test() {
                                     "$MANUAL_CHAPTER_LABEL" \
                                     "$DOC_MANUAL_FILE_RELM" \
                                     2> >(tee "$TARGET_FILE_ABS.manual.stderr.txt" >&2) \
-                                    | tee "$TARGET_FILE_ABS.manual.stdout.txt"
-                                DOC_MANUAL_FILE_RELT="$MANUAL_DIR_RELT/$DOC_MANUAL_FILE_RELM"
+                                    > >(tee "$TARGET_FILE_ABS.manual.stdout.txt")
                             fi
                         else
                             info "Failed to install plugin"
@@ -526,8 +528,7 @@ run_system_test() {
                             "$DOC_MANUAL_FILE_RELM" \
                             "Documentation/images/link.png" \
                             2> >(tee "$TARGET_FILE_ABS.manual.stderr.txt" >&2) \
-                            | tee "$TARGET_FILE_ABS.manual.stdout.txt"
-                        DOC_MANUAL_FILE_RELT="$MANUAL_DIR_RELT/$DOC_MANUAL_FILE_RELM"
+                            > >(tee "$TARGET_FILE_ABS.manual.stdout.txt")
                     fi
                 fi
             else
