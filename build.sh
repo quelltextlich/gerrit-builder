@@ -799,7 +799,21 @@ done
 # This is after the bundled plugins, to avoid that building the
 # release.war would warm the caches for the bundled plugins (and
 # thereby stealing logs)
-run_buck_build "gerrit, release.war" "//:release" "release.war" "war" "gerrit.war"
+RELEASE_WAR_INSERT_BEFORE=
+for RELEASE_WAR_INSERT_BEFORE_CANDIDATE in \
+    "gerrit.war" \
+    "withdocs.war" \
+
+do
+    if [ -z "$RELEASE_WAR_INSERT_BEFORE" ]
+    then
+        if grep -q 'Artifact: '"$RELEASE_WAR_INSERT_BEFORE_CANDIDATE" "$TARGET_HTML_FILE_ABS"
+        then
+            RELEASE_WAR_INSERT_BEFORE="$RELEASE_WAR_INSERT_BEFORE_CANDIDATE"
+        fi
+    fi
+done
+run_buck_build "gerrit, release.war" "//:release" "release.war" "war" "$RELEASE_WAR_INSERT_BEFORE"
 
 
 # Building extra plugins
