@@ -48,7 +48,7 @@ repo_path_check() {
     return 1
 }
 
-REPO_NAMES=$(wget -O - -o /dev/null 'https://gerrit-review.googlesource.com/projects/?m=plugins%2F&n=101&type=ALL' | grep '^  "' | cut -f 2 -d '"' | sort)
+REPO_NAMES=$(wget -O - -o /dev/null 'https://gerrit-review.googlesource.com/projects/?m=plugins%2F&n=101&type=CODE' | grep '^  "' | cut -f 2 -d '"' | sort)
 
 while read REPO_NAME
 do
