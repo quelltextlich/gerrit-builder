@@ -747,34 +747,60 @@ run_buck_build() {
         fi
     fi
 
-    if [ "$STATUS" = "ok" -a "$TEST_UNIT" = "yes" -a -n "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" ]
+    if [ "$STATUS" = "ok" -a "$TEST_UNIT" = "yes" ]
     then
         local BUCK_TEST_EXTRA_OPTS=()
-        CODE_COVERAGE_DIR_ABS="$GERRIT_DIR_ABS/buck-out/gen/jacoco"
-        CODE_COVERAGE_EXEC_FILE_ABS="$CODE_COVERAGE_DIR_ABS/jacoco.exec"
-        CODE_COVERAGE_HTML_DIR_ABS="$CODE_COVERAGE_DIR_ABS/code-coverage"
-        rm -rf "$CODE_COVERAGE_DIR_ABS"
-        if [ "$CODE_COVERAGE" = "yes" ]
+        local RUN_UNIT_TESTS=no
+        if [ -n "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" ]
         then
             BUCK_TEST_EXTRA_OPTS+=( \
-                "--code-coverage" \
-                "--code-coverage-format" "HTML" \
+                "--include" "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" \
             )
-        fi
-        if ! run_buck_logged test \
-            --no-results-cache \
-            --include "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" \
-            "${BUCK_TEST_EXTRA_OPTS[@]}"
+            RUN_UNIT_TESTS=yes
+        elif is_war_artifact "$ARTIFACT_BASENAME"
         then
-            STATUS="broken"
+            local TARGET_TEST_LABEL=
+            for TARGET_TEST_LABEL in "${TARGET_TEST_LABELS[@]}"
+            do
+                if [ -n "$TARGET_TEST_LABEL" ]
+                then
+                    BUCK_TEST_EXTRA_OPTS+=( \
+                        "--exclude" "$TARGET_TEST_LABEL" \
+                        )
+                fi
+            done
+            RUN_UNIT_TESTS=yes
         fi
-        if [ -e "$CODE_COVERAGE_EXEC_FILE_ABS" ]
+
+        if [ "$RUN_UNIT_TESTS" = "yes" ]
         then
-            cp "$CODE_COVERAGE_EXEC_FILE_ABS" "$TARGET_FILE_ABS.coverage.jacoco.exec"
-        fi
-        if [ -e "$CODE_COVERAGE_HTML_DIR_ABS" ]
-        then
-            cp -a "$CODE_COVERAGE_HTML_DIR_ABS" "$TARGET_DIR_ABS/$COVERAGE_DIR_RELT/$ARTIFACT_BASENAME"
+            CODE_COVERAGE_DIR_ABS="$GERRIT_DIR_ABS/buck-out/gen/jacoco"
+            CODE_COVERAGE_EXEC_FILE_ABS="$CODE_COVERAGE_DIR_ABS/jacoco.exec"
+            CODE_COVERAGE_HTML_DIR_ABS="$CODE_COVERAGE_DIR_ABS/code-coverage"
+            rm -rf "$CODE_COVERAGE_DIR_ABS"
+            if [ "$CODE_COVERAGE" = "yes" ]
+            then
+                BUCK_TEST_EXTRA_OPTS+=( \
+                    "--code-coverage" \
+                    "--code-coverage-format" "HTML" \
+                    )
+            fi
+
+            if ! run_buck_logged test \
+                --no-results-cache \
+                "${BUCK_TEST_EXTRA_OPTS[@]}"
+            then
+                STATUS="broken"
+            fi
+
+            if [ -e "$CODE_COVERAGE_EXEC_FILE_ABS" ]
+            then
+                cp "$CODE_COVERAGE_EXEC_FILE_ABS" "$TARGET_FILE_ABS.coverage.jacoco.exec"
+            fi
+            if [ -e "$CODE_COVERAGE_HTML_DIR_ABS" ]
+            then
+                cp -a "$CODE_COVERAGE_HTML_DIR_ABS" "$TARGET_DIR_ABS/$COVERAGE_DIR_RELT/$ARTIFACT_BASENAME"
+            fi
         fi
     fi
 
