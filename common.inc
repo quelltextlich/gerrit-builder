@@ -786,6 +786,15 @@ run_buck_build() {
                     )
             fi
 
+            if [ "${#IGNORED_UNIT_TESTS[@]}" -gt 0 ]
+            then
+                local IGNORED_UNIT_TEST
+                for IGNORED_UNIT_TEST in "${IGNORED_UNIT_TESTS[@]}"
+                do
+                    BUCK_TEST_EXTRA_OPTS+=( "--filter" "!$IGNORED_UNIT_TEST" )
+                done
+            fi
+
             if ! run_buck_logged test \
                 --no-results-cache \
                 "${BUCK_TEST_EXTRA_OPTS[@]}"

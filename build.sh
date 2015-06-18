@@ -11,6 +11,7 @@ CODE_COVERAGE=yes
 CLEAN=yes
 GENERATE_MANUAL=yes
 GENERATE_JAVADOC=yes
+IGNORED_UNIT_TESTS=()
 REMOVE_LINKS=yes
 MANAGE_LATEST_LINK=yes
 STOP_TEST_SITE=yes
@@ -44,6 +45,11 @@ ARGUMENTS:
   --javadoc          - Generate the javadoc documentation (On per default)
   --ignore-plugin PLUGIN
                      - Don't build, test, ... the plugin PLUGIN
+  --ignore-unit-tests CLASS1,CLASS2,...
+                     - Don't run unit tests in class CLASS1, CLASS2, ...
+                       If this parameter is provided multiple times, the classes
+                       are accumulated, and none of the unit tests in the
+                       classes are run.
   --latest-linking   - Generate a 'latest' link in the artifacts directory
                        pointing to the latest build
   --link-removing    - Remove unneeded links to extra plugins underneath
@@ -116,6 +122,14 @@ parse_arguments() {
             "--ignore-plugin" )
                 [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
                 IGNORED_PLUGINS=( "${IGNORED_PLUGINS[@]}" "$1" )
+                shift || true
+                ;;
+            "--ignore-unit-tests" )
+                [ $# -ge 1 ] || error "$ARGUMENT requires 1 more argument"
+                while read LINE
+                do
+                    IGNORED_UNIT_TESTS+=( "$LINE" )
+                done < <(tr ',' '\n' <<<"$1")
                 shift || true
                 ;;
             "--branch" )
