@@ -297,8 +297,10 @@ run_buck_logged() {
     local RETURN_CODE=0
 
     local LOG_FILE_ABS="$GERRIT_DIR_ABS/buck-out/log/buck-0.log"
+    local TRACE_FILE_ABS="$GERRIT_DIR_ABS/buck-out/log/traces/build.trace"
 
     rm -f "$LOG_FILE_ABS"
+    rm -f "$TRACE_FILE_ABS"
 
     if ! run_buck "$@" 2> >(tee "$TARGET_FILE_ABS.$ASPECT.stderr.txt" >&2) | tee "$TARGET_FILE_ABS.$ASPECT.stdout.txt"
     then
@@ -308,6 +310,10 @@ run_buck_logged() {
     if [ -e "$LOG_FILE_ABS" ]
     then
         cp "$LOG_FILE_ABS" "$TARGET_FILE_ABS.$ASPECT.buck_log.txt"
+    fi
+    if [ -e "$TRACE_FILE_ABS" ]
+    then
+        cp "$TRACE_FILE_ABS" "$TARGET_FILE_ABS.$ASPECT.buck_trace.txt"
     fi
     return "$RETURN_CODE"
 }
