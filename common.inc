@@ -762,6 +762,7 @@ run_buck_build() {
             )
         fi
         if ! run_buck_logged test \
+            --no-results-cache \
             --include "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" \
             "${BUCK_TEST_EXTRA_OPTS[@]}"
         then
