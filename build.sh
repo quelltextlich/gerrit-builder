@@ -383,8 +383,14 @@ generate_docu_index() {
     fi
 }
 
-mkdir -p "$DOC_MANUAL_DIR_ABS"
-mkdir -p "$DOC_JAVADOC_DIR_ABS"
+if [ "$GENERATE_MANUAL" = "yes" ]
+then
+    mkdir -p "$DOC_MANUAL_DIR_ABS"
+fi
+if [ "$GENERATE_JAVADOC" = "yes" ]
+then
+    mkdir -p "$DOC_JAVADOC_DIR_ABS"
+fi
 
 generate_docu_index
 
