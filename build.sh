@@ -317,7 +317,7 @@ fi
 post_parameter_parsing_setup
 
 cat_manual_index_header() {
-    if [ "$GENERATE_MANUAL" ]
+    if [ "$GENERATE_MANUAL" = "yes" ]
     then
         local TARGET_HTML_FILE_ABS="$MANUAL_INDEX_FILE_ABS"
 
@@ -336,7 +336,7 @@ EOF
 }
 
 echo_manual_index() {
-    if [ "$GENERATE_MANUAL" ]
+    if [ "$GENERATE_MANUAL" = "yes" ]
     then
         local TARGET_HTML_FILE_ABS="$MANUAL_INDEX_FILE_ABS"
 
@@ -345,7 +345,7 @@ echo_manual_index() {
 }
 
 cat_manual_index_footer() {
-    if [ "$GENERATE_MANUAL" ]
+    if [ "$GENERATE_MANUAL" = "yes" ]
     then
         local TARGET_HTML_FILE_ABS="$MANUAL_INDEX_FILE_ABS"
 
@@ -356,7 +356,7 @@ cat_manual_index_footer() {
 }
 
 generate_docu_index() {
-    if [ "$GENERATE_MANUAL" -o "$GENERATE_JAVADOC" ]
+    if [ "$GENERATE_MANUAL" = "yes" -o "$GENERATE_JAVADOC" = "yes" ]
     then
         local TARGET_HTML_FILE_ABS="$TARGET_DIR_ABS/$DOCS_DIR_RELT/$INDEX_FILE_RELC"
 
@@ -368,12 +368,12 @@ generate_docu_index() {
 
         echo_target_html "<ol>"
 
-        if [ "$GENERATE_MANUAL"  ]
+        if [ "$GENERATE_MANUAL" = "yes" ]
         then
             echo_target_html "<li><a href=\"$MANUAL_DIR_RELD/$INDEX_FILE_RELC\">Manual</a></li>"
         fi
 
-        if [ "$GENERATE_JAVADOC" ]
+        if [ "$GENERATE_JAVADOC" = "yes" ]
         then
             echo_target_html "<li><a href=\"$JAVADOC_DIR_RELD\">Javadoc</a></li>"
         fi
