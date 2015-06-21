@@ -7,6 +7,7 @@ source "$(dirname "$0")/common.inc"
 FORCE=no
 PULL=yes
 CHECKOUT=yes
+CODE_COVERAGE=yes
 CLEAN=yes
 GENERATE_MANUAL=yes
 GENERATE_JAVADOC=yes
@@ -34,7 +35,11 @@ ARGUMENTS:
   --building         - Build artifacts (On per default)
   --checkout         - 'git checkout' before building (On per default)
   --clean            - clean before building (On per default)
-  --documentation    - Build documentation (manual, javadoc) (On per default)
+  --code-coverage    - Generate code coverage analysis of unit tests.
+                       Implies running unit tests.
+                       (On per default)
+  --documentation    - Build documentation (manual, javadoc, code coverage)
+                       (On per default)
   --force            - Overwrite eventual existing artifacts target directory
   --javadoc          - Generate the javadoc documentation (On per default)
   --ignore-plugin PLUGIN
@@ -47,7 +52,9 @@ ARGUMENTS:
   --no-building      - Don't build artifacts
   --no-checkout      - Don't 'git checkout' before building
   --no-clean         - Don't clean before building
-  --no-documentation - Don't build documentation (manual, javadoc)
+  --no-code-coverage - Don't generate code coverage analysis of unit tests.
+  --no-documentation - Don't build documentation. No manual. No javadoc.
+                       No code-coverage.
   --no-javadoc       - Don't generate the javadoc documentation
   --no-manual        - Don't generate the manual
   --no-pull          - Don't 'git pull' before building
@@ -125,10 +132,16 @@ parse_arguments() {
             "--clean" )
                 CLEAN=yes
                 ;;
+            "--code-coverage" )
+                CODE_COVERAGE=yes
+                TEST_UNIT=yes
+                ;;
             "--documentation" )
+                CODE_COVERAGE=yes
                 GENERATE_JAVADOC=yes
                 GENERATE_MANUAL=yes
                 TEST_SYSTEM=yes
+                TEST_UNIT=yes
                 ;;
             "--javadoc" )
                 GENERATE_JAVADOC=yes
@@ -152,7 +165,11 @@ parse_arguments() {
             "--no-clean" )
                 CLEAN=no
                 ;;
+            "--no-code-coverage" )
+                CODE_COVERAGE=no
+                ;;
             "--no-documentation" )
+                CODE_COVERAGE=no
                 GENERATE_JAVADOC=no
                 GENERATE_MANUAL=no
                 ;;
@@ -356,7 +373,10 @@ cat_manual_index_footer() {
 }
 
 generate_docu_index() {
-    if [ "$GENERATE_MANUAL" = "yes" -o "$GENERATE_JAVADOC" = "yes" ]
+    if [ "$GENERATE_MANUAL" = "yes" \
+        -o "$GENERATE_JAVADOC" = "yes" \
+        -o "$CODE_COVERAGE" = "yes" \
+        ]
     then
         local TARGET_HTML_FILE_ABS="$TARGET_DIR_ABS/$DOCS_DIR_RELT/$INDEX_FILE_RELC"
 
@@ -377,6 +397,10 @@ generate_docu_index() {
         then
             echo_target_html "<li><a href=\"$JAVADOC_DIR_RELD\">Javadoc</a></li>"
         fi
+        if [ "$CODE_COVERAGE" = "yes" ]
+        then
+            echo_target_html "<li><a href=\"$COVERAGE_DIR_RELD\">Unit test code coverage</a></li>"
+        fi
 
         echo_target_html "</ol>"
         cat_html_footer_target_html
@@ -390,6 +414,10 @@ fi
 if [ "$GENERATE_JAVADOC" = "yes" ]
 then
     mkdir -p "$DOC_JAVADOC_DIR_ABS"
+fi
+if [ "$CODE_COVERAGE" = "yes" ]
+then
+    mkdir -p "$DOC_COVERAGE_DIR_ABS"
 fi
 
 generate_docu_index

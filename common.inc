@@ -46,6 +46,8 @@ JAVADOC_DIR_RELD="javadoc"
 JAVADOC_DIR_RELT="$DOCS_DIR_RELT/$JAVADOC_DIR_RELD"
 JAVADOC_CLASSPATH_DIR_RELJ="classpath"
 declare -A REUSE_JAVADOC_FROM=()
+COVERAGE_DIR_RELD="coverage"
+COVERAGE_DIR_RELT="$DOCS_DIR_RELT/$COVERAGE_DIR_RELD"
 #---------------------------------------------------------------------
 BUILD_ARTIFACTS=yes
 LEGAL_URL_RELS="legal.url"
@@ -142,6 +144,7 @@ post_parameter_parsing_setup() {
     MANUAL_INDEX_FILE_ABS="$DOC_MANUAL_DIR_ABS/$INDEX_FILE_RELC"
     DOC_JAVADOC_DIR_ABS="$TARGET_DIR_ABS/$JAVADOC_DIR_RELT"
     JAVADOC_CLASSPATH_DIR_ABS="$DOC_JAVADOC_DIR_ABS/$JAVADOC_CLASSPATH_DIR_RELJ"
+    DOC_COVERAGE_DIR_ABS="$TARGET_DIR_ABS/$COVERAGE_DIR_RELT"
 }
 
 # Calling once already upon sourcing, put scripts are encouraged to
@@ -746,9 +749,31 @@ run_buck_build() {
 
     if [ "$STATUS" = "ok" -a "$TEST_UNIT" = "yes" -a -n "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" ]
     then
-        if ! run_buck_logged test --include "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" then
+        local BUCK_TEST_EXTRA_OPTS=()
+        CODE_COVERAGE_DIR_ABS="$GERRIT_DIR_ABS/buck-out/gen/jacoco"
+        CODE_COVERAGE_EXEC_FILE_ABS="$CODE_COVERAGE_DIR_ABS/jacoco.exec"
+        CODE_COVERAGE_HTML_DIR_ABS="$CODE_COVERAGE_DIR_ABS/code-coverage"
+        rm -rf "$CODE_COVERAGE_DIR_ABS"
+        if [ "$CODE_COVERAGE" = "yes" ]
+        then
+            BUCK_TEST_EXTRA_OPTS+=( \
+                "--code-coverage" \
+                "--code-coverage-format" "HTML" \
+            )
+        fi
+        if ! run_buck_logged test \
+            --include "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" \
+            "${BUCK_TEST_EXTRA_OPTS[@]}"
         then
             STATUS="broken"
+        fi
+        if [ -e "$CODE_COVERAGE_EXEC_FILE_ABS" ]
+        then
+            cp "$CODE_COVERAGE_EXEC_FILE_ABS" "$TARGET_FILE_ABS.coverage.jacoco.exec"
+        fi
+        if [ -e "$CODE_COVERAGE_HTML_DIR_ABS" ]
+        then
+            cp -a "$CODE_COVERAGE_HTML_DIR_ABS" "$TARGET_DIR_ABS/$COVERAGE_DIR_RELT/$ARTIFACT_BASENAME"
         fi
     fi
 
@@ -871,6 +896,7 @@ cat_file_header_target_html() {
     <th>Size</th>
     <th>Build logs</th>
     <th>Unit test logs</th>
+    <th colspan="4">Unit test coverage</th>
     <th>System test logs</th>
     <th>Repository</th>
     <th>Description</th>
@@ -937,6 +963,20 @@ echo_file_size() {
 }
 
 #---------------------------------------------------------------------
+echo_extracted_coverage() {
+    INDEX_HTML_FILE_ABS="$1"
+    ROW_NUMBER="$2"
+
+    sed -e 's@</\?tr\(>\| \)@\n@g' <"$INDEX_HTML_FILE_ABS" \
+        | grep 'Total' \
+        | sed -e 's@</\?td\(>\| \)@\n@g' \
+        | cut -f 2 -d '>' \
+        | grep % \
+        | head -n "$ROW_NUMBER" \
+        | tail -n 1
+}
+
+#---------------------------------------------------------------------
 echo_file_target_html() {
     local STATUS="$1"
     local ARTIFACT_FILE_RELT="$2"
@@ -986,11 +1026,32 @@ EOF
     local CLOSED_CHANGES_CELL="---"
     local MANUAL_CELL="---"
     local JAVADOC_CELL="---"
+    local COVERAGE_INSTRUCTIONS_CELL="---"
+    local COVERAGE_BRANCHES_CELL="---"
+    local COVERAGE_EXEC_CELL="---"
+    local COVERAGE_DOC_CELL="---"
     if [ -n "$BUCK_TARGET" ]
     then
         BUILD_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "build")"
         UNIT_TEST_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "test")"
         SYSTEM_TEST_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "system")"
+
+        if [ -e "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT.coverage.jacoco.exec" ]
+        then
+            COVERAGE_EXEC_CELL="<a href=\"$ARTIFACT_FILE_RELT.coverage.jacoco.exec\">jacoco.exec</a>"
+        fi
+
+        local COVERAGE_INDEX_FILE_ABS="$DOC_COVERAGE_DIR_ABS/$ARTIFACT_FILE_RELT/index.html"
+        if [ -e "$COVERAGE_INDEX_FILE_ABS" ]
+        then
+            COVERAGE_DOC_CELL="<a href=\"$COVERAGE_DIR_RELT/$ARTIFACT_FILE_RELT/index.html\">html</a>"
+
+            local COVERED_INSTRUCTIONS="$(echo_extracted_coverage "$COVERAGE_INDEX_FILE_ABS" 1 || echo "?%")"
+            COVERAGE_INSTRUCTIONS_CELL="<span title=\"$COVERED_INSTRUCTIONS of $ARTIFACT_FILE_RELT instructions covered by unit tests\">$COVERED_INSTRUCTIONS</span>"
+
+            local COVERED_BRANCHES="$(echo_extracted_coverage "$COVERAGE_INDEX_FILE_ABS" 2 || echo "?%")"
+            COVERAGE_BRANCHES_CELL="<span title=\"$COVERED_BRANCHES of $ARTIFACT_FILE_RELT branches covered by unit tests\">$COVERED_BRANCHES</span>"
+        fi
 
         local REPO="$(cut -f 1 -d : <<<"$BUCK_TARGET")"
         if [ "${REPO:0:8}" != "plugins/" ]
@@ -1099,6 +1160,10 @@ EOF
     <td class=\"right\">$SIZE_CELL</td>
     <td>$BUILD_LOG_CELL</td>
     <td>$UNIT_TEST_LOG_CELL</td>
+    <td>$COVERAGE_INSTRUCTIONS_CELL</td>
+    <td>$COVERAGE_BRANCHES_CELL</td>
+    <td>$COVERAGE_EXEC_CELL</td>
+    <td>$COVERAGE_DOC_CELL</td>
     <td>$SYSTEM_TEST_LOG_CELL</td>
     <td>$REPO_CELL</td>
     <td>$DESCRIPTION_CELL</td>
