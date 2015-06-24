@@ -48,6 +48,7 @@ JAVADOC_CLASSPATH_DIR_RELJ="classpath"
 declare -A REUSE_JAVADOC_FROM=()
 COVERAGE_DIR_RELD="coverage"
 COVERAGE_DIR_RELT="$DOCS_DIR_RELT/$COVERAGE_DIR_RELD"
+declare -A REUSE_UNIT_TESTS_FROM=()
 #---------------------------------------------------------------------
 BUILD_ARTIFACTS=yes
 LEGAL_URL_RELS="legal.url"
@@ -747,7 +748,10 @@ run_buck_build() {
         fi
     fi
 
-    if [ "$STATUS" = "ok" -a "$TEST_UNIT" = "yes" ]
+    if [ "$STATUS" = "ok" \
+        -a "$TEST_UNIT" = "yes" \
+        -a -z "${REUSE_UNIT_TESTS_FROM[$ARTIFACT_BASENAME]}" \
+        ]
     then
         local BUCK_TEST_EXTRA_OPTS=()
         local RUN_UNIT_TESTS=no
@@ -770,6 +774,15 @@ run_buck_build() {
                 fi
             done
             RUN_UNIT_TESTS=yes
+
+            local WAR_ARTIFACT=
+            for WAR_ARTIFACT in "${ARTIFACTS_WAR[@]}"
+            do
+                if [ -z "${REUSE_UNIT_TESTS_FROM[$WAR_ARTIFACT]}" ]
+                then
+                    REUSE_UNIT_TESTS_FROM["$WAR_ARTIFACT"]="$ARTIFACT_BASENAME"
+                fi
+            done
         fi
 
         if [ "$RUN_UNIT_TESTS" = "yes" ]
@@ -1070,25 +1083,35 @@ EOF
     if [ -n "$BUCK_TARGET" ]
     then
         BUILD_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "build")"
-        UNIT_TEST_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "test")"
-        SYSTEM_TEST_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "system")"
 
-        if [ -e "$TARGET_DIR_ABS/$ARTIFACT_FILE_RELT.coverage.jacoco.exec" ]
+        local UNIT_TEST_ARTIFACT_FILE_RELT="$ARTIFACT_FILE_RELT"
+        if [ -n "${REUSE_UNIT_TESTS_FROM[$ARTIFACT_FILE_RELT]}" ]
         then
-            COVERAGE_EXEC_CELL="<a href=\"$ARTIFACT_FILE_RELT.coverage.jacoco.exec\">jacoco.exec</a>"
+            UNIT_TEST_ARTIFACT_FILE_RELT="${REUSE_UNIT_TESTS_FROM[$UNIT_TEST_ARTIFACT_FILE_RELT]}"
+        fi
+        UNIT_TEST_LOG_CELL="$(echo_logged_build_cell "$UNIT_TEST_ARTIFACT_FILE_RELT" "test")"
+        if [ -e "$TARGET_DIR_ABS/$UNIT_TEST_ARTIFACT_FILE_RELT.coverage.jacoco.exec" ]
+        then
+            COVERAGE_EXEC_CELL="<a href=\"$UNIT_TEST_ARTIFACT_FILE_RELT.coverage.jacoco.exec\">jacoco.exec</a>"
         fi
 
-        local COVERAGE_INDEX_FILE_ABS="$DOC_COVERAGE_DIR_ABS/$ARTIFACT_FILE_RELT/index.html"
+        local COVERAGE_INDEX_FILE_ABS="$DOC_COVERAGE_DIR_ABS/$UNIT_TEST_ARTIFACT_FILE_RELT/index.html"
         if [ -e "$COVERAGE_INDEX_FILE_ABS" ]
         then
-            COVERAGE_DOC_CELL="<a href=\"$COVERAGE_DIR_RELT/$ARTIFACT_FILE_RELT/index.html\">html</a>"
+            COVERAGE_DOC_CELL="<a href=\"$COVERAGE_DIR_RELT/$UNIT_TEST_ARTIFACT_FILE_RELT/index.html\">html</a>"
 
             local COVERED_INSTRUCTIONS="$(echo_extracted_coverage "$COVERAGE_INDEX_FILE_ABS" 1 || echo "?%")"
+            # Using ARTIFACT_... instead of UNIT_TEST_ARTIFACT_... as it relates
+            # to the current artifact
             COVERAGE_INSTRUCTIONS_CELL="<span title=\"$COVERED_INSTRUCTIONS of $ARTIFACT_FILE_RELT instructions covered by unit tests\">$COVERED_INSTRUCTIONS</span>"
 
             local COVERED_BRANCHES="$(echo_extracted_coverage "$COVERAGE_INDEX_FILE_ABS" 2 || echo "?%")"
+            # Using ARTIFACT_... instead of UNIT_TEST_ARTIFACT_... as it relates
+            # to the current artifact
             COVERAGE_BRANCHES_CELL="<span title=\"$COVERED_BRANCHES of $ARTIFACT_FILE_RELT branches covered by unit tests\">$COVERED_BRANCHES</span>"
         fi
+
+        SYSTEM_TEST_LOG_CELL="$(echo_logged_build_cell "$ARTIFACT_FILE_RELT" "system")"
 
         local REPO="$(cut -f 1 -d : <<<"$BUCK_TARGET")"
         if [ "${REPO:0:8}" != "plugins/" ]
