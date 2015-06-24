@@ -797,6 +797,7 @@ run_buck_build() {
 
             if ! run_buck_logged test \
                 --no-results-cache \
+                "--exclude" "broken" "flaky" \
                 "${BUCK_TEST_EXTRA_OPTS[@]}"
             then
                 STATUS="broken"
