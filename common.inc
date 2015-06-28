@@ -18,6 +18,10 @@ GERRIT_DIR_ABS="$SCRIPT_DIR_ABS/gerrit"
 JAVA_DIR_ABS="$SCRIPT_DIR_ABS/jdk"
 WATCHMAN_DIR_ABS="$SCRIPT_DIR_ABS/watchman"
 MAVEN_DIR_ABS="$SCRIPT_DIR_ABS/apache-maven"
+JACOCO_TOOLBOX_DIR_ABS="$SCRIPT_DIR_ABS/jacoco-toolbox"
+declare -A JACOCO_TOOLBOX_EXEC_FILES_ABS
+declare -A JACOCO_TOOLBOX_CLASS_FILES_ABS
+declare -A JACOCO_TOOLBOX_SOURCE_FILES_ABS
 
 EXTRA_PLUGINS_DIR_ABS="$SCRIPT_DIR_ABS/plugins"
 
@@ -292,6 +296,87 @@ run_buck() {
     "$BUCK_DIR_ABS/bin/buck" "$@"
 }
 
+#---------------------------------------------------------------------
+run_jacoco_toolbox() {
+    local JACOCO_TOOLBOX_JAR_FILE_ABS="$(find "$JACOCO_TOOLBOX_DIR_ABS/toolbox/target" -maxdepth 1 -name "jacoco-toolbox-*.jar" | head -n 1)"
+    if [ -e "$JACOCO_TOOLBOX_JAR_FILE_ABS" ]
+    then
+        java -jar "$JACOCO_TOOLBOX_JAR_FILE_ABS" \
+            "$@" \
+            --verbose
+    else
+        error "Could not find a JaCoCo Toolbox jar. Please make sure that '$JACOCO_TOOLBOX_JAR_FILE_ABS' exists, or use the parameter '--no-jacoco-toolbox' to turn off using the JaCoCo Toolbox."
+    fi
+}
+
+#---------------------------------------------------------------------
+run_jacoco_toolbox_report_no_versioning() {
+    local ARTIFACT_BASENAME="$1"
+    local ARTIFACT_GROUP="$2"
+    echo "Generating coverage report using JaCoCo toolbox"
+
+    local REPORT_TITLE="Code coverage analysis for "
+    case "$ARTIFACT_GROUP" in
+        "war" )
+            REPORT_TITLE="$REPORT_TITLE Gerrit core"
+            ;;
+        "bundled" | "separate" )
+            REPORT_TITLE="$REPORT_TITLE '$(plugin_jar_to_name "$ARTIFACT_BASENAME")' plugin"
+            ;;
+        * )
+            REPORT_TITLE="$REPORT_TITLE $ARTIFACT_BASENAME"
+            ;;
+    esac
+    run_jacoco_toolbox \
+        report-html \
+        --input "${JACOCO_TOOLBOX_EXEC_FILES_ABS["$ARTIFACT_BASENAME"]}" \
+        --analyze-for "${JACOCO_TOOLBOX_CLASS_FILES_ABS["$ARTIFACT_BASENAME"]}" \
+        --source "${JACOCO_TOOLBOX_SOURCE_FILES_ABS["$ARTIFACT_BASENAME"]}" \
+        --title "$REPORT_TITLE" \
+        --output "$TARGET_DIR_ABS/$COVERAGE_DIR_RELT/$ARTIFACT_BASENAME"
+}
+
+#---------------------------------------------------------------------
+run_jacoco_toolbox_report() {
+    local ARTIFACT_BASENAME="$1"
+    local ARTIFACT_GROUP="$2"
+
+    local TARGET_FILE_ABS="$TARGET_DIR_ABS/$ARTIFACT_BASENAME"
+    local ASPECT="coverage"
+
+    if ! run_jacoco_toolbox_report_no_versioning "$ARTIFACT_BASENAME" "$ARTIFACT_GROUP"
+    then
+        if grep --quiet "version" "$TARGET_FILE_ABS.$ASPECT.stderr.txt"
+        then
+            info "Generating report using JaCoCo Toolbox failed."
+            info "JaCoCo version did not match. Trying to up-/downgrade..."
+            local EXEC_VERSION=$(run_jacoco_toolbox \
+                identify \
+                --input "${JACOCO_TOOLBOX_EXEC_FILES_ABS["$ARTIFACT_BASENAME"]}")
+            EXEC_VERSION=${EXEC_VERSION##*,}
+            pushd "$JACOCO_TOOLBOX_DIR_ABS" >/dev/null
+            run_git clean -f
+            run_git checkout "format-$EXEC_VERSION"
+            mvn clean package
+            popd >/dev/null
+
+            if ! run_jacoco_toolbox_report_no_versioning "$ARTIFACT_BASENAME" "$ARTIFACT_GROUP"
+            then
+                error "Generating report using JaCoCo Toolbox failed"
+            fi
+        else
+            error "Generating report using JaCoCo Toolbox failed"
+        fi
+    fi
+}
+
+#---------------------------------------------------------------------
+run_jacoco_toolbox_report_logged() {
+    local ARTIFACT_BASENAME="$1"
+    local TARGET_FILE_ABS="$TARGET_DIR_ABS/$ARTIFACT_BASENAME"
+
+    run_jacoco_toolbox_report "$@" 2> >(tee "$TARGET_FILE_ABS.coverage.stderr.txt" >&2) | tee "$TARGET_FILE_ABS.coverage.stdout.txt"
+}
 #---------------------------------------------------------------------
 run_buck_logged() {
     local ASPECT="$1"
@@ -819,6 +904,30 @@ run_buck_build() {
             if [ -e "$CODE_COVERAGE_EXEC_FILE_ABS" ]
             then
                 cp "$CODE_COVERAGE_EXEC_FILE_ABS" "$TARGET_FILE_ABS.coverage.jacoco.exec"
+                JACOCO_TOOLBOX_EXEC_FILES_ABS["$ARTIFACT_BASENAME"]="$TARGET_FILE_ABS.coverage.jacoco.exec"
+                if [ "$USE_JACOCO_TOOLBOX" = "yes" ]
+                then
+                    rm -rf "$CODE_COVERAGE_HTML_DIR_ABS"
+                    local BUCK_REPORT_GENERATOR_INVOCATION="$(grep "buck/build/report-generator.jar" "$TARGET_FILE_ABS.test.buck_log.txt" | head -n 1 || true)"
+                    if [ -n "$BUCK_REPORT_GENERATOR_INVOCATION" ]
+                    then
+                        while IFS='=' read KEY VALUE
+                        do
+                            case "$KEY" in
+                                "classes.dir" )
+                                    JACOCO_TOOLBOX_CLASS_FILES_ABS["$ARTIFACT_BASENAME"]="$VALUE"
+                                    ;;
+                                "src.dir" )
+                                    JACOCO_TOOLBOX_SOURCE_FILES_ABS["$ARTIFACT_BASENAME"]="$VALUE"
+                                    ;;
+                            esac
+                        done < <( sed -e 's/ -\(D\|jar \)/\n/g' <<<"$BUCK_REPORT_GENERATOR_INVOCATION" )
+                    fi
+                    if [ -n "${JACOCO_TOOLBOX_CLASS_FILES_ABS["$ARTIFACT_BASENAME"]}" ]
+                    then
+                        run_jacoco_toolbox_report_logged "$ARTIFACT_BASENAME" "$ARTIFACT_GROUP"
+                    fi
+                fi
             fi
             if [ -e "$CODE_COVERAGE_HTML_DIR_ABS" ]
             then

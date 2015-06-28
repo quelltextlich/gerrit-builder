@@ -3,6 +3,7 @@
 /plugins
 /apache-ant-*
 /apache-ant
+/jacoco-toolbox
 /jdk1*
 /jdk
 /apache-maven-*

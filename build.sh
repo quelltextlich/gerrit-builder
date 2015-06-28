@@ -17,6 +17,7 @@ MANAGE_LATEST_LINK=yes
 STOP_TEST_SITE=yes
 TEST_UNIT=yes
 TEST_SYSTEM=yes
+USE_JACOCO_TOOLBOX=yes
 STATUS=died
 PRINT_VERSIONS=yes
 LIMIT_TO=()
@@ -42,6 +43,8 @@ ARGUMENTS:
   --documentation    - Build documentation (manual, javadoc, code coverage)
                        (On per default)
   --force            - Overwrite eventual existing artifacts target directory
+  --jacoco-toolbox   - Generate coverage reports using the jacoco toolbox. This
+                       allows for better titles in HTML code coverage reports.
   --javadoc          - Generate the javadoc documentation (On per default)
   --ignore-plugin PLUGIN
                      - Don't build, test, ... the plugin PLUGIN
@@ -61,6 +64,10 @@ ARGUMENTS:
   --no-code-coverage - Don't generate code coverage analysis of unit tests.
   --no-documentation - Don't build documentation. No manual. No javadoc.
                        No code-coverage.
+  --no-jacoco-toolbox
+                     - Do not generate coverage reports using the jacoco
+                       toolbox. But use only HTML coverage reports generated
+                       by Buck.
   --no-javadoc       - Don't generate the javadoc documentation
   --no-manual        - Don't generate the manual
   --no-pull          - Don't 'git pull' before building
@@ -157,6 +164,9 @@ parse_arguments() {
                 TEST_SYSTEM=yes
                 TEST_UNIT=yes
                 ;;
+            "--jacoco-toolbox" )
+                USE_JACOCO_TOOLBOX=yes
+                ;;
             "--javadoc" )
                 GENERATE_JAVADOC=yes
                 ;;
@@ -186,6 +196,9 @@ parse_arguments() {
                 CODE_COVERAGE=no
                 GENERATE_JAVADOC=no
                 GENERATE_MANUAL=no
+                ;;
+            "--no-jacoco-toolbox" )
+                USE_JACOCO_TOOLBOX=no
                 ;;
             "--no-latest-link" )
                 MANAGE_LATEST_LINK=no
@@ -1011,6 +1024,12 @@ then
   <tr><th>Buck</th><td>$(buck --version 2>/dev/null | head -n 1 | sed -e 's/^.* version //')</td></tr>
   <tr><th>Build parameters</th><td>${FORMATTED_ARGUMENTS[@]}</td></tr>
   <tr><th>Build script </th><td>${REPO_DESCRIPTIONS["gerrit-builder"]}</td></tr>
+EOF
+if [ "$CODE_COVERAGE" = "yes" -a "$USE_JACOCO_TOOLBOX" = "yes" ]
+then
+    echo_target_html "<tr><th>JaCoCo Toolbox</th><td>$(run_jacoco_toolbox version | head -n 2 | sed -e 's/JaCoCo Toolbox //' -e 's/^.*using \(commit [0-9a-fA-F]*\) .*/ \(\1\)/' | tr -d '\n')</td></tr>"
+fi
+    cat_target_html <<EOF
   <tr><th>Java</th><td>$(java -version 2>&1 | head -n 1 | cut -f 2 -d '"')</td></tr>
   <tr><th>Maven</th><td>$(mvn -version | head -n 1 | sed -e 's/^Apache Maven \(.*\) (.*/\1/')</td></tr>
   <tr><th>Watchman</th><td>$(watchman --version)</td></tr>

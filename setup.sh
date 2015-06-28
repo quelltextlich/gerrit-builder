@@ -60,8 +60,20 @@ setup_buck() {
     fi
 }
 
+setup_jacoco_toolbox() {
+    section "Setting up JaCoCo Toolbox"
+    if [ ! -d "jacoco-toolbox" ]
+    then
+        run_git clone git://git.quelltextlich.at/jacoco/jacoco-toolbox
+        pushd "jacoco-toolbox" >/dev/null
+        mvn clean package
+        popd >/dev/null
+    fi
+}
+
 setup_watchman
 setup_buck
+setup_jacoco_toolbox
 for REPO in \
     gerrit \
     "${DEFAULT_EXTERNAL_PLUGINS[@]}"
