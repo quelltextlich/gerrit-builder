@@ -477,22 +477,7 @@ EOF
 
         if [ "$GENERATE_JAVADOC" = "yes" ]
         then
-            for EXTRA_PLUGIN_DIR_ABS in "$EXTRA_PLUGINS_DIR_ABS"/*
-            do
-                EXTRA_PLUGIN_NAME="$(basename "$EXTRA_PLUGIN_DIR_ABS")"
-
-            # We skip early, to not remove the plugin link again, if only a
-            # single plugin is getting built.
-                if [ "${#LIMIT_TO[@]}" != "0" ]
-                then
-                    if ! in_array "$EXTRA_PLUGIN_NAME.jar" "${LIMIT_TO[@]}"
-                    then
-                        continue
-                    fi
-                fi
-
-                add_plugin_link "$EXTRA_PLUGIN_NAME"
-            done
+            add_all_plugin_links
             generate_javadoc "overall" "." "yes"
             echo_target_html "<li><a href=\"$JAVADOC_DIR_RELT/overall/index.html\">Javadoc across all artifacts</a></li>"
         fi
@@ -651,6 +636,25 @@ add_plugin_link() {
             echo "/plugins/$EXTRA_PLUGIN_NAME" >>"$GERRIT_EXCLUDE_FILE_ABS"
         fi
     fi
+}
+
+add_all_plugin_links() {
+    for EXTRA_PLUGIN_DIR_ABS in "$EXTRA_PLUGINS_DIR_ABS"/*
+    do
+        EXTRA_PLUGIN_NAME="$(basename "$EXTRA_PLUGIN_DIR_ABS")"
+
+        # We skip early, to not remove the plugin link again, if only a
+        # single plugin is getting built.
+        if [ "${#LIMIT_TO[@]}" != "0" ]
+        then
+            if ! in_array "$EXTRA_PLUGIN_NAME.jar" "${LIMIT_TO[@]}"
+            then
+                continue
+            fi
+        fi
+
+        add_plugin_link "$EXTRA_PLUGIN_NAME"
+    done
 }
 
 build_plugin() {
