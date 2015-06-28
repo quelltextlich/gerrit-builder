@@ -694,7 +694,7 @@ remove_plugin_links
 # Describe repos an find test labels
 for PLUGIN_DIR_ABS in "$GERRIT_DIR_ABS/plugins"/* "$EXTRA_PLUGINS_DIR_ABS"/*
 do
-    if [ -d "$PLUGIN_DIR_ABS" ]
+    if [ -d "$PLUGIN_DIR_ABS" -a ! -h "$PLUGIN_DIR_ABS" ]
     then
         PLUGIN_NAME="$(basename "$PLUGIN_DIR_ABS")"
 
