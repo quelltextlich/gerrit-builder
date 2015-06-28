@@ -38,13 +38,15 @@ ARGUMENTS:
   --checkout         - 'git checkout' before building (On per default)
   --clean            - clean before building (On per default)
   --code-coverage    - Generate code coverage analysis of unit tests.
-                       Implies running unit tests.
+                       Implies running unit tests, and usage of jacoco toolbox.
                        (On per default)
   --documentation    - Build documentation (manual, javadoc, code coverage)
                        (On per default)
   --force            - Overwrite eventual existing artifacts target directory
   --jacoco-toolbox   - Generate coverage reports using the jacoco toolbox. This
-                       allows for better titles in HTML code coverage reports.
+                       allows for better titles in HTML code coverage reports,
+                       and (with --documentation) builds a code coverage
+                       analysis over all generated artifacts.
   --javadoc          - Generate the javadoc documentation (On per default)
   --ignore-plugin PLUGIN
                      - Don't build, test, ... the plugin PLUGIN
@@ -156,6 +158,7 @@ parse_arguments() {
             "--code-coverage" )
                 CODE_COVERAGE=yes
                 TEST_UNIT=yes
+                USE_JACOCO_TOOLBOX=yes
                 ;;
             "--documentation" )
                 CODE_COVERAGE=yes
@@ -163,6 +166,7 @@ parse_arguments() {
                 GENERATE_MANUAL=yes
                 TEST_SYSTEM=yes
                 TEST_UNIT=yes
+                USE_JACOCO_TOOLBOX=yes
                 ;;
             "--jacoco-toolbox" )
                 USE_JACOCO_TOOLBOX=yes
@@ -460,8 +464,65 @@ dump_status() {
     echo "$STATUS" >"$TARGET_DIR_ABS/status.txt"
 }
 
+generate_overall_code_coverage() {
+    local ARTIFACT_BASENAME="overall"
+
+    add_all_plugin_links
+
+    JACOCO_TOOLBOX_EXEC_FILES_ABS["$ARTIFACT_BASENAME"]="$(find "$TARGET_DIR_ABS" -maxdepth 1 -type f -name '*.coverage.jacoco.exec' | tr '\n' ':')"
+
+    for ARTIFACT_WAR in "${ARTIFACTS_WAR[@]}"
+    do
+        JACOCO_TOOLBOX_CLASS_FILES_ABS["$ARTIFACT_BASENAME"]+=":${JACOCO_TOOLBOX_CLASS_FILES_ABS["$ARTIFACT_WAR"]}"
+    done
+
+    # All plugins got linked in, so no need to consider EXTRA_PLUGINS_DIR_ABS.
+    for PLUGIN_DIR_ABS in "$GERRIT_DIR_ABS/plugins"/*
+    do
+        if [ -d "$PLUGIN_DIR_ABS" ]
+        then
+            local PLUGIN_NAME="$(basename "$PLUGIN_DIR_ABS")"
+            local PLUGIN_ARTIFACT_BASENAME="$PLUGIN_NAME.jar"
+
+            if [ "${#LIMIT_TO[@]}" != "0" ]
+            then
+                if ! in_array "$PLUGIN_ARTIFACT_BASENAME" "${LIMIT_TO[@]}"
+                then
+                    continue
+                fi
+            fi
+
+            # We first try to guess the name of the shallow jar. That way, we
+            # can include jars without tests in the coverage analysis.
+            local PLAIN_JAR_FILE_ABS="$GERRIT_DIR_ABS/buck-out/gen/plugins/${PLUGIN_NAME}/lib__${PLUGIN_NAME}__plugin__output/${PLUGIN_NAME}__plugin.jar"
+            if [ -e "$PLAIN_JAR_FILE_ABS" ]
+            then
+                JACOCO_TOOLBOX_CLASS_FILES_ABS["$ARTIFACT_BASENAME"]+=":$PLAIN_JAR_FILE_ABS"
+            else
+                # The guessing did not work out, so we try whatever the (maybe
+                # existing) unit tests gave.
+                JACOCO_TOOLBOX_CLASS_FILES_ABS["$ARTIFACT_BASENAME"]+=":${JACOCO_TOOLBOX_CLASS_FILES_ABS["$PLUGIN_ARTIFACT_BASENAME"]}"
+            fi
+        fi
+    done
+    JACOCO_TOOLBOX_SOURCE_FILES_ABS["$ARTIFACT_BASENAME"]="$( \
+        find \
+            -L \
+            "$GERRIT_DIR_ABS" \
+            -type d \
+            \( -name 'buck-out' -prune \) \
+            -o \( -name 'buck-cache' -prune \) \
+            -o \( -name 'archetype-resources' -prune \) \
+            -o -name 'java' -path '*/src/main/java' -print \
+        | tr '\n' ':')"
+    run_jacoco_toolbox_report_logged "$ARTIFACT_BASENAME" "$ARTIFACT_BASENAME"
+}
+
 generate_overall_docs() {
-    if [ "$GENERATE_MANUAL" = "yes" -o "$GENERATE_JAVADOC" = "yes" ]
+    if [ "$GENERATE_MANUAL" = "yes" \
+        -o "$GENERATE_JAVADOC" = "yes" \
+        -o \( "$CODE_COVERAGE" = "yes" -a "$USE_JACOCO_TOOLBOX" = "yes" \) \
+        ]
     then
         cat_target_html <<EOF
 
@@ -480,6 +541,12 @@ EOF
             add_all_plugin_links
             generate_javadoc "overall" "." "yes"
             echo_target_html "<li><a href=\"$JAVADOC_DIR_RELT/overall/index.html\">Javadoc across all artifacts</a></li>"
+        fi
+
+        if [ "$CODE_COVERAGE" = "yes" -a "$USE_JACOCO_TOOLBOX" = "yes" ]
+        then
+            generate_overall_code_coverage
+            echo_target_html "<li><a href=\"$COVERAGE_DIR_RELT/overall/index.html\">Code coverage analysis across all artifacts</a></li>"
         fi
         echo_target_html "</ul>"
     fi

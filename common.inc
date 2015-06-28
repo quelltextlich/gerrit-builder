@@ -323,6 +323,9 @@ run_jacoco_toolbox_report_no_versioning() {
         "bundled" | "separate" )
             REPORT_TITLE="$REPORT_TITLE '$(plugin_jar_to_name "$ARTIFACT_BASENAME")' plugin"
             ;;
+        "overall" )
+            REPORT_TITLE="Code coverage analysis across all artifacts"
+            ;;
         * )
             REPORT_TITLE="$REPORT_TITLE $ARTIFACT_BASENAME"
             ;;
