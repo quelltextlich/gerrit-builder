@@ -142,6 +142,15 @@ ARTIFACTS_API=( \
     "api.zip" \
 )
 #---------------------------------------------------------------------
+JAVA_VERSION="$(java -version 2>&1 | head -n 1 | cut -f 2 -d .)"
+if [ "$JAVA_VERSION" != "7" \
+    -a "$JAVA_VERSION" != "8" \
+    -a "$JAVA_VERSION" != "9" ]
+then
+    error "You're Java did not identify as either Java 7, 8, 9"
+fi
+
+#---------------------------------------------------------------------
 mkdir -p "$ARTIFACTS_DIR_ABS"
 
 #---------------------------------------------------------------------
@@ -781,6 +790,7 @@ generate_javadoc() {
         -notimestamp \
         -windowtitle "$TITLE" \
         -sourcepath "$JAVA_SOURCE_DIRS_RELG" \
+        -link "http://docs.oracle.com/javase/${JAVA_VERSION}/docs/api/" \
         -subpackages "$PACKAGES" \
         -classpath "$JAVADOC_CLASSPATH_DIR_ABS" \
         -d "$DOC_JAVADOC_DIR_ABS/$ARTIFACT_BASENAME" \
