@@ -1313,14 +1313,14 @@ EOF
             MANUAL_CELL+=", <a href=\"$MANUAL_ARTIFACT_FILE_RELT.manual.stdout.txt\">stdout</a>)"
         fi
 
-        local JAVADOC_ARTIFACT_RELT="$ARTIFACT_FILE_RELT"
+        local JAVADOC_ARTIFACT_FILE_RELT="$ARTIFACT_FILE_RELT"
         if [ -n "${REUSE_JAVADOC_FROM[$ARTIFACT_FILE_RELT]}" ]
         then
-            JAVADOC_ARTIFACT_RELT="${REUSE_JAVADOC_FROM[$ARTIFACT_FILE_RELT]}"
+            JAVADOC_ARTIFACT_FILE_RELT="${REUSE_JAVADOC_FROM[$ARTIFACT_FILE_RELT]}"
         fi
-        if [ -e "$TARGET_DIR_ABS/$JAVADOC_ARTIFACT_RELT.javadoc.stderr.txt" ]
+        if [ -e "$TARGET_DIR_ABS/$JAVADOC_ARTIFACT_FILE_RELT.javadoc.stderr.txt" ]
         then
-            local JAVADOC_INDEX_FILE_RELT="$JAVADOC_DIR_RELT/$JAVADOC_ARTIFACT_RELT/index.html"
+            local JAVADOC_INDEX_FILE_RELT="$JAVADOC_DIR_RELT/$JAVADOC_ARTIFACT_FILE_RELT/index.html"
             if [ -e "$TARGET_DIR_ABS/$JAVADOC_INDEX_FILE_RELT" ]
             then
                 JAVADOC_CELL="<a href=\"$JAVADOC_INDEX_FILE_RELT\">javadoc</a>"
