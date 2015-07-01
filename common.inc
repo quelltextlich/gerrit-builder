@@ -802,6 +802,114 @@ generate_javadoc() {
 
 
 #---------------------------------------------------------------------
+run_unit_test() {
+    local ARTIFACT_BASENAME="$1"
+    local ARTIFACT_GROUP="$2"
+    local BUCK_TARGET="$3"
+
+    local TARGET_FILE_ABS="$TARGET_DIR_ABS/$ARTIFACT_BASENAME"
+
+    local BUCK_TEST_EXTRA_OPTS=()
+    local RUN_UNIT_TESTS=no
+    if [ -n "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" ]
+    then
+        BUCK_TEST_EXTRA_OPTS+=( \
+            "--include" "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" \
+            )
+        RUN_UNIT_TESTS=yes
+    elif is_war_artifact "$ARTIFACT_BASENAME"
+    then
+        local TARGET_TEST_LABEL=
+        for TARGET_TEST_LABEL in "${TARGET_TEST_LABELS[@]}"
+        do
+            if [ -n "$TARGET_TEST_LABEL" ]
+            then
+                BUCK_TEST_EXTRA_OPTS+=( \
+                    "--exclude" "$TARGET_TEST_LABEL" \
+                    )
+            fi
+        done
+        RUN_UNIT_TESTS=yes
+
+        local WAR_ARTIFACT=
+        for WAR_ARTIFACT in "${ARTIFACTS_WAR[@]}"
+        do
+            if [ -z "${REUSE_UNIT_TESTS_FROM[$WAR_ARTIFACT]}" ]
+            then
+                REUSE_UNIT_TESTS_FROM["$WAR_ARTIFACT"]="$ARTIFACT_BASENAME"
+            fi
+        done
+    fi
+
+    if [ "$RUN_UNIT_TESTS" = "yes" ]
+    then
+        CODE_COVERAGE_DIR_ABS="$GERRIT_DIR_ABS/buck-out/gen/jacoco"
+        CODE_COVERAGE_EXEC_FILE_ABS="$CODE_COVERAGE_DIR_ABS/jacoco.exec"
+        CODE_COVERAGE_HTML_DIR_ABS="$CODE_COVERAGE_DIR_ABS/code-coverage"
+        rm -rf "$CODE_COVERAGE_DIR_ABS"
+        if [ "$CODE_COVERAGE" = "yes" ]
+        then
+            BUCK_TEST_EXTRA_OPTS+=( \
+                "--code-coverage" \
+                "--code-coverage-format" "HTML" \
+                )
+        fi
+
+        if [ "${#IGNORED_UNIT_TESTS[@]}" -gt 0 ]
+        then
+            local IGNORED_UNIT_TEST
+            for IGNORED_UNIT_TEST in "${IGNORED_UNIT_TESTS[@]}"
+            do
+                BUCK_TEST_EXTRA_OPTS+=( "--filter" "!$IGNORED_UNIT_TEST" )
+            done
+        fi
+
+        if ! run_buck_logged test \
+            --no-results-cache \
+            "--exclude" "broken" "flaky" \
+            "${BUCK_TEST_EXTRA_OPTS[@]}"
+        then
+            STATUS="broken"
+        fi
+
+        if [ -e "$CODE_COVERAGE_EXEC_FILE_ABS" ]
+        then
+            cp "$CODE_COVERAGE_EXEC_FILE_ABS" "$TARGET_FILE_ABS.coverage.jacoco.exec"
+            JACOCO_TOOLBOX_EXEC_FILES_ABS["$ARTIFACT_BASENAME"]="$TARGET_FILE_ABS.coverage.jacoco.exec"
+            if [ "$USE_JACOCO_TOOLBOX" = "yes" ]
+            then
+                rm -rf "$CODE_COVERAGE_HTML_DIR_ABS"
+                local BUCK_REPORT_GENERATOR_INVOCATION="$(grep "buck/build/report-generator.jar" "$TARGET_FILE_ABS.test.buck_log.txt" | head -n 1 || true)"
+                if [ -n "$BUCK_REPORT_GENERATOR_INVOCATION" ]
+                then
+                    while IFS='=' read KEY VALUE
+                    do
+                        case "$KEY" in
+                            "classes.dir" )
+                                JACOCO_TOOLBOX_CLASS_FILES_ABS["$ARTIFACT_BASENAME"]="$VALUE"
+                                ;;
+                            "src.dir" )
+                                JACOCO_TOOLBOX_SOURCE_FILES_ABS["$ARTIFACT_BASENAME"]="$VALUE"
+                                ;;
+                        esac
+                    done < <( sed -e 's/ -\(D\|jar \)/\n/g' <<<"$BUCK_REPORT_GENERATOR_INVOCATION" )
+                fi
+                if [ -n "${JACOCO_TOOLBOX_CLASS_FILES_ABS["$ARTIFACT_BASENAME"]}" ]
+                then
+                    run_jacoco_toolbox_report_logged "$ARTIFACT_BASENAME" "$ARTIFACT_GROUP"
+                fi
+            fi
+        fi
+        if [ -e "$CODE_COVERAGE_HTML_DIR_ABS" ]
+        then
+            cp -a "$CODE_COVERAGE_HTML_DIR_ABS" "$TARGET_DIR_ABS/$COVERAGE_DIR_RELT/$ARTIFACT_BASENAME"
+        fi
+    fi
+}
+
+
+
+#---------------------------------------------------------------------
 run_buck_build() {
     local DESCRIPTION="$1"
     local BUCK_TARGET="$2"
@@ -852,102 +960,7 @@ run_buck_build() {
         -a -z "${REUSE_UNIT_TESTS_FROM[$ARTIFACT_BASENAME]}" \
         ]
     then
-        local BUCK_TEST_EXTRA_OPTS=()
-        local RUN_UNIT_TESTS=no
-        if [ -n "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" ]
-        then
-            BUCK_TEST_EXTRA_OPTS+=( \
-                "--include" "${TARGET_TEST_LABELS["$BUCK_TARGET"]}" \
-            )
-            RUN_UNIT_TESTS=yes
-        elif is_war_artifact "$ARTIFACT_BASENAME"
-        then
-            local TARGET_TEST_LABEL=
-            for TARGET_TEST_LABEL in "${TARGET_TEST_LABELS[@]}"
-            do
-                if [ -n "$TARGET_TEST_LABEL" ]
-                then
-                    BUCK_TEST_EXTRA_OPTS+=( \
-                        "--exclude" "$TARGET_TEST_LABEL" \
-                        )
-                fi
-            done
-            RUN_UNIT_TESTS=yes
-
-            local WAR_ARTIFACT=
-            for WAR_ARTIFACT in "${ARTIFACTS_WAR[@]}"
-            do
-                if [ -z "${REUSE_UNIT_TESTS_FROM[$WAR_ARTIFACT]}" ]
-                then
-                    REUSE_UNIT_TESTS_FROM["$WAR_ARTIFACT"]="$ARTIFACT_BASENAME"
-                fi
-            done
-        fi
-
-        if [ "$RUN_UNIT_TESTS" = "yes" ]
-        then
-            CODE_COVERAGE_DIR_ABS="$GERRIT_DIR_ABS/buck-out/gen/jacoco"
-            CODE_COVERAGE_EXEC_FILE_ABS="$CODE_COVERAGE_DIR_ABS/jacoco.exec"
-            CODE_COVERAGE_HTML_DIR_ABS="$CODE_COVERAGE_DIR_ABS/code-coverage"
-            rm -rf "$CODE_COVERAGE_DIR_ABS"
-            if [ "$CODE_COVERAGE" = "yes" ]
-            then
-                BUCK_TEST_EXTRA_OPTS+=( \
-                    "--code-coverage" \
-                    "--code-coverage-format" "HTML" \
-                    )
-            fi
-
-            if [ "${#IGNORED_UNIT_TESTS[@]}" -gt 0 ]
-            then
-                local IGNORED_UNIT_TEST
-                for IGNORED_UNIT_TEST in "${IGNORED_UNIT_TESTS[@]}"
-                do
-                    BUCK_TEST_EXTRA_OPTS+=( "--filter" "!$IGNORED_UNIT_TEST" )
-                done
-            fi
-
-            if ! run_buck_logged test \
-                --no-results-cache \
-                "--exclude" "broken" "flaky" \
-                "${BUCK_TEST_EXTRA_OPTS[@]}"
-            then
-                STATUS="broken"
-            fi
-
-            if [ -e "$CODE_COVERAGE_EXEC_FILE_ABS" ]
-            then
-                cp "$CODE_COVERAGE_EXEC_FILE_ABS" "$TARGET_FILE_ABS.coverage.jacoco.exec"
-                JACOCO_TOOLBOX_EXEC_FILES_ABS["$ARTIFACT_BASENAME"]="$TARGET_FILE_ABS.coverage.jacoco.exec"
-                if [ "$USE_JACOCO_TOOLBOX" = "yes" ]
-                then
-                    rm -rf "$CODE_COVERAGE_HTML_DIR_ABS"
-                    local BUCK_REPORT_GENERATOR_INVOCATION="$(grep "buck/build/report-generator.jar" "$TARGET_FILE_ABS.test.buck_log.txt" | head -n 1 || true)"
-                    if [ -n "$BUCK_REPORT_GENERATOR_INVOCATION" ]
-                    then
-                        while IFS='=' read KEY VALUE
-                        do
-                            case "$KEY" in
-                                "classes.dir" )
-                                    JACOCO_TOOLBOX_CLASS_FILES_ABS["$ARTIFACT_BASENAME"]="$VALUE"
-                                    ;;
-                                "src.dir" )
-                                    JACOCO_TOOLBOX_SOURCE_FILES_ABS["$ARTIFACT_BASENAME"]="$VALUE"
-                                    ;;
-                            esac
-                        done < <( sed -e 's/ -\(D\|jar \)/\n/g' <<<"$BUCK_REPORT_GENERATOR_INVOCATION" )
-                    fi
-                    if [ -n "${JACOCO_TOOLBOX_CLASS_FILES_ABS["$ARTIFACT_BASENAME"]}" ]
-                    then
-                        run_jacoco_toolbox_report_logged "$ARTIFACT_BASENAME" "$ARTIFACT_GROUP"
-                    fi
-                fi
-            fi
-            if [ -e "$CODE_COVERAGE_HTML_DIR_ABS" ]
-            then
-                cp -a "$CODE_COVERAGE_HTML_DIR_ABS" "$TARGET_DIR_ABS/$COVERAGE_DIR_RELT/$ARTIFACT_BASENAME"
-            fi
-        fi
+        run_unit_test "$ARTIFACT_BASENAME" "$ARTIFACT_GROUP" "$BUCK_TARGET"
     fi
 
     if [ "$STATUS" = "ok" -a "$TEST_SYSTEM" = "yes" ]
