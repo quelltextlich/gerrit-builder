@@ -843,9 +843,9 @@ run_unit_test() {
 
     if [ "$RUN_UNIT_TESTS" = "yes" ]
     then
-        CODE_COVERAGE_DIR_ABS="$GERRIT_DIR_ABS/buck-out/gen/jacoco"
-        CODE_COVERAGE_EXEC_FILE_ABS="$CODE_COVERAGE_DIR_ABS/jacoco.exec"
-        CODE_COVERAGE_HTML_DIR_ABS="$CODE_COVERAGE_DIR_ABS/code-coverage"
+        local CODE_COVERAGE_DIR_ABS="$GERRIT_DIR_ABS/buck-out/gen/jacoco"
+        local CODE_COVERAGE_EXEC_FILE_ABS="$CODE_COVERAGE_DIR_ABS/jacoco.exec"
+        local CODE_COVERAGE_HTML_DIR_ABS="$CODE_COVERAGE_DIR_ABS/code-coverage"
         rm -rf "$CODE_COVERAGE_DIR_ABS"
         if [ "$CODE_COVERAGE" = "yes" ]
         then
