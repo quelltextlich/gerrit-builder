@@ -3,6 +3,8 @@ gerrit-builder
 
 Scripts to build `gerrit` and plugins.
 
+These scripts drive the [Gerrit nightly builds at `builds.quelltextlich.at`](http://builds.quelltextlich.at/gerrit/nightly/index.html).
+
 
 
 Setup
