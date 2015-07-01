@@ -1086,6 +1086,9 @@ then
         FORMATTED_ARGUMENTS="<em>&lt;none&gt;</em>"
     fi
     BUCK_VERSION_HASH="$(buck --version 2>/dev/null | head -n 1 | sed -e 's/^.* version //')"
+    pushd "$SCRIPT_DIR_ABS" >/dev/null
+    BUILDER_VERSION_HASH="$(run_git rev-parse HEAD)"
+    popd >/dev/null
     cat_target_html <<EOF
 
 <h2>Build environment</h2>
@@ -1095,7 +1098,7 @@ then
   <tr><th>Ant</th><td>$(ant -version | head -n 1 | sed -e 's/^.*version \(.*\) compiled.*/\1/')</td></tr>
   <tr><th>Buck</th><td><a href="https://github.com/facebook/buck/tree/$BUCK_VERSION_HASH">$BUCK_VERSION_HASH</a></td></tr>
   <tr><th>Build parameters</th><td>${FORMATTED_ARGUMENTS[@]}</td></tr>
-  <tr><th>Build script </th><td>${REPO_DESCRIPTIONS["gerrit-builder"]}</td></tr>
+  <tr><th>Build script </th><td><a href="https://github.com/quelltextlich/gerrit-builder/tree/$BUILDER_VERSION_HASH">${REPO_DESCRIPTIONS["gerrit-builder"]}</a></td></tr>
 EOF
 if [ "$CODE_COVERAGE" = "yes" -a "$USE_JACOCO_TOOLBOX" = "yes" ]
 then
