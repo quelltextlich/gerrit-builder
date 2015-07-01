@@ -1085,6 +1085,7 @@ then
     then
         FORMATTED_ARGUMENTS="<em>&lt;none&gt;</em>"
     fi
+    BUCK_VERSION_HASH="$(buck --version 2>/dev/null | head -n 1 | sed -e 's/^.* version //')"
     cat_target_html <<EOF
 
 <h2>Build environment</h2>
@@ -1092,7 +1093,7 @@ then
 <table>
   <tr><th>Hostname</th><td>$(hostname --fqdn)</td></tr>
   <tr><th>Ant</th><td>$(ant -version | head -n 1 | sed -e 's/^.*version \(.*\) compiled.*/\1/')</td></tr>
-  <tr><th>Buck</th><td>$(buck --version 2>/dev/null | head -n 1 | sed -e 's/^.* version //')</td></tr>
+  <tr><th>Buck</th><td><a href="https://github.com/facebook/buck/tree/$BUCK_VERSION_HASH">$BUCK_VERSION_HASH</a></td></tr>
   <tr><th>Build parameters</th><td>${FORMATTED_ARGUMENTS[@]}</td></tr>
   <tr><th>Build script </th><td>${REPO_DESCRIPTIONS["gerrit-builder"]}</td></tr>
 EOF
