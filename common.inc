@@ -120,6 +120,7 @@ declare -A REPO_ARTIFACTS=()
 
 declare -A TARGET_TEST_LABELS=()
 
+declare -A ARTIFACT_STATUS=()
 declare -A ARTIFACT_GROUP_STATUS=()
 declare -A ARTIFACT_GROUP_STATUS_COUNT=()
 declare -A ARTIFACT_GROUP_TOTAL_COUNT=()
@@ -955,12 +956,23 @@ run_buck_build() {
         fi
     fi
 
-    if [ "$STATUS" = "ok" \
-        -a "$TEST_UNIT" = "yes" \
-        -a -z "${REUSE_UNIT_TESTS_FROM[$ARTIFACT_BASENAME]}" \
-        ]
+    if [ "$STATUS" = "ok" -a "$TEST_UNIT" = "yes" ]
     then
-        run_unit_test "$ARTIFACT_BASENAME" "$ARTIFACT_GROUP" "$BUCK_TARGET"
+        if [ -z "${REUSE_UNIT_TESTS_FROM[$ARTIFACT_BASENAME]}" ]
+        then
+            # No unit test re-using for this artifact, so we run the tests
+            run_unit_test "$ARTIFACT_BASENAME" "$ARTIFACT_GROUP" "$BUCK_TARGET"
+        else
+            # This artifact reuses another artifact's tests. If this other
+            # artifact did not complete with status 'ok', we need to mark
+            # the current artifact's unit tests as broken. Otherwise, broken
+            # tests/builds would not propagate.
+            local UNIT_TEST_ARTIFACT_BASENAME="${REUSE_UNIT_TESTS_FROM[$ARTIFACT_BASENAME]}"
+            if [ "${ARTIFACT_STATUS[$UNIT_TEST_ARTIFACT_BASENAME]}" != "ok" ]
+            then
+                STATUS="broken"
+            fi
+        fi
     fi
 
     if [ "$STATUS" = "ok" -a "$TEST_SYSTEM" = "yes" ]
@@ -1400,6 +1412,7 @@ EOF
             FIRST_FAILED_ARTIFACT="$ARTIFACT_FILE_RELT"
         fi
     fi
+    ARTIFACT_STATUS["$ARTIFACT_FILE_RELT"]="$STATUS"
 }
 
 #---------------------------------------------------------------------
