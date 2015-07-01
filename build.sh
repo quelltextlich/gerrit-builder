@@ -1098,7 +1098,14 @@ then
 EOF
 if [ "$CODE_COVERAGE" = "yes" -a "$USE_JACOCO_TOOLBOX" = "yes" ]
 then
-    echo_target_html "<tr><th>JaCoCo Toolbox</th><td>$(run_jacoco_toolbox version | head -n 2 | sed -e 's/JaCoCo Toolbox //' -e 's/^.*using \(commit [0-9a-fA-F]*\) .*/ \(\1\)/' | tr -d '\n')</td></tr>"
+    echo_target_html "<tr><th>JaCoCo Toolbox</th><td>$(\
+        run_jacoco_toolbox version \
+        | head -n 2 \
+        | sed \
+            -e 's/JaCoCo Toolbox //' \
+            -e 's@^.*using commit \([0-9a-fA-F]*\) .*@ (commit <a href="https://github.com/quelltextlich/jacoco-toolbox/tree/\1">\1</a>)@' \
+        | tr -d '\n' \
+        )</td></tr>"
 fi
     cat_target_html <<EOF
   <tr><th>Java</th><td>$(java -version 2>&1 | head -n 1 | cut -f 2 -d '"')</td></tr>
