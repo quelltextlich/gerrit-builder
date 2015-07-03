@@ -1107,7 +1107,7 @@ then
         | head -n 2 \
         | sed \
             -e 's/JaCoCo Toolbox //' \
-            -e 's@^.*using commit \([0-9a-fA-F]*\) .*@ (commit <a href="https://github.com/quelltextlich/jacoco-toolbox/tree/\1">\1</a>)@' \
+            -e 's@^.*from commit \(.*-[0-9]\+-g\([0-9a-fA-F]*\)\) .*@ (commit <a href="https://github.com/quelltextlich/jacoco-toolbox/tree/\2">\1</a>)@' \
         | tr -d '\n' \
         )</td></tr>"
 fi
