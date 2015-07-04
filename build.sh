@@ -314,9 +314,9 @@ fi
 
 parse_arguments "$@"
 
-TARGET_DIR_RELA="$(date --utc +"$TARGET_DIRECTORY_FORMAT")"
-TARGET_DIR_RELA=${TARGET_DIR_RELA//\$BRANCH/$BRANCH}
-TARGET_DIR_ABS="$ARTIFACTS_DIR_ABS/$TARGET_DIR_RELA"
+TARGET_DIR_RELB="$(date --utc +"$TARGET_DIRECTORY_FORMAT")"
+TARGET_DIR_RELB=${TARGET_DIR_RELB//\$BRANCH/$BRANCH}
+TARGET_DIR_ABS="$BUILDS_DIR_ABS/$TARGET_DIR_RELB"
 
 if [ -z "$SYSTEM_TESTING_WAR" ]
 then
@@ -352,7 +352,7 @@ mkdir -p "$TARGET_DIR_ABS"
 
 if [ "$MANAGE_LATEST_LINK" = "yes" ]
 then
-    LATEST_LINK_FILE_ABS="$ARTIFACTS_DIR_ABS/latest"
+    LATEST_LINK_FILE_ABS="$BUILDS_DIR_ABS/latest"
 
     if [ -h "$LATEST_LINK_FILE_ABS" ]
     then
@@ -361,7 +361,7 @@ then
 
     if [ ! -e "$LATEST_LINK_FILE_ABS" ]
     then
-        ln -s "$TARGET_DIR_RELA" "$LATEST_LINK_FILE_ABS"
+        ln -s "$TARGET_DIR_RELB" "$LATEST_LINK_FILE_ABS"
     fi
 fi
 
@@ -374,9 +374,9 @@ cat_manual_index_header() {
 
         cat_html_header_target_html \
             "Manual for all artifacts" \
-            "Manual for all artifacts of $TARGET_DIR_RELA gerrit $BRANCH build" \
+            "Manual for all artifacts of $TARGET_DIR_RELB gerrit $BRANCH build" \
             "gerrit, manual, $BRANCH" \
-            "Manual for all artifacts of $TARGET_DIR_RELA gerrit $BRANCH build"
+            "Manual for all artifacts of $TARGET_DIR_RELB gerrit $BRANCH build"
 
         cat_target_html <<EOF
 <h2>Chapters</h2>
@@ -415,10 +415,10 @@ generate_docu_index() {
         local TARGET_HTML_FILE_ABS="$TARGET_DIR_ABS/$DOCS_DIR_RELT/$INDEX_FILE_RELC"
 
         cat_html_header_target_html \
-            "Documentation for $TARGET_DIR_RELA gerrit $BRANCH build" \
-            "Documentation for $TARGET_DIR_RELA gerrit $BRANCH build" \
+            "Documentation for $TARGET_DIR_RELB gerrit $BRANCH build" \
+            "Documentation for $TARGET_DIR_RELB gerrit $BRANCH build" \
             "gerrit, documentation, $BRANCH" \
-            "Documentation for $TARGET_DIR_RELA gerrit $BRANCH build"
+            "Documentation for $TARGET_DIR_RELB gerrit $BRANCH build"
 
         echo_target_html "<ol>"
 
@@ -557,14 +557,14 @@ EOF
 
 dump_status
 
-info "Target directory: $TARGET_DIR_RELA"
+info "Target directory: $TARGET_DIR_RELB"
 info "Branch: $BRANCH"
 
 set_target_html_file_abs "$TARGET_DIR_ABS/index.html"
 
 cat_html_header_target_html \
-    "$TARGET_DIR_RELA gerrit $BRANCH build" \
-    "Build of $BRANCH commitish of gerrit for $TARGET_DIR_RELA" \
+    "$TARGET_DIR_RELB gerrit $BRANCH build" \
+    "Build of $BRANCH commitish of gerrit for $TARGET_DIR_RELB" \
     "gerrit, jar, $BRANCH" \
     "$TARGET_DIR_RELA build of $BRANCH of gerrit"
 
