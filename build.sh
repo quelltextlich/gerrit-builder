@@ -6,6 +6,7 @@ source "$(dirname "$0")/common.inc"
 
 FORCE=no
 PULL=yes
+BUILDS_OVERVIEW_INDICES=yes
 CHECKOUT=yes
 CODE_COVERAGE=yes
 CLEAN=yes
@@ -35,6 +36,9 @@ ARGUMENTS:
                        inferred from the basename of the directory, with
                        "master" as fallback.
   --building         - Build artifacts (On per default)
+  --builds-overview-indices
+                     - Updates the builds overview indices after completion.
+                       (On per default)
   --checkout         - 'git checkout' before building (On per default)
   --clean            - clean before building (On per default)
   --code-coverage    - Generate code coverage analysis of unit tests.
@@ -61,6 +65,9 @@ ARGUMENTS:
                        "gerrit/plugins". (On per default)
   --manual           - Generate the manual. Implies running system tests. (On per default)
   --no-building      - Don't build artifacts
+  --no-builds-overview-indices
+                     - Don't updates the builds overview indices after
+                       completion.
   --no-checkout      - Don't 'git checkout' before building
   --no-clean         - Don't clean before building
   --no-code-coverage - Don't generate code coverage analysis of unit tests.
@@ -149,6 +156,9 @@ parse_arguments() {
             "--building" )
                 BUILD_ARTIFACTS=yes
                 ;;
+            "--builds-overview-indices" )
+                BUILDS_OVERVIEW_INDICES=yes
+                ;;
             "--checkout" )
                 CHECKOUT=yes
                 ;;
@@ -186,6 +196,9 @@ parse_arguments() {
                 ;;
             "--no-building" )
                 BUILD_ARTIFACTS=no
+                ;;
+            "--no-builds-overview-indices" )
+                BUILDS_OVERVIEW_INDICES=no
                 ;;
             "--no-checkout" )
                 CHECKOUT=no
@@ -245,6 +258,7 @@ parse_arguments() {
                 ;;
             "--nothing" )
                 BUILD_ARTIFACTS=no
+                BUILDS_OVERVIEW_INDICES=no
                 CHECKOUT=no
                 CLEAN=no
                 CODE_COVERAGE=no
@@ -1151,7 +1165,10 @@ sed -i \
 dump_status
 compute_checksums
 
-"$SCRIPT_DIR_ABS/write_builds_overview_index_htmls.sh"
+if [ "$BUILDS_OVERVIEW_INDICES" = "yes" ]
+then
+    "$SCRIPT_DIR_ABS/write_builds_overview_index_htmls.sh"
+fi
 
 kill_old_daemons
 
