@@ -231,11 +231,13 @@ parse_arguments() {
                 STOP_TEST_SITE=no
                 ;;
             "--no-testing" )
+                CODE_COVERAGE=no
                 TEST_UNIT=no
                 TEST_SYSTEM=no
                 GENERATE_MANUAL=no
                 ;;
             "--no-unit-testing" )
+                CODE_COVERAGE=no
                 TEST_UNIT=no
                 ;;
             "--no-versions" )
@@ -245,6 +247,7 @@ parse_arguments() {
                 BUILD_ARTIFACTS=no
                 CHECKOUT=no
                 CLEAN=no
+                CODE_COVERAGE=no
                 GENERATE_JAVADOC=no
                 GENERATE_MANUAL=no
                 MANAGE_LATEST_LINK=no
