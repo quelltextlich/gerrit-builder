@@ -1151,7 +1151,7 @@ sed -i \
 dump_status
 compute_checksums
 
-"$SCRIPT_DIR_ABS/write_overview_index_htmls.sh"
+"$SCRIPT_DIR_ABS/write_builds_overview_index_htmls.sh"
 
 kill_old_daemons
 

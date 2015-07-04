@@ -6,7 +6,7 @@ source "$(dirname "$0")/common.inc"
 
 cd ..
 
-for MARKER_FILE_RELC in */write_overview_index_html.sh
+for MARKER_FILE_RELC in */write_builds_overview_index_html.sh
 do
     REPO_DIR_ABS="$PWD/$(dirname "$MARKER_FILE_RELC")"
 
