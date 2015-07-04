@@ -37,20 +37,20 @@ do
     esac
 done
 
-ASCENDING_FILE_RELA="index_asc.html"
-DESCENDING_FILE_RELA="$INDEX_FILE_RELC"
-ASCENDING_FILE_ABS="$ARTIFACTS_DIR_ABS/$ASCENDING_FILE_RELA"
-DESCENDING_FILE_ABS="$ARTIFACTS_DIR_ABS/$DESCENDING_FILE_RELA"
+ASCENDING_FILE_RELB="index_asc.html"
+DESCENDING_FILE_RELB="$INDEX_FILE_RELC"
+ASCENDING_FILE_ABS="$BUILDS_DIR_ABS/$ASCENDING_FILE_RELB"
+DESCENDING_FILE_ABS="$BUILDS_DIR_ABS/$DESCENDING_FILE_RELB"
 
 # Ascending variant
 "$SCRIPT_DIR_ABS"/write_overview_index_html.sh \
-    --build-sort-link "$DESCENDING_FILE_RELA" \
+    --build-sort-link "$DESCENDING_FILE_RELB" \
     --output "$ASCENDING_FILE_ABS"
 
 # Descending variant
 "$SCRIPT_DIR_ABS"/write_overview_index_html.sh \
     --reverse \
-    --build-sort-link "$ASCENDING_FILE_RELA" \
+    --build-sort-link "$ASCENDING_FILE_RELB" \
     --output "$DESCENDING_FILE_ABS"
 
 finalize

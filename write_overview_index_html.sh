@@ -5,7 +5,7 @@ source "$(dirname "$0")/common.inc"
 #---------------------------------------------------------------------
 
 SORT_OPTION=
-OUTPUT_FILE_ABS="$ARTIFACTS_DIR_ABS/$INDEX_FILE_RELC"
+OUTPUT_FILE_ABS="$BUILDS_DIR_ABS/$INDEX_FILE_RELC"
 BUILD_SORT_ORDER_LINK=
 
 print_help() {
@@ -65,7 +65,7 @@ do
     esac
 done
 
-mkdir -p "$ARTIFACTS_DIR_ABS"
+mkdir -p "$BUILDS_DIR_ABS"
 
 set_target_html_file_abs "$OUTPUT_FILE_ABS"
 
@@ -174,7 +174,7 @@ dump_first_line_if_exists() {
     echo "$LINE"
 }
 
-pushd "$ARTIFACTS_DIR_ABS" >/dev/null
+pushd "$BUILDS_DIR_ABS" >/dev/null
 while read BUILD_DIR_RELO
 do
     if [ -d "$BUILD_DIR_RELO" ]

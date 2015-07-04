@@ -38,8 +38,8 @@ Setup
     ./build.sh
     ```
 
-* You'll find the built artifacts in the directory `artifacts/$DATE`, and if
-  you point your browser, to `artifacts/$DATE/index.html`, you'll get a nice
+* You'll find the built artifacts in the directory `builds/$DATE`, and if
+  you point your browser, to `builds/$DATE/index.html`, you'll get a nice
   overview page for the build and the artifacts' status.
 
 * Use

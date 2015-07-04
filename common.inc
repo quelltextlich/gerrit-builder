@@ -25,7 +25,7 @@ declare -A JACOCO_TOOLBOX_SOURCE_FILES_ABS
 
 EXTRA_PLUGINS_DIR_ABS="$SCRIPT_DIR_ABS/plugins"
 
-ARTIFACTS_DIR_ABS="$SCRIPT_DIR_ABS/artifacts"
+BUILDS_DIR_ABS="$SCRIPT_DIR_ABS/builds"
 
 TEST_SITE_DIR_ABS="$SCRIPT_DIR_ABS/test-site"
 TEST_SITE_HOST="127.0.0.1"
@@ -152,7 +152,7 @@ then
 fi
 
 #---------------------------------------------------------------------
-mkdir -p "$ARTIFACTS_DIR_ABS"
+mkdir -p "$BUILDS_DIR_ABS"
 
 #---------------------------------------------------------------------
 post_parameter_parsing_setup() {
