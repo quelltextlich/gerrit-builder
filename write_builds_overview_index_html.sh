@@ -147,7 +147,17 @@ read_artifact_group_statuses() {
         fi
         add_artifact_group_cell "</a>"
         ARTIFACT_GROUP_CELL_EXTRAS["$ARTIFACT_GROUP"]=" class=\"$STATUS\""
-    done < <( echo "total,,died," ; if [ -e "$INPUT_FILE_RELO" ] ; then cat "$INPUT_FILE_RELO" ; fi)
+    done < <( \
+        echo "total,,died," ; \
+        if [ -e "$INPUT_FILE_RELO" ] ; \
+        then \
+            cat "$INPUT_FILE_RELO" ; \
+        fi ; \
+        if [ "$OVERALL_STATUS" = "died" ] ; \
+        then \
+            echo "total,,died," ; \
+        fi ; \
+        )
 }
 
 echo_group_status_cell_target_html() {
@@ -179,9 +189,8 @@ while read BUILD_DIR_RELO
 do
     if [ -d "$BUILD_DIR_RELO" ]
     then
-        read_artifact_group_statuses || true
-        STATUS=$(dump_first_line_if_exists "status.txt")
-        case "$STATUS" in
+        OVERALL_STATUS=$(dump_first_line_if_exists "status.txt")
+        case "$OVERALL_STATUS" in
             "failed" )
                 ARTIFACTS_FAILED=$(dump_first_line_if_exists "failure_count.txt" "?")
                 STATUS_CELL_TEXT="$ARTIFACTS_FAILED $STATUS"
@@ -195,10 +204,11 @@ do
                 STATUS_CELL_TEXT="$STATUS"
                 ;;
             * )
-                STATUS="died"
+                OVERALL_STATUS="died"
                 STATUS_CELL_TEXT="$STATUS"
                 ;;
         esac
+        read_artifact_group_statuses || true
 
         API_VERSION=$(dump_first_line_if_exists "api_version.txt" "---")
         DB_SCHEMA_VERSION=$(dump_first_line_if_exists "db_schema_version.txt" "---")
