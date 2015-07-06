@@ -580,7 +580,7 @@ cat_html_header_target_html \
     "$TARGET_DIR_RELB gerrit $BRANCH build" \
     "Build of $BRANCH commitish of gerrit for $TARGET_DIR_RELB" \
     "gerrit, jar, $BRANCH" \
-    "$TARGET_DIR_RELA build of $BRANCH of gerrit"
+    "$TARGET_DIR_RELB build of $BRANCH of gerrit"
 
 cat_target_html <<EOF
 <h2 id="summary">Build summary</h2>
