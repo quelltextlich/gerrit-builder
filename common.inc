@@ -81,6 +81,7 @@ add_to_plugins() {
 }
 add_to_plugins "admin-console"
 add_to_plugins "avatars-external"
+add_to_plugins "avatars-gravatar"
 add_to_plugins "branch-network"
 add_to_plugins "codenvy"
 add_to_plugins "delete-project"
