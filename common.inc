@@ -848,6 +848,8 @@ run_unit_test() {
         local CODE_COVERAGE_DIR_ABS="$GERRIT_DIR_ABS/buck-out/gen/jacoco"
         local CODE_COVERAGE_EXEC_FILE_ABS="$CODE_COVERAGE_DIR_ABS/jacoco.exec"
         local CODE_COVERAGE_HTML_DIR_ABS="$CODE_COVERAGE_DIR_ABS/code-coverage"
+        local EXTRA_JAVA_TOOLS_OPTIONS=
+
         rm -rf "$CODE_COVERAGE_DIR_ABS"
         if [ "$CODE_COVERAGE" = "yes" ]
         then
@@ -855,6 +857,22 @@ run_unit_test() {
                 "--code-coverage" \
                 "--code-coverage-format" "HTML" \
                 )
+            if [ "$JAVA_VERSION" = 7 ]
+            then
+                # On Java 7, unit testing with turned-on code coverage
+                # exceeds the default memory set by Buck. Hence, we need to
+                # increase allowed memory.
+                # Buck's .buckjavaargs do not apply for launched tools, so
+                # Buck does not offer a direct way to increase allowed
+                # memory for tests.
+                # Hence, we resort to using JAVA_TOOLS_OPTIONS.  We do not
+                # increase it in general (outside of this 'if' guard), as
+                # using JAVA_TOOL_OPTIONS is noisy and fills logs with
+                # messages of Java picking up these settings.
+                # See:
+                #   http://comments.gmane.org/gmane.comp.version-control.repo/16024
+                EXTRA_JAVA_TOOLS_OPTIONS='-XX:MaxPermSize=512m -Xmx2048m '
+            fi
         fi
 
         if [ "${#IGNORED_UNIT_TESTS[@]}" -gt 0 ]
@@ -866,7 +884,8 @@ run_unit_test() {
             done
         fi
 
-        if ! run_buck_logged test \
+        if ! JAVA_TOOL_OPTIONS="$EXTRA_JAVA_TOOLS_OPTIONS$JAVA_TOOL_OPTIONS" \
+            run_buck_logged test \
             --no-results-cache \
             "--exclude" "broken" "flaky" \
             "${BUCK_TEST_EXTRA_OPTS[@]}"
