@@ -144,7 +144,7 @@ ARTIFACTS_API=( \
     "api.zip" \
 )
 #---------------------------------------------------------------------
-JAVA_VERSION="$(java -version 2>&1 | head -n 1 | cut -f 2 -d .)"
+JAVA_VERSION="$(java -version 2>&1 | grep version | head -n 1 | cut -f 2 -d . || true)"
 if [ "$JAVA_VERSION" != "7" \
     -a "$JAVA_VERSION" != "8" \
     -a "$JAVA_VERSION" != "9" ]

@@ -1129,7 +1129,7 @@ then
         )</td></tr>"
 fi
     cat_target_html <<EOF
-  <tr><th>Java</th><td>$(java -version 2>&1 | head -n 1 | cut -f 2 -d '"')</td></tr>
+  <tr><th>Java</th><td>$(java -version 2>&1 | grep version | head -n 1 | cut -f 2 -d '"')</td></tr>
   <tr><th>Maven</th><td>$(mvn -version | head -n 1 | sed -e 's/^Apache Maven \(.*\) (.*/\1/')</td></tr>
   <tr><th>Watchman</th><td>$(watchman --version)</td></tr>
 </table>
