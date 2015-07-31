@@ -217,7 +217,7 @@ do
         README="$(dump_first_line_if_exists "README.txt")"
 
         cat_target_html <<EOF
-  <tr>
+  <tr id="build-$BUILD_DIR_RELO">
 EOF
         echo_group_status_cell_target_html "total"
         cat_target_html <<EOF
