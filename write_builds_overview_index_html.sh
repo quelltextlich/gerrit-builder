@@ -236,7 +236,13 @@ EOF
         done
         if [ -n "$README" ]
         then
-            echo_target_html "    <td><a href=\"$BUILD_DIR_RELO/README.txt\">Note</a></td>"
+            if [ "$(wc -l <"$BUILD_DIR_RELO/README.txt")" -gt 1 ]
+            then
+                ELLIPSIS=" [...]"
+            else
+                ELLIPSIS=
+            fi
+            echo_target_html "    <td><a href=\"$BUILD_DIR_RELO/README.txt\" title=\"$README$ELLIPSIS\">Note</a></td>"
         fi
         echo_target_html "  </tr>"
 
