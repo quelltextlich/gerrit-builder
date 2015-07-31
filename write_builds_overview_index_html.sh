@@ -239,11 +239,26 @@ EOF
             echo_target_html "    <td><a href=\"$BUILD_DIR_RELO/README.txt\">Note</a></td>"
         fi
         echo_target_html "  </tr>"
+
+        if [ -e "$BUILD_DIR_RELO/README.txt" ]
+        then
+            LOG+="
+<dt id=\"README-$BUILD_DIR_RELO\"><a href=\"$BUILD_DIR_RELO/$INDEX_FILE_RELC\">$BUILD_DIR_RELO</a> (<a href=\"#build-$BUILD_DIR_RELO\">up</a>)</dt>\
+<dd><pre>$(cat "$BUILD_DIR_RELO/README.txt")</pre></dd>"
+        fi
     fi
 done < <(find * -maxdepth 0 \( -type d -o -type l \) | sort $SORT_OPTION)
 popd >/dev/null
 
 echo_target_html "</table>"
+
+if [ -n "$LOG" ]
+then
+    echo_target_html "<h2>Log</h2>"
+
+    echo_target_html "<dl>$LOG"
+    echo_target_html "</dl>"
+fi
 
 cat_html_footer_target_html
 
