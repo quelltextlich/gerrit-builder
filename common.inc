@@ -1781,3 +1781,10 @@ plugin_name_to_REPO_DIR_RELS() {
     REPO_DIR_RELS="${REPO_DIR_RELS////-}" # all slashes to dashes
     REPO_DIR_RELS="plugins/$REPO_DIR_RELS" # force slash in "plugins/"
 }
+
+compute_checksums() {
+    pushd "$TARGET_DIR_ABS" >/dev/null
+    rm -f sha1sums.txt
+    find -- * -maxdepth 1 -type f | xargs sha1sum >sha1sums.txt
+    popd >/dev/null
+}

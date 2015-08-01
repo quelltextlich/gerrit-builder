@@ -470,13 +470,6 @@ fi
 
 generate_docu_index
 
-compute_checksums() {
-    pushd "$TARGET_DIR_ABS" >/dev/null
-    rm -f sha1sums.txt
-    find -- * -maxdepth 1 -type f | xargs sha1sum >sha1sums.txt
-    popd >/dev/null
-}
-
 dump_status() {
     echo "$STATUS" >"$TARGET_DIR_ABS/status.txt"
 }
