@@ -153,6 +153,9 @@ tail -n +"$((INDEX_CUT_LINE+1))" "$INDEX_FILE_ABS" \
     | sed -e '/<!-- README.txt start -->/,/<!-- README.txt end -->/d' \
     >>"$TMP_FILE_ABS"
 
+# Update file's timestamp
+sed -e 's/\(Last update: \)[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}/\1 '"$(timestamp)"'/' -i "$TMP_FILE_ABS"
+
 mv "$TMP_FILE_ABS" "$INDEX_FILE_ABS"
 
 compute_checksums
