@@ -1785,6 +1785,6 @@ plugin_name_to_REPO_DIR_RELS() {
 compute_checksums() {
     pushd "$TARGET_DIR_ABS" >/dev/null
     rm -f sha1sums.txt
-    find -- * -maxdepth 1 -type f | xargs sha1sum >sha1sums.txt
+    find -- * -maxdepth 0 -type f | xargs sha1sum >sha1sums.txt
     popd >/dev/null
 }
