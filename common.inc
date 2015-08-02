@@ -1537,6 +1537,12 @@ th {
 .tablerow h3 {
   display: none;
 }
+.note-box {
+  background: #b6e4ff;
+  border: 2px solid #5279b0;
+  margin: 1em;
+  padding: 1em;
+}
   </style>
 </head>
 <body>

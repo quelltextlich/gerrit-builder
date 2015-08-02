@@ -596,6 +596,8 @@ cat_target_html <<EOF
 
 </div>
 
+<!-- README.txt -->
+
 <h2 id="artifacts">Artifacts</h2>
 
 <p>-
