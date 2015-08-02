@@ -15,6 +15,7 @@ GENERATE_JAVADOC=yes
 IGNORED_UNIT_TESTS=()
 REMOVE_LINKS=yes
 MANAGE_LATEST_LINK=yes
+MANAGE_LATEST_OK_LINK=yes
 STOP_TEST_SITE=yes
 TEST_UNIT=yes
 TEST_SYSTEM=yes
@@ -61,6 +62,9 @@ ARGUMENTS:
                        classes are run.
   --latest-linking   - Generate a 'latest' link in the artifacts directory
                        pointing to the latest build
+  --latest-ok-linking
+                     - Generate a 'latest-ok' link in the artifacts directory
+                       pointing to the latest fully ok build
   --link-removing    - Remove unneeded links to extra plugins underneath
                        "gerrit/plugins". (On per default)
   --manual           - Generate the manual. Implies running system tests. (On per default)
@@ -84,6 +88,9 @@ ARGUMENTS:
   --no-latest-linking
                      - Don't generate a 'latest' link pointing to the latest
                        build
+  --no-latest-ok-linking
+                     - Don't generate a 'latest-ok' link pointing to the latest
+                       fully ok build
   --no-link-removing - Don't remove unneeded links to extra plugins in
                        "gerrit/plugins".
   --no-system-testing
@@ -187,6 +194,10 @@ parse_arguments() {
             "--latest-link" )
                 MANAGE_LATEST_LINK=yes
                 ;;
+            "--latest-ok-link" | \
+            "--latest-ok-linking" )
+                MANAGE_LATEST_OK_LINK=yes
+                ;;
             "--link-removing" )
                 REMOVE_LINKS=yes
                 ;;
@@ -219,6 +230,10 @@ parse_arguments() {
                 ;;
             "--no-latest-link" )
                 MANAGE_LATEST_LINK=no
+                ;;
+            "--no-latest-ok-link" | \
+            "--no-latest-ok-linking" )
+                MANAGE_LATEST_OK_LINK=no
                 ;;
             "--no-link-removing" )
                 REMOVE_LINKS=no
@@ -265,6 +280,7 @@ parse_arguments() {
                 GENERATE_JAVADOC=no
                 GENERATE_MANUAL=no
                 MANAGE_LATEST_LINK=no
+                MANAGE_LATEST_OK_LINK=no
                 PRINT_VERSIONS=no
                 PULL=no
                 REMOVE_LINKS=no
@@ -364,19 +380,24 @@ fi
 
 mkdir -p "$TARGET_DIR_ABS"
 
+update_build_link() {
+    local LINK_FILE_RELB="$1"
+    local LINK_FILE_ABS="$BUILDS_DIR_ABS/$LINK_FILE_RELB"
+
+    if [ -h "$LINK_FILE_ABS" ]
+    then
+        rm "$LINK_FILE_ABS"
+    fi
+
+    if [ ! -e "$LINK_FILE_ABS" ]
+    then
+        ln -s "$TARGET_DIR_RELB" "$LINK_FILE_ABS"
+    fi
+}
+
 if [ "$MANAGE_LATEST_LINK" = "yes" ]
 then
-    LATEST_LINK_FILE_ABS="$BUILDS_DIR_ABS/latest"
-
-    if [ -h "$LATEST_LINK_FILE_ABS" ]
-    then
-        rm "$LATEST_LINK_FILE_ABS"
-    fi
-
-    if [ ! -e "$LATEST_LINK_FILE_ABS" ]
-    then
-        ln -s "$TARGET_DIR_RELB" "$LATEST_LINK_FILE_ABS"
-    fi
+    update_build_link "latest"
 fi
 
 post_parameter_parsing_setup
@@ -1159,6 +1180,11 @@ sed -i \
 
 dump_status
 compute_checksums
+
+if [ "$MANAGE_LATEST_OK_LINK" = "yes" -a "$STATUS" = "ok" ]
+then
+    update_build_link "latest-ok"
+fi
 
 if [ "$BUILDS_OVERVIEW_INDICES" = "yes" ]
 then
