@@ -157,4 +157,6 @@ mv "$TMP_FILE_ABS" "$INDEX_FILE_ABS"
 
 compute_checksums
 
+"$SCRIPT_DIR_ABS/write_builds_overview_index_htmls.sh"
+
 finalize 0
