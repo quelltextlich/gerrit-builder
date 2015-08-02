@@ -888,17 +888,14 @@ echo_artifacts_group_numbers_txt() {
         echo -n "${ARTIFACT_GROUP_TOTAL_COUNT[$ARTIFACT_GROUP]},"
         echo -n "${ARTIFACT_GROUP_STATUS[$ARTIFACT_GROUP]},"
         echo -n "${ARTIFACT_GROUP_STATUS_COUNT[$ARTIFACT_GROUP]}"
-        if [ "$ARTIFACT_GROUP" = "total" ]
-        then
-            case "${ARTIFACT_GROUP_STATUS[$ARTIFACT_GROUP]}" in
-                "failed" )
-                    echo -n ",$FIRST_FAILED_ARTIFACT"
-                    ;;
-                "broken" )
-                    echo -n ",$FIRST_BROKEN_ARTIFACT"
-                    ;;
-            esac
-        fi
+        case "${ARTIFACT_GROUP_STATUS[$ARTIFACT_GROUP]}" in
+            "failed" )
+                echo -n ",${ARTIFACT_GROUP_FIRST_FAILED_ARTIFACT[$ARTIFACT_GROUP]}"
+                ;;
+            "broken" )
+                echo -n ",${ARTIFACT_GROUP_FIRST_BROKEN_ARTIFACT[$ARTIFACT_GROUP]}"
+                ;;
+        esac
         echo
     done | sort --field-separator=',' --key=1,1 --key=2,2n
 }
@@ -1086,8 +1083,8 @@ cat_artifacts_summary_row_target_html() {
 cat_artifacts_summary_target_html() {
     local CONTENT="<table>\n  <tr><th>Artifacts</th><th>Count</th></tr>"
 
-    cat_artifacts_summary_row_target_html "failed" "$ARTIFACTS_FAILED" "$FIRST_FAILED_ARTIFACT"
-    cat_artifacts_summary_row_target_html "broken" "$ARTIFACTS_BROKEN" "$FIRST_BROKEN_ARTIFACT"
+    cat_artifacts_summary_row_target_html "failed" "$ARTIFACTS_FAILED" "${ARTIFACT_GROUP_FIRST_FAILED_ARTIFACT["total"]}"
+    cat_artifacts_summary_row_target_html "broken" "$ARTIFACTS_BROKEN" "${ARTIFACT_GROUP_FIRST_BROKEN_ARTIFACT["total"]}"
     cat_artifacts_summary_row_target_html "ok" "$ARTIFACTS_OK"
     cat_artifacts_summary_row_target_html "total" "$ARTIFACTS_TOTAL"
 
@@ -1162,10 +1159,10 @@ FINAL_STATUS_MARKUP=${STATUS_TEXT//&/\\&}
 
 case "$STATUS" in
     "failed" )
-        FINAL_STATUS_MARKUP="<a href=\"#$FIRST_FAILED_ARTIFACT\">$FINAL_STATUS_MARKUP</a>"
+        FINAL_STATUS_MARKUP="<a href=\"#${ARTIFACT_GROUP_FIRST_FAILED_ARTIFACT["total"]}\">$FINAL_STATUS_MARKUP</a>"
         ;;
     "broken" )
-        FINAL_STATUS_MARKUP="<a href=\"#$FIRST_BROKEN_ARTIFACT\">$FINAL_STATUS_MARKUP</a>"
+        FINAL_STATUS_MARKUP="<a href=\"#${ARTIFACT_GROUP_FIRST_BROKEN_ARTIFACT["total"]}\">$FINAL_STATUS_MARKUP</a>"
         ;;
 esac
 
