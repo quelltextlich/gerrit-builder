@@ -119,7 +119,7 @@ read_artifact_group_statuses() {
     while IFS="," read ARTIFACT_GROUP TOTAL_COUNT GROUP_STATUS GROUP_COUNT FIRST_ARTIFACT_W_STATUS
     do
         ARTIFACT_GROUP_CELLS["$ARTIFACT_GROUP"]=""
-        if [ "$ARTIFACT_GROUP" = "total" -a -n "$FIRST_ARTIFACT_W_STATUS" ]
+        if [ -n "$FIRST_ARTIFACT_W_STATUS" ]
         then
             add_artifact_group_cell "<a href=\"$BUILD_DIR_RELO/$INDEX_FILE_RELC#$FIRST_ARTIFACT_W_STATUS\">"
         else
