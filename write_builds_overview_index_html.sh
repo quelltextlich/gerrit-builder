@@ -83,7 +83,7 @@ else
 fi
 
 cat_target_html <<EOF
-<table>
+<table class="targetable">
   <tr>
     <td class="borderless" colspan="1"/>
     <th rowspan="2">$BUILD_CAPTION</th>

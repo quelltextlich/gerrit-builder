@@ -1487,6 +1487,9 @@ cat_html_header_target_html() {
   <meta name="keywords" content="$KEYWORDS" />
   <link rel="shortcut icon" href="/favicon.ico" />
   <style type="text/css">
+.targetable tr:target td {
+  background: #ffe000;
+}
 .left {
   text-align: left;
 }
