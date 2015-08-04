@@ -1710,7 +1710,15 @@ curl_as () {
 
     if [ -z "${TEST_SITE_SESSIONS[$USER_NAME]}" ]
     then
-        TEST_SITE_SESSIONS[$USER_NAME]=$(curl --silent --show-error -D - 'http://127.0.0.1:8089/login/%23%2F?user_name='"$USER_NAME" | grep Set-Cookie | sed -e 's/^.*GerritAccount=\([^;]*\);.*/\1/')
+        TEST_SITE_SESSIONS[$USER_NAME]=$( \
+            curl \
+              --silent \
+              --show-error \
+              -D - \
+              'http://'"$TEST_SITE_HTTP_HOST"':'"$TEST_SITE_HTTP_PORT"'/login/%23%2F?user_name='"$USER_NAME" \
+            | grep Set-Cookie \
+            | sed -e 's/^.*GerritAccount=\([^;]*\);.*/\1/' \
+            )
     fi
     local SESSION="${TEST_SITE_SESSIONS[$USER_NAME]}"
 
