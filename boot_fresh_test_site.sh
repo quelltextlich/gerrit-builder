@@ -51,7 +51,7 @@ section "Adapting config"
 set_config_value "gerrit.canonicalWebUrl" "$TEST_SITE_URL"
 set_config_value "auth.type" "DEVELOPMENT_BECOME_ANY_ACCOUNT"
 set_config_value "sendemail.enable" "false"
-set_config_value "sshd.listenAddress" "127.0.0.1:$TEST_SITE_SSH_PORT"
+set_config_value "sshd.listenAddress" "$TEST_SITE_SSH_HOST:$TEST_SITE_SSH_PORT"
 set_config_value "httpd.listenUrl" "$TEST_SITE_URL"
 set_config_value "plugins.allowRemoteAdmin" "true"
 
