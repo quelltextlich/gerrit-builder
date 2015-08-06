@@ -97,4 +97,11 @@ cp -a "$USER_CREDENTIALS_DIR_ABS" "$TEST_SITE_USER_CREDENTIALS_DIR_ABS"
 chmod 400 "$TEST_SITE_USER_CREDENTIALS_DIR_ABS/"*"/id_rsa"
 setup_ssh_user admin
 
+if is_test_site_working
+then
+    info "Test site seems to work as expected"
+else
+    error "Test site does not seem to work as expected"
+fi
+
 finalize

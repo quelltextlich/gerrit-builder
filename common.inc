@@ -602,6 +602,19 @@ run_system_test() {
                             then
                                 info "Plugin loaded and listed as '$PLUGIN_NAME'"
                                 info "Plugin loaded and listed as '$PLUGIN_NAME'" 2>>"$TARGET_FILE_ABS.system.stdout.txt"
+                                if is_test_site_working
+                                then
+                                    info "Test site still seems to work as \
+expected after plugin loading"
+                                    info "Test site still seems to work as \
+expected after plugin loading" 2>>"$TARGET_FILE_ABS.system.stdout.txt"
+                                else
+                                    info "Test site no longer seems to \
+work as expected after plugin loading"
+                                    info "Test site no longer seems to \
+work as expected after plugin loading" 2>>"$TARGET_FILE_ABS.system.stdout.txt"
+                                    RETURN_CODE=1
+                                fi
                             else
                                 info "Plugin loaded, but was not listed as '$PLUGIN_NAME'"
                                 info "Plugin loaded, but was not listed as '$PLUGIN_NAME'" 2>>"$TARGET_FILE_ABS.system.stdout.txt"
@@ -1816,4 +1829,26 @@ compute_checksums() {
     rm -f sha1sums.txt
     find -- * -maxdepth 0 -type f | xargs sha1sum >sha1sums.txt
     popd >/dev/null
+}
+
+#---------------------------------------------------------------------
+is_test_site_working() {
+    local TMP_FILE_ABS="$(mktemp --tmpdir "gerrit-builder-test-site-check.XXXXXX")"
+    if ! curl --silent --show-error --fail "$TEST_SITE_URL" -o "$TMP_FILE_ABS"
+    then
+        echo "Failed to fetch '$TEST_SITE_URL'" >&2
+        rm -f "$TMP_FILE_ABS"
+        return 1
+    fi
+
+    local FRONT_PAGE_NEEDLE="Gerrit requires a JavaScript enabled browser"
+    if ! grep --quiet "$FRONT_PAGE_NEEDLE" "$TMP_FILE_ABS"
+    then
+        echo "Test site's front page does not look like Gerrit's front page, as it does not contain '$FRONT_PAGE_NEEDLE'" >&2
+        rm -f "$TMP_FILE_ABS"
+        return 1
+    fi
+
+    rm -f "$TMP_FILE_ABS"
+    return 0
 }
