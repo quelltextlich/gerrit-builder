@@ -1849,6 +1849,23 @@ is_test_site_working() {
         return 1
     fi
 
+    if ! "$SCRIPT_DIR_ABS"/ssh_test-site.sh admin \
+        gerrit show-connections \
+        >"$TMP_FILE_ABS"
+    then
+        echo "Failed to list connections through SSH" >&2
+        rm -f "$TMP_FILE_ABS"
+        return 1
+    fi
+
+    local CONNECTION_NEEDLE="SSHD Backend: "
+    if ! grep --quiet "$CONNECTION_NEEDLE" "$TMP_FILE_ABS"
+    then
+        echo "Test site's showing connection looks faulty, as it does not contain '$CONNECTION_NEEDLE'" >&2
+        rm -f "$TMP_FILE_ABS"
+        return 1
+    fi
+
     rm -f "$TMP_FILE_ABS"
     return 0
 }
