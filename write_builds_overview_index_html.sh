@@ -253,7 +253,14 @@ EOF
 <dd><pre>$(cat "$BUILD_DIR_RELO/README.txt")</pre></dd>"
         fi
     fi
-done < <(find * -maxdepth 0 \( -type d -o -type l \) | sort $SORT_OPTION)
+done < <(find * -maxdepth 0 \( -type d -o -type l \) \
+    | sed \
+        -e 's/^/m/' \
+        -e 's/^mlatest$/zlatest/' \
+        -e 's/^mlatest-ok$/ylatest-ok/' \
+    | sort $SORT_OPTION \
+    | sed -e 's/^.//' \
+    )
 popd >/dev/null
 
 echo_target_html "</table>"
