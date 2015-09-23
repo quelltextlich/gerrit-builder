@@ -944,8 +944,6 @@ do
     done
 done
 
-run_buck_build "gerrit, api" "api" "api.zip" "api"
-
 # Building bundled plugins
 for PLUGIN_DIR_ABS in "$GERRIT_DIR_ABS/plugins"/*
 do
