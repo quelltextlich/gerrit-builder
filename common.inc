@@ -975,6 +975,8 @@ run_buck_build() {
     fi
 
     local SOURCE_FILE_ABS="$GERRIT_DIR_ABS/buck-out/gen/$BUCK_GENERATED_FILE_RELBG"
+    local SOURCE_FILES="$SOURCE_FILE_ABS"
+
     local TARGET_FILE_ABS="$TARGET_DIR_ABS/$ARTIFACT_BASENAME"
 
     local LOG_FILE_ABS="$GERRIT_DIR_ABS/buck-out/log/buck-0.log"
@@ -983,6 +985,11 @@ run_buck_build() {
 
     if test "$BUILD_ARTIFACTS" = "no" || run_buck_logged build "$BUCK_TARGET"
     then
+        if [ ! -e "$SOURCE_FILE_ABS" ]
+        then
+            SOURCE_FILE_ABS="$(sed -e 's@\(^\|/\)\([^/]*\)\(\.[^/]*\)$@\1\2/\2\3@' <<<"$SOURCE_FILE_ABS")"
+            SOURCE_FILES="$SOURCE_FILES or $SOURCE_FILE_ABS"
+        fi
         if [ -e "$SOURCE_FILE_ABS" ]
         then
             cp "$SOURCE_FILE_ABS" "$TARGET_FILE_ABS"
@@ -991,7 +998,7 @@ run_buck_build() {
         else
             if [ "$BUILD_ARTIFACTS" != "no" ]
             then
-                error "Could not find artifact $SOURCE_FILE_ABS for $DESCRIPTION"
+                error "Could not find artifact $SOURCE_FILES for $DESCRIPTION"
             fi
         fi
     fi
