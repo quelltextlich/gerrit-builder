@@ -933,7 +933,17 @@ run_unit_test() {
                                 JACOCO_TOOLBOX_SOURCE_FILES_ABS["$ARTIFACT_BASENAME"]="$VALUE"
                                 ;;
                         esac
-                    done < <( sed -e 's/ -\(D\|jar \)/\n/g' <<<"$BUCK_REPORT_GENERATOR_INVOCATION" )
+                    done < <( \
+                        if [ "${BUCK_REPORT_GENERATOR_INVOCATION: -31}" = "buck/build/report-generator.jar" ]
+                        then
+                            # Used for Buck in gerrit master before 2015-10-12
+                            sed -e 's/ -\(D\|jar \)/\n/g' <<<"$BUCK_REPORT_GENERATOR_INVOCATION"
+                        else
+                            # Used for Buck in gerrit master from 2015-10-12 on
+                            local BUCK_REPORT_PROPERTIES_FILE_ABS="${BUCK_REPORT_GENERATOR_INVOCATION##*buck/build/report-generator.jar }"
+                            cat "$BUCK_REPORT_PROPERTIES_FILE_ABS"
+                        fi \
+                    )
                 fi
                 if [ -n "${JACOCO_TOOLBOX_CLASS_FILES_ABS["$ARTIFACT_BASENAME"]}" ]
                 then
