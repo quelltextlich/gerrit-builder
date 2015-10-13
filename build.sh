@@ -927,6 +927,7 @@ run_buck_build "gerrit, withdocs.war" "//:withdocs" "withdocs.war" "war"
 
 #Building api
 for API in \
+    "gerrit-acceptance-framework:acceptance-framework" \
     "gerrit-extension-api:extension-api" \
     "gerrit-plugin-api:plugin-api" \
     "gerrit-plugin-gwtui:gwtui-api" \
