@@ -925,13 +925,17 @@ cat_manual_index_header
 run_buck_build "gerrit, gerrit.war" "//:gerrit" "gerrit.war" "war"
 run_buck_build "gerrit, withdocs.war" "//:withdocs" "withdocs.war" "war"
 
-#Building api
-for API in \
-    "gerrit-acceptance-framework:acceptance-framework" \
-    "gerrit-extension-api:extension-api" \
-    "gerrit-plugin-api:plugin-api" \
-    "gerrit-plugin-gwtui:gwtui-api" \
+APIS=()
+if [ -e "$GERRIT_DIR_ABS/gerrit-acceptance-framework" ]
+then
+    APIS+=("gerrit-acceptance-framework:acceptance-framework")
+fi
+APIS+=("gerrit-extension-api:extension-api")
+APIS+=("gerrit-plugin-api:plugin-api")
+APIS+=("gerrit-plugin-gwtui:gwtui-api")
 
+#Building api
+for API in "${APIS[@]}"
 do
     for ASPECT in '' '-src' '-javadoc'
     do
